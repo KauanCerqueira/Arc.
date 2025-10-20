@@ -506,7 +506,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
     }),
     {
-      name: 'projectly-workspace',
+      name: 'Arc.-workspace',
     }
   )
 );

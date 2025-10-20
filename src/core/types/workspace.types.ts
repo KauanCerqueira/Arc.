@@ -1,5 +1,5 @@
 /**
- * Tipos base do Projectly
+ * Tipos base do Arc.
  * Estrutura: Workspace → Groups → Pages
  */
 

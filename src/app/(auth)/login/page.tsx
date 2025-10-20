@@ -47,7 +47,7 @@ export default function LoginPage() {
               <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
                 <div className="w-4 h-4 bg-white rounded-sm"></div>
               </div>
-              <span className="text-xl font-semibold text-gray-900">Projectly</span>
+              <span className="text-xl font-semibold text-gray-900">Arc.</span>
             </Link>
           </div>
 
@@ -169,7 +169,7 @@ export default function LoginPage() {
               Organize seus projetos como nunca antes
             </h2>
             <p className="text-gray-600">
-              Mais de 12 mil pessoas já estão usando o Projectly.
+              Mais de 12 mil pessoas já estão usando o Arc..
             </p>
           </div>
 

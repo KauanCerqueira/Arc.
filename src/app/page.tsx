@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from "next/image";
 import { 
   CheckCircle, Calendar, Timer, 
   TrendingUp, Zap, ArrowRight, 
@@ -33,7 +34,7 @@ export default function Home() {
 
   const testimonials = [
     {
-      quote: "Finalmente consigo ver todos os meus projetos em um lugar só. O Projectly mudou como eu trabalho.",
+      quote: "Finalmente consigo ver todos os meus projetos em um lugar só. O Arc. mudou como eu trabalho.",
       author: "Marina Souza",
       role: "Designer de Produto",
       initial: "M"
@@ -55,14 +56,21 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar clean e funcional */}
-      <nav className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm"></div>
-            </div>
-            <span className="text-xl font-semibold text-gray-900">Projectly</span>
-          </div>
+       <nav className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
+      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo e título */}
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/icon/arclogo.svg"
+              alt="Arc Logo"
+              width={32}
+              height={32}
+              priority
+            />
+            <span className="text-xl font-semibold text-gray-900">Arc.</span>
+          </Link>
+        </div>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             <a href="#features" className="text-gray-600 hover:text-gray-900 transition">Recursos</a>
@@ -367,31 +375,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-sm"></div>
-              </div>
-              <span className="text-lg font-semibold text-gray-900">Projectly</span>
-            </div>
-            
-            <div className="flex gap-8 text-sm text-gray-600">
-              <a href="#" className="hover:text-gray-900 transition">Sobre</a>
-              <a href="#" className="hover:text-gray-900 transition">Blog</a>
-              <a href="#" className="hover:text-gray-900 transition">Ajuda</a>
-              <a href="#" className="hover:text-gray-900 transition">Privacidade</a>
-              <a href="#" className="hover:text-gray-900 transition">Termos</a>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500">
-            <p>© 2025 Projectly. Feito para pessoas que fazem acontecer.</p>
+      <footer className="border-t border-gray-200 py-12 bg-[#f6f4f0]">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          {/* Logo + nome */}
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/icon/arclogo.svg"
+              alt="Arc Logo"
+              width={32}
+              height={32}
+              priority
+            />
+            <span className="text-lg font-semibold text-gray-900">Arc.</span>
+          </Link>
+
+          {/* Links de navegação */}
+          <div className="flex gap-8 text-sm text-gray-600 text-center md:text-left">
+            <a href="#" className="hover:text-gray-900 transition">
+              Sobre
+            </a>
+            <a href="#" className="hover:text-gray-900 transition">
+              Blog
+            </a>
+            <a href="#" className="hover:text-gray-900 transition">
+              Ajuda
+            </a>
+            <a href="#" className="hover:text-gray-900 transition">
+              Privacidade
+            </a>
+            <a href="#" className="hover:text-gray-900 transition">
+              Termos
+            </a>
           </div>
         </div>
-      </footer>
+
+        {/* Linha inferior */}
+        <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500">
+          <p>© 2025 Arc. Feito para pessoas que fazem acontecer.</p>
+        </div>
+      </div>
+    </footer>
     </div>
   );
 }

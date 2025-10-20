@@ -1,57 +1,57 @@
-# ?? Projectly
+# ?? arc.
 
-Sistema de produtividade pessoal com metodologias dinâmicas.
+Sistema de produtividade pessoal com metodologias dinï¿½micas.
 
 ## ?? Sobre o Projeto
 
-O Projectly é uma plataforma de produtividade pessoal que permite aos usuários gerenciar seus projetos usando diferentes metodologias de trabalho (Kanban, Pomodoro, GTD, Estudo).
+O arc. ï¿½ uma plataforma de produtividade pessoal que permite aos usuï¿½rios gerenciar seus projetos usando diferentes metodologias de trabalho (Kanban, Pomodoro, GTD, Estudo).
 
 ## ??? Tecnologias
 
 ### Frontend
 - **Next.js 15.5** - Framework React com App Router
-- **React 19.2** - Biblioteca UI (última versão estável)
-- **TypeScript 5.9** - Tipagem estática
-- **Tailwind CSS 3.4** - Estilização utility-first
+- **React 19.2** - Biblioteca UI (ï¿½ltima versï¿½o estï¿½vel)
+- **TypeScript 5.9** - Tipagem estï¿½tica
+- **Tailwind CSS 3.4** - Estilizaï¿½ï¿½o utility-first
 - **Zustand 4.5** - Gerenciamento de estado
-- **Lucide React** - Ícones
-- **Framer Motion 11** - Animações
+- **Lucide React** - ï¿½cones
+- **Framer Motion 11** - Animaï¿½ï¿½es
 
-### Backend (próxima etapa)
+### Backend (prï¿½xima etapa)
 - **.NET 8** - Framework backend
 - **PostgreSQL** - Banco de dados
 - **EF Core** - ORM
-- **Identity** - Autenticação
-- **JWT** - Tokens de autenticação
+- **Identity** - Autenticaï¿½ï¿½o
+- **JWT** - Tokens de autenticaï¿½ï¿½o
 
 ## ?? Estrutura do Projeto
 
 ```
-Projectly/
+arc./
 +-- src/
-¦   +-- app/                    # Páginas e rotas (App Router)
-¦   ¦   +-- (auth)/            # Rotas de autenticação
-¦   ¦   +-- (dashboard)/       # Rotas do dashboard
-¦   ¦   +-- project/[id]/      # Página dinâmica de projeto
-¦   +-- features/              # Funcionalidades isoladas
-¦   ¦   +-- auth/
-¦   ¦   +-- tasks/
-¦   ¦   +-- projects/
-¦   ¦   +-- methodologies/
-¦   +-- core/                  # Configurações e utils
-¦   +-- shared/                # Componentes compartilhados
-+-- public/                    # Arquivos estáticos
+ï¿½   +-- app/                    # Pï¿½ginas e rotas (App Router)
+ï¿½   ï¿½   +-- (auth)/            # Rotas de autenticaï¿½ï¿½o
+ï¿½   ï¿½   +-- (dashboard)/       # Rotas do dashboard
+ï¿½   ï¿½   +-- project/[id]/      # Pï¿½gina dinï¿½mica de projeto
+ï¿½   +-- features/              # Funcionalidades isoladas
+ï¿½   ï¿½   +-- auth/
+ï¿½   ï¿½   +-- tasks/
+ï¿½   ï¿½   +-- projects/
+ï¿½   ï¿½   +-- methodologies/
+ï¿½   +-- core/                  # Configuraï¿½ï¿½es e utils
+ï¿½   +-- shared/                # Componentes compartilhados
++-- public/                    # Arquivos estï¿½ticos
 ```
 
 ## ?? Como Executar
 
-### Pré-requisitos
+### Prï¿½-requisitos
 - Node.js 18+ ou 20+ (recomendado)
 - npm, yarn ou pnpm
 
-### Instalação
+### Instalaï¿½ï¿½o
 
-1. Instale as dependências:
+1. Instale as dependï¿½ncias:
 ```bash
 npm install
 ```
@@ -66,27 +66,27 @@ npm run dev
 http://localhost:3000
 ```
 
-## ?? Scripts Disponíveis
+## ?? Scripts Disponï¿½veis
 
 - `npm run dev` - Inicia o servidor de desenvolvimento (com Turbopack)
-- `npm run build` - Cria build de produção
-- `npm start` - Inicia o servidor de produção
+- `npm run build` - Cria build de produï¿½ï¿½o
+- `npm start` - Inicia o servidor de produï¿½ï¿½o
 - `npm run lint` - Executa o linter
 
 ## ?? Funcionalidades
 
-- ? Autenticação de usuários
-- ? Dashboard com estatísticas
+- ? Autenticaï¿½ï¿½o de usuï¿½rios
+- ? Dashboard com estatï¿½sticas
 - ? Gerenciamento de tarefas
-- ? Criação de projetos
-- ? Múltiplas metodologias (Kanban, Pomodoro, GTD, Estudo)
-- ? Configurações de perfil
+- ? Criaï¿½ï¿½o de projetos
+- ? Mï¿½ltiplas metodologias (Kanban, Pomodoro, GTD, Estudo)
+- ? Configuraï¿½ï¿½es de perfil
 - ? Interface responsiva e moderna
 
-## ?? Novidades das Versões Atualizadas
+## ?? Novidades das Versï¿½es Atualizadas
 
 ### Next.js 15.5
-- Turbopack habilitado por padrão (builds até 5-10x mais rápidos)
+- Turbopack habilitado por padrï¿½o (builds atï¿½ 5-10x mais rï¿½pidos)
 - Melhorias no sistema de roteamento
 - Suporte aprimorado ao React 19
 
@@ -98,37 +98,37 @@ http://localhost:3000
 
 ### TypeScript 5.9
 - Melhorias no `tsc --init`
-- Melhor inferência de tipos
+- Melhor inferï¿½ncia de tipos
 - Performance otimizada
 
-## ?? Próximos Passos
+## ?? Prï¿½ximos Passos
 
 1. Conectar com backend .NET 8
 2. Implementar Zustand stores
-3. Adicionar visualizações dinâmicas por metodologia
+3. Adicionar visualizaï¿½ï¿½es dinï¿½micas por metodologia
 4. Implementar drag and drop no Kanban
 5. Adicionar timer do Pomodoro
-6. Sistema de análise de viabilidade de projetos
+6. Sistema de anï¿½lise de viabilidade de projetos
 
-## ?? Atualizando Dependências
+## ?? Atualizando Dependï¿½ncias
 
-Para manter as dependências atualizadas:
+Para manter as dependï¿½ncias atualizadas:
 ```bash
 npm update
 ```
 
-Para verificar versões desatualizadas:
+Para verificar versï¿½es desatualizadas:
 ```bash
 npm outdated
 ```
 
-## ?? Licença
+## ?? Licenï¿½a
 
-Este projeto está sob a licença MIT.
+Este projeto estï¿½ sob a licenï¿½a MIT.
 
 ## ????? Desenvolvido com
 
-- ?? Paixão por código limpo
+- ?? Paixï¿½o por cï¿½digo limpo
 - ? Next.js 15 com Turbopack
-- ?? Tailwind CSS para estilização moderna
+- ?? Tailwind CSS para estilizaï¿½ï¿½o moderna
 - ?? As mais recentes tecnologias React

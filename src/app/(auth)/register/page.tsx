@@ -33,7 +33,7 @@ export default function RegisterPage() {
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm"></div>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Projectly</span>
+            <span className="text-xl font-semibold text-gray-900">Arc.</span>
           </Link>
           
           <div className="text-sm text-gray-600">
@@ -195,7 +195,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <p className="text-gray-700 mb-3 leading-relaxed">
-                "Finalmente consigo ver todos os meus projetos em um lugar só. O Projectly mudou completamente como eu trabalho e organizo minhas tarefas."
+                "Finalmente consigo ver todos os meus projetos em um lugar só. O Arc. mudou completamente como eu trabalho e organizo minhas tarefas."
               </p>
               <div>
                 <div className="font-semibold text-gray-900">Marina Souza</div>
