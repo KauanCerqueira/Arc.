@@ -16,6 +16,7 @@ import BugsTemplate from '@/app/(workspace)/templates/bugs';
 import StudyTemplate from '@/app/(workspace)/templates/study';
 import BudgetTemplate from '@/app/(workspace)/templates/budget';
 import SprintTemplate from '@/app/(workspace)/templates/sprint';
+import FocusTemplate from '@/app/(workspace)/templates/focus';
 
 export default function PageView() {
   const params = useParams();
@@ -71,6 +72,8 @@ export default function PageView() {
         return <BudgetTemplate />;
       case 'sprint':
         return <SprintTemplate />;
+              case 'focus':
+        return <FocusTemplate />;
       default:
         return <BlankTemplate />;
     }

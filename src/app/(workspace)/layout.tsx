@@ -231,7 +231,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     { id: 'bugs', name: 'Rastreador de Bugs', description: 'Bugs e problemas', icon: '🐛', color: 'from-pink-50 to-rose-50 border-pink-200' },
     { id: 'study', name: 'Estudos', description: 'Materiais de estudo', icon: '📚', color: 'from-indigo-50 to-blue-50 border-indigo-200' },
     { id: 'budget', name: 'Orçamento', description: 'Receitas e despesas', icon: '💰', color: 'from-yellow-50 to-amber-50 border-yellow-200' },
-    { id: 'sprint', name: 'Sprint Planning', description: 'Sprints ágeis', icon: '🏃', color: 'from-teal-50 to-cyan-50 border-teal-200' },
+    { id: 'focus', name: 'Pomodoro', description: 'Pomodoro', icon: '🏃', color: 'from-teal-50 to-cyan-50 border-teal-200' },
+    
   ];
 
   const handleCreateGroup = () => {

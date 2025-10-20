@@ -16,6 +16,7 @@ export type TemplateType =
   | 'bugs'          // Rastreador de bugs
   | 'study'         // Gerenciador de estudos
   | 'budget'        // Calculadora de orçamento
+  | 'focus'        // Pomodoro
   | 'sprint';       // Planejamento de sprint
 
 // ============================================
@@ -32,6 +33,7 @@ export const TEMPLATE_ICONS: Record<TemplateType, string> = {
   study: '📚',
   budget: '💰',
   sprint: '🏃',
+  focus: '🏃',
 };
 
 // ============================================
