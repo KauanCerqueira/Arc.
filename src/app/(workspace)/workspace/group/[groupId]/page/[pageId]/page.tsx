@@ -39,7 +39,6 @@ export default function PageView() {
     }
   }, [page]);
 
-  // Salvar nome ao sair da edição
   const handleSaveName = () => {
     if (page && pageName.trim() && pageName !== page.name) {
       updatePage(groupId, pageId, { name: pageName });
@@ -47,7 +46,6 @@ export default function PageView() {
     setIsEditing(false);
   };
 
-  // Renderizar template baseado no tipo
   const renderTemplate = () => {
     if (!page) return null;
 
@@ -72,7 +70,7 @@ export default function PageView() {
         return <BudgetTemplate />;
       case 'sprint':
         return <SprintTemplate />;
-              case 'focus':
+      case 'focus':
         return <FocusTemplate />;
       default:
         return <BlankTemplate />;
@@ -90,10 +88,9 @@ export default function PageView() {
     togglePageFavorite(groupId, pageId);
   };
 
-  // Se não encontrar a página
   if (!page || !group) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="text-6xl mb-4">🔍</div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -115,9 +112,9 @@ export default function PageView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      {/* Page Header - Fixo no topo */}
-      <div className="sticky top-14 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+    <div className="h-full flex flex-col">
+      {/* Page Header */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
         <div className="px-8 py-4">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -227,8 +224,8 @@ export default function PageView() {
         </div>
       </div>
 
-      {/* Template Content */}
-      <div className="p-8">
+      {/* Template Content - Com scroll próprio */}
+      <div className="flex-1 overflow-y-auto p-8">
         {renderTemplate()}
       </div>
     </div>
