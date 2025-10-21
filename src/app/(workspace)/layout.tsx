@@ -92,7 +92,7 @@ function SortablePage({ page, groupId, pathname }: any) {
           <div
             {...listeners}
             {...attributes}
-            className="cursor-grab active:cursor-grabbing opacity-0 group-hover/page:opacity-100 transition"
+            className="cursor-grab active:cursor-grabbing opacity-0 group-hover/page:opacity-100 transition hidden md:block"
           >
             <GripVertical className="w-3.5 h-3.5 text-gray-400" />
           </div>
@@ -155,7 +155,7 @@ function SortablePage({ page, groupId, pathname }: any) {
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -232,7 +232,6 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     { id: 'study', name: 'Estudos', description: 'Materiais de estudo', icon: '📚', color: 'from-indigo-50 to-blue-50 border-indigo-200' },
     { id: 'budget', name: 'Orçamento', description: 'Receitas e despesas', icon: '💰', color: 'from-yellow-50 to-amber-50 border-yellow-200' },
     { id: 'focus', name: 'Pomodoro', description: 'Pomodoro', icon: '🏃', color: 'from-teal-50 to-cyan-50 border-teal-200' },
-    
   ];
 
   const handleCreateGroup = () => {
@@ -262,16 +261,39 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   };
 
   const handleCreatePage = () => {
-    if (!showPageModal || !selectedTemplate || !newPageName.trim()) return;
+    if (!showPageModal || !selectedTemplate || !newPageName.trim()) {
+      console.error('Erro: Campos inválidos', { 
+        showPageModal, 
+        selectedTemplate, 
+        newPageName: newPageName.trim() 
+      });
+      alert('Por favor, preencha o nome da página');
+      return;
+    }
     
-    const pageId = addPage(showPageModal, newPageName, selectedTemplate as TemplateType);
+    const groupId = showPageModal;
+    const pageName = newPageName.trim();
+    const template = selectedTemplate as TemplateType;
     
-    setNewPageName('');
-    setSelectedTemplate(null);
-    setShowPageModal(null);
+    console.log('Criando página:', { groupId, pageName, template });
+    
+    const pageId = addPage(groupId, pageName, template);
+    
+    console.log('Página criada com ID:', pageId);
     
     if (pageId) {
-      router.push(`/workspace/group/${showPageModal}/page/${pageId}`);
+      // Limpar estado
+      setNewPageName('');
+      setSelectedTemplate(null);
+      setShowPageModal(null);
+      
+      // Navegar
+      setTimeout(() => {
+        router.push(`/workspace/group/${groupId}/page/${pageId}`);
+      }, 100);
+    } else {
+      console.error('addPage retornou undefined');
+      alert('Erro ao criar página. Verifique o console.');
     }
   };
 
@@ -349,23 +371,33 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="min-h-screen bg-white dark:bg-slate-900 flex">
+        <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col md:flex-row">
+          {/* Sidebar Mobile Overlay */}
+          {sidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/40 md:hidden z-30" 
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Sidebar */}
-          <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-200 overflow-hidden flex flex-col`}>
+          <aside className={`fixed md:static top-0 left-0 h-screen md:h-auto w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-200 overflow-hidden flex flex-col z-40 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}>
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-slate-800">
+            <div className="p-3 md:p-4 border-b border-gray-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-4">
                 <Link href="/workspace" className="flex items-center gap-3 flex-1 group">
-                  <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0">
                     <Folder className="w-4 h-4 text-white" />
                   </div>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition truncate">
                     {workspace?.name || 'Workspace'}
                   </span>
                 </Link>
                 <button 
                   onClick={() => setSidebarOpen(false)} 
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition lg:hidden"
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition md:hidden flex-shrink-0"
                 >
                   <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 </button>
@@ -400,10 +432,11 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                         onClick={() => {
                           setSearchQuery('');
                           setShowSearchResults(false);
+                          setSidebarOpen(false);
                         }}
                         className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
                       >
-                        <span className="text-lg">{page.icon}</span>
+                        <span className="text-lg flex-shrink-0">{page.icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {page.name}
@@ -429,13 +462,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               {/* Home */}
               <Link 
                 href="/workspace" 
+                onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   pathname === '/workspace' 
                     ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100' 
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Home className="w-4 h-4" />
+                <Home className="w-4 h-4 flex-shrink-0" />
                 <span>Início</span>
               </Link>
 
@@ -443,7 +477,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               {favoritePages.length > 0 && (
                 <div className="mt-6">
                   <div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    <Star className="w-3.5 h-3.5" />
+                    <Star className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>Favoritos</span>
                   </div>
                   <div className="mt-1 space-y-0.5">
@@ -451,13 +485,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                       <Link 
                         key={page.id}
                         href={`/workspace/group/${group.id}/page/${page.id}`}
+                        onClick={() => setSidebarOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                           pathname.includes(page.id)
                             ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100' 
                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                         }`}
                       >
-                        <span className="text-base">{page.icon}</span>
+                        <span className="text-base flex-shrink-0">{page.icon}</span>
                         <span className="truncate flex-1">{page.name}</span>
                       </Link>
                     ))}
@@ -473,7 +508,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   </span>
                   <button
                     onClick={() => setShowGroupModal(true)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition flex-shrink-0"
                     title="Novo grupo"
                   >
                     <Plus className="w-4 h-4 text-gray-500 dark:text-gray-400" />
@@ -509,7 +544,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                             <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
                               <button
                                 onClick={() => setShowPageModal(group.id)}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition flex-shrink-0"
                                 title="Nova página"
                               >
                                 <Plus className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
@@ -519,14 +554,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                                   setEditingGroupId(group.id);
                                   setEditGroupName(group.name);
                                 }}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition flex-shrink-0"
                                 title="Renomear"
                               >
                                 <Edit2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                               </button>
                               <button
                                 onClick={() => handleDeleteGroup(group.id, group.name)}
-                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition"
+                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition flex-shrink-0"
                                 title="Excluir"
                               >
                                 <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
@@ -581,21 +616,22 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             <div className="p-3 border-t border-gray-200 dark:border-slate-800">
               <Link 
                 href="/workspace/settings" 
+                onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 flex-shrink-0" />
                 <span>Configurações</span>
               </Link>
             </div>
           </aside>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 w-full md:w-auto">
             {/* Top Bar */}
-            <header className="h-14 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-6 bg-white dark:bg-slate-900 sticky top-0 z-40">
+            <header className="h-14 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 sticky top-0 z-40">
               <button 
                 onClick={() => setSidebarOpen(true)} 
-                className={`p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition ${sidebarOpen ? 'hidden' : 'block'}`}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition md:hidden flex-shrink-0"
               >
                 <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
@@ -603,16 +639,16 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               <div className="flex items-center gap-2 ml-auto">
                 <ThemeToggle />
                 
-                <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition">
+                <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition flex-shrink-0">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </button>
 
-                <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 mx-1"></div>
+                <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block"></div>
 
                 <div className="relative">
                   <button 
                     onClick={() => setShowProfileMenu(!showProfileMenu)} 
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition flex-shrink-0"
                   >
                     <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                       U
@@ -626,7 +662,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                       <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 py-2 z-50">
                         <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0">
                               U
                             </div>
                             <div className="flex-1 min-w-0">
@@ -693,10 +729,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-200 dark:border-slate-800">
             <div className="p-6 border-b border-gray-200 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {!selectedPreset ? 'Criar Novo Grupo' : selectedPreset.id === 'blank' ? 'Grupo Personalizado' : selectedPreset.name}
                   </h2>
@@ -710,24 +746,24 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
               {!selectedPreset ? (
                 <div>
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
                       📚 Para Estudos
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {GROUP_PRESETS.filter(p => p.category === 'study').map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
-                            <span className="text-3xl">{preset.icon}</span>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            <span className="text-3xl flex-shrink-0">{preset.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
                                 {preset.name}
                               </h4>
                               <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -749,17 +785,17 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
                       💼 Para Trabalho
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {GROUP_PRESETS.filter(p => p.category === 'work').map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
-                            <span className="text-3xl">{preset.icon}</span>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            <span className="text-3xl flex-shrink-0">{preset.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
                                 {preset.name}
                               </h4>
                               <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -781,17 +817,17 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
                       🎯 Pessoal
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {GROUP_PRESETS.filter(p => p.category === 'personal').map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
-                            <span className="text-3xl">{preset.icon}</span>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            <span className="text-3xl flex-shrink-0">{preset.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
                                 {preset.name}
                               </h4>
                               <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -811,10 +847,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 </div>
               ) : (
                 <div>
-                  <div className={`p-6 bg-gradient-to-br ${getPresetColor(selectedPreset.color)} border-2 rounded-xl mb-6`}>
-                    <div className="flex items-start gap-4">
-                      <span className="text-5xl">{selectedPreset.icon}</span>
-                      <div className="flex-1">
+                  <div className={`p-4 md:p-6 bg-gradient-to-br ${getPresetColor(selectedPreset.color)} border-2 rounded-xl mb-6`}>
+                    <div className="flex items-start gap-4 flex-col md:flex-row">
+                      <span className="text-5xl flex-shrink-0">{selectedPreset.icon}</span>
+                      <div className="flex-1 min-w-0">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                           {selectedPreset.name}
                         </h3>
@@ -868,7 +904,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               )}
             </div>
 
-            <div className="p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3">
+            <div className="p-4 md:p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
               {selectedPreset && (
                 <button
                   onClick={() => setSelectedPreset(null)}
@@ -880,7 +916,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               
               <button
                 onClick={closeGroupModal}
-                className="flex-1 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
+                className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
               >
                 Cancelar
               </button>
@@ -889,7 +925,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 <button
                   onClick={handleCreateGroup}
                   disabled={selectedPreset.id === 'blank' && !customGroupName.trim()}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 text-white rounded-xl hover:from-gray-800 hover:to-gray-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 text-white rounded-xl hover:from-gray-800 hover:to-gray-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   Criar Grupo
                 </button>
@@ -903,8 +939,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       {showPageModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-200 dark:border-slate-800">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-800">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-slate-800">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">
                 {!selectedTemplate ? 'Escolha um template' : 'Nomeie sua página'}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -915,17 +951,17 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               </p>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
+            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
               {!selectedTemplate ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {pageTemplates.map((template) => (
                     <button
                       key={template.id}
                       onClick={() => handleSelectTemplate(template.id)}
-                      className={`p-5 bg-gradient-to-br ${template.color} border-2 rounded-xl hover:shadow-md transition text-left`}
+                      className={`p-4 md:p-5 bg-gradient-to-br ${template.color} border-2 rounded-xl hover:shadow-md transition text-left`}
                     >
                       <div className="text-3xl mb-3">{template.icon}</div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-xs md:text-sm">
                         {template.name}
                       </div>
                       <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -936,10 +972,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 </div>
               ) : (
                 <div>
-                  <div className={`p-6 bg-gradient-to-br ${selectedTemplateData?.color} border-2 rounded-xl mb-6`}>
-                    <div className="flex items-start gap-4">
-                      <div className="text-5xl">{selectedTemplateData?.icon}</div>
-                      <div className="flex-1">
+                  <div className={`p-4 md:p-6 bg-gradient-to-br ${selectedTemplateData?.color} border-2 rounded-xl mb-6`}>
+                    <div className="flex items-start gap-4 flex-col md:flex-row">
+                      <div className="text-5xl flex-shrink-0">{selectedTemplateData?.icon}</div>
+                      <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                           {selectedTemplateData?.name}
                         </h3>
@@ -968,7 +1004,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               )}
             </div>
 
-            <div className="p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3">
+            <div className="p-4 md:p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
               {selectedTemplate && (
                 <button
                   onClick={() => setSelectedTemplate(null)}
@@ -989,7 +1025,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 <button
                   onClick={handleCreatePage}
                   disabled={!newPageName.trim()}
-                  className="flex-1 px-4 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   Criar Página
                 </button>

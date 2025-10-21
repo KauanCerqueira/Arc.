@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { 
   Plus, Trash2, Edit2, Check, X, Download, Upload,
   Filter, Search, SortAsc, SortDesc, Copy, Eye,
-  EyeOff, Lock, MoreVertical, Grid3x3, ChevronDown
+  EyeOff, Lock, MoreVertical, Grid3x3, ChevronDown,
+  Menu, Settings, List, LayoutGrid
 } from 'lucide-react';
 
 type ColumnType = 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'url';
@@ -16,7 +17,7 @@ type Column = {
   width?: number;
   visible: boolean;
   locked: boolean;
-  options?: string[]; // Para tipo 'select'
+  options?: string[];
 };
 
 type TableRow = {
@@ -77,10 +78,13 @@ export default function TableTemplate() {
   const [editValue, setEditValue] = useState('');
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [showColumnMenu, setShowColumnMenu] = useState<string | null>(null);
+  const [showRowMenu, setShowRowMenu] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [newColumn, setNewColumn] = useState({
     name: '',
@@ -121,6 +125,7 @@ export default function TableTemplate() {
     
     const newRow = { ...row, id: Date.now() };
     setRows([...rows, newRow]);
+    setShowRowMenu(null);
   };
 
   const addColumn = () => {
@@ -229,7 +234,6 @@ export default function TableTemplate() {
     }
   };
 
-  // Filtros e ordenação
   const filteredAndSortedRows = rows
     .filter(row => {
       if (!searchQuery) return true;
@@ -269,7 +273,7 @@ export default function TableTemplate() {
 
   const formatCellValue = (value: any, column: Column) => {
     if (value === null || value === undefined || value === '') {
-      return <span className="text-gray-400 italic">Vazio</span>;
+      return <span className="text-gray-400 italic text-sm">Vazio</span>;
     }
 
     if (column.type === 'number') {
@@ -286,7 +290,7 @@ export default function TableTemplate() {
           href={value} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-blue-600 dark:text-blue-400 hover:underline break-all"
           onClick={(e) => e.stopPropagation()}
         >
           {value}
@@ -298,37 +302,44 @@ export default function TableTemplate() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Planilha</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {filteredAndSortedRows.length} {filteredAndSortedRows.length === 1 ? 'linha' : 'linhas'} • {visibleColumns.length} {visibleColumns.length === 1 ? 'coluna' : 'colunas'}
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-slate-950">
+      {/* Header Mobile */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">Planilha</h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {filteredAndSortedRows.length} {filteredAndSortedRows.length === 1 ? 'linha' : 'linhas'}
               {selectedRows.length > 0 && ` • ${selectedRows.length} selecionada(s)`}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+          >
+            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+
+          <div className="hidden lg:flex items-center gap-2">
             {selectedRows.length > 0 && (
               <button
                 onClick={deleteSelectedRows}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition font-medium"
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition font-medium text-sm"
               >
                 Excluir ({selectedRows.length})
               </button>
             )}
             <button
               onClick={exportToCSV}
-              className="px-4 py-2 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition font-medium flex items-center gap-2 text-sm"
             >
               <Download className="w-4 h-4" />
-              Exportar CSV
+              Exportar
             </button>
             <button
               onClick={addRow}
-              className="px-4 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium flex items-center gap-2 text-sm"
             >
               <Plus className="w-4 h-4" />
               Nova Linha
@@ -336,32 +347,98 @@ export default function TableTemplate() {
           </div>
         </div>
 
-        {/* Search & Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
+        {/* Mobile Menu Dropdown */}
+        {showMobileMenu && (
+          <>
+            <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setShowMobileMenu(false)}></div>
+            <div className="absolute right-4 top-16 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-2 z-50 lg:hidden">
+              <button
+                onClick={() => {
+                  addRow();
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="font-medium">Nova Linha</span>
+              </button>
+              <button
+                onClick={() => {
+                  exportToCSV();
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+              >
+                <Download className="w-5 h-5" />
+                <span className="font-medium">Exportar CSV</span>
+              </button>
+              {selectedRows.length > 0 && (
+                <button
+                  onClick={() => {
+                    deleteSelectedRows();
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  <span className="font-medium">Excluir ({selectedRows.length})</span>
+                </button>
+              )}
+              <div className="border-t border-gray-200 dark:border-slate-700 my-2"></div>
+              <button
+                onClick={() => {
+                  setViewMode(viewMode === 'cards' ? 'table' : 'cards');
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition lg:hidden"
+              >
+                {viewMode === 'cards' ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
+                <span className="font-medium">Modo {viewMode === 'cards' ? 'Tabela' : 'Cards'}</span>
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Search & Add Column */}
+        <div className="space-y-3">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar em todas as colunas..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+              placeholder="Buscar..."
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
             />
           </div>
 
           {showAddColumn ? (
-            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+            <div className="space-y-3 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Nova Coluna</h3>
+                <button
+                  onClick={() => {
+                    setShowAddColumn(false);
+                    setNewColumn({ name: '', type: 'text', options: '' });
+                  }}
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+              
               <input
                 type="text"
                 value={newColumn.name}
                 onChange={(e) => setNewColumn({ ...newColumn, name: e.target.value })}
                 placeholder="Nome da coluna"
-                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
               />
+              
               <select
                 value={newColumn.type}
                 onChange={(e) => setNewColumn({ ...newColumn, type: e.target.value as ColumnType })}
-                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
               >
                 {COLUMN_TYPES.map(type => (
                   <option key={type.value} value={type.value}>
@@ -369,45 +446,173 @@ export default function TableTemplate() {
                   </option>
                 ))}
               </select>
+              
               {newColumn.type === 'select' && (
                 <input
                   type="text"
                   value={newColumn.options}
                   onChange={(e) => setNewColumn({ ...newColumn, options: e.target.value })}
                   placeholder="Opções (separadas por vírgula)"
-                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                  className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
                 />
               )}
+              
               <button
                 onClick={addColumn}
-                className="p-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                disabled={!newColumn.name.trim()}
+                className="w-full px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => {
-                  setShowAddColumn(false);
-                  setNewColumn({ name: '', type: 'text', options: '' });
-                }}
-                className="p-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-              >
-                <X className="w-4 h-4" />
+                Adicionar Coluna
               </button>
             </div>
           ) : (
             <button
               onClick={() => setShowAddColumn(true)}
-              className="px-4 py-2 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition font-medium whitespace-nowrap"
+              className="w-full px-4 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition font-medium text-sm"
             >
-              + Coluna
+              + Nova Coluna
             </button>
           )}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-950 p-6">
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-4">
+        {/* Mobile Cards View */}
+        <div className={`space-y-3 ${viewMode === 'table' ? 'hidden lg:hidden' : 'lg:hidden'}`}>
+          {filteredAndSortedRows.map((row) => (
+            <div
+              key={row.id}
+              className={`bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4 shadow-sm ${
+                selectedRows.includes(row.id) ? 'ring-2 ring-blue-500' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <input
+                  type="checkbox"
+                  checked={selectedRows.includes(row.id)}
+                  onChange={() => toggleRowSelection(row.id)}
+                  className="w-5 h-5 rounded border-gray-300 dark:border-slate-600 mt-0.5"
+                />
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setShowRowMenu(showRowMenu === row.id ? null : row.id)}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </button>
+
+                  {showRowMenu === row.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowRowMenu(null)}></div>
+                      <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-1 z-50">
+                        <button
+                          onClick={() => duplicateRow(row.id)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Duplicar
+                        </button>
+                        <button
+                          onClick={() => {
+                            deleteRow(row.id);
+                            setShowRowMenu(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Excluir
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {visibleColumns.map((column) => (
+                  <div key={column.id} className="flex flex-col">
+                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-1">
+                      <span>{COLUMN_TYPES.find(t => t.value === column.type)?.icon}</span>
+                      {column.name}
+                    </label>
+                    
+                    {column.type === 'checkbox' ? (
+                      <input
+                        type="checkbox"
+                        checked={!!row[column.id]}
+                        onChange={() => toggleCheckbox(row.id, column.id)}
+                        disabled={column.locked}
+                        className="w-5 h-5 rounded border-gray-300 dark:border-slate-600"
+                      />
+                    ) : editingCell?.rowId === row.id && editingCell?.columnId === column.id ? (
+                      <div className="flex items-center gap-2">
+                        {column.type === 'select' && column.options ? (
+                          <select
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            autoFocus
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                          >
+                            <option value="">Selecione...</option>
+                            {column.options.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type={column.type === 'number' ? 'number' : column.type === 'date' ? 'date' : 'text'}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && saveEdit()}
+                            autoFocus
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                          />
+                        )}
+                        <button
+                          onClick={saveEdit}
+                          className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => startEditing(row.id, column.id, row[column.id])}
+                        className={`px-3 py-2 bg-gray-50 dark:bg-slate-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 ${
+                          column.locked 
+                            ? 'cursor-not-allowed opacity-60' 
+                            : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {formatCellValue(row[column.id], column)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {filteredAndSortedRows.length === 0 && (
+            <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800">
+              <div className="text-5xl mb-3">📊</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {searchQuery ? 'Nenhum resultado encontrado' : 'Nenhuma linha. Adicione uma para começar.'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className={`bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm ${viewMode === 'cards' ? 'hidden lg:block' : ''}`}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
@@ -600,10 +805,10 @@ export default function TableTemplate() {
         </div>
       </div>
 
-      {/* Footer Tip */}
-      <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-6 py-3">
+      {/* Footer */}
+      <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-4 py-3">
         <p className="text-xs text-gray-600 dark:text-gray-400">
-          💡 <strong>Dica:</strong> Clique em qualquer célula para editar • Use os menus das colunas para ordenar e filtrar
+          💡 <strong>Dica:</strong> Clique em qualquer célula para editar
         </p>
       </div>
     </div>

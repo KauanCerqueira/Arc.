@@ -20,9 +20,9 @@ type Project = {
   name: string;
   client: string;
   deadline: string;
-  margin: number; // Margem de lucro desejada (%)
+  margin: number;
   items: CostItem[];
-  clientBudget: number; // Quanto o cliente está disposto a pagar
+  clientBudget: number;
 };
 
 const CATEGORIES = [
@@ -65,6 +65,7 @@ export default function BudgetTemplate() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProject, setEditingProject] = useState(false);
+  const [activeTab, setActiveTab] = useState<'items' | 'analysis'>('items');
   const [newItem, setNewItem] = useState({
     name: '',
     hours: '',
@@ -101,30 +102,17 @@ export default function BudgetTemplate() {
     }
   };
 
-  const updateItem = (id: number, updates: Partial<CostItem>) => {
-    setProject({
-      ...project,
-      items: project.items.map(item => 
-        item.id === id ? { ...item, ...updates } : item
-      ),
-    });
-  };
-
-  // Cálculos
   const totalCost = project.items.reduce((sum, item) => {
     const itemCost = (item.hours * item.hourlyRate * item.quantity);
     return sum + itemCost;
   }, 0);
 
   const totalHours = project.items.reduce((sum, item) => sum + (item.hours * item.quantity), 0);
-
   const profitAmount = totalCost * (project.margin / 100);
   const finalPrice = totalCost + profitAmount;
-
   const isViable = project.clientBudget > 0 && project.clientBudget >= finalPrice;
   const viabilityPercentage = project.clientBudget > 0 ? (finalPrice / project.clientBudget) * 100 : 0;
 
-  // Agrupar por categoria
   const groupedItems = project.items.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
@@ -147,12 +135,12 @@ export default function BudgetTemplate() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
       {/* Header do Projeto */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 mb-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm">
         {editingProject ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nome do Projeto
@@ -203,25 +191,25 @@ export default function BudgetTemplate() {
             </div>
             <button
               onClick={() => setEditingProject(false)}
-              className="px-4 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium"
+              className="w-full sm:w-auto px-6 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium"
             >
               Salvar Informações
             </button>
           </div>
         ) : (
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 truncate">
                 {project.name}
               </h1>
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                {project.client && <span>Cliente: {project.client}</span>}
-                {project.deadline && <span>Prazo: {new Date(project.deadline).toLocaleDateString('pt-BR')}</span>}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600 dark:text-gray-400">
+                {project.client && <span className="truncate">Cliente: {project.client}</span>}
+                {project.deadline && <span className="truncate">Prazo: {new Date(project.deadline).toLocaleDateString('pt-BR')}</span>}
               </div>
             </div>
             <button
               onClick={() => setEditingProject(true)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+              className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
             >
               <Edit2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
@@ -229,61 +217,87 @@ export default function BudgetTemplate() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Coluna Principal - Itens */}
-        <div className="xl:col-span-2 space-y-6">
-          {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Custo Total</span>
-                <Calculator className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {formatCurrency(totalCost)}
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Lucro ({project.margin}%)</span>
-                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {formatCurrency(profitAmount)}
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Preço Final</span>
-                <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatCurrency(finalPrice)}
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Horas</span>
-                <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {totalHours}h
-              </div>
-            </div>
+      {/* Cards de Resumo */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Custo</span>
+            <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
           </div>
+          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+            {formatCurrency(totalCost)}
+          </div>
+        </div>
 
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Lucro</span>
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 truncate">
+            {formatCurrency(profitAmount)}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Final</span>
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 truncate">
+            {formatCurrency(finalPrice)}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Horas</span>
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {totalHours}h
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs Mobile */}
+      <div className="lg:hidden mb-4">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-1 flex gap-1">
+          <button
+            onClick={() => setActiveTab('items')}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
+              activeTab === 'items'
+                ? 'bg-gray-900 dark:bg-slate-700 text-white'
+                : 'text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            Itens
+          </button>
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
+              activeTab === 'analysis'
+                ? 'bg-gray-900 dark:bg-slate-700 text-white'
+                : 'text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            Análise
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Coluna Principal - Itens */}
+        <div className={`lg:col-span-2 space-y-4 sm:space-y-6 ${activeTab !== 'items' ? 'hidden lg:block' : ''}`}>
           {/* Itens do Orçamento */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                 Itens do Orçamento
               </h2>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="px-4 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition flex items-center gap-2 font-medium shadow-lg"
+                className="w-full sm:w-auto px-4 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition flex items-center justify-center gap-2 font-medium shadow-lg"
               >
                 <Plus className="w-4 h-4" />
                 Adicionar Item
@@ -292,7 +306,7 @@ export default function BudgetTemplate() {
 
             {/* Form Adicionar */}
             {showAddForm && (
-              <div className="mb-6 p-6 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+              <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">Novo Item</h3>
                   <button
@@ -303,8 +317,8 @@ export default function BudgetTemplate() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="md:col-span-2">
+                <div className="space-y-4">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Descrição *
                     </label>
@@ -313,7 +327,7 @@ export default function BudgetTemplate() {
                       value={newItem.name}
                       onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                       placeholder="Ex: Desenvolvimento Frontend"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
                     />
                   </div>
 
@@ -324,7 +338,7 @@ export default function BudgetTemplate() {
                     <select
                       value={newItem.category}
                       onChange={(e) => setNewItem({ ...newItem, category: e.target.value as CostItem['category'] })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
                     >
                       {CATEGORIES.map(cat => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -332,61 +346,63 @@ export default function BudgetTemplate() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Horas
-                    </label>
-                    <input
-                      type="number"
-                      value={newItem.hours}
-                      onChange={(e) => setNewItem({ ...newItem, hours: e.target.value })}
-                      placeholder="0"
-                      step="0.5"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Horas
+                      </label>
+                      <input
+                        type="number"
+                        value={newItem.hours}
+                        onChange={(e) => setNewItem({ ...newItem, hours: e.target.value })}
+                        placeholder="0"
+                        step="0.5"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Valor/Hora (R$)
-                    </label>
-                    <input
-                      type="number"
-                      value={newItem.hourlyRate}
-                      onChange={(e) => setNewItem({ ...newItem, hourlyRate: e.target.value })}
-                      placeholder="0.00"
-                      step="0.01"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Valor/Hora (R$)
+                      </label>
+                      <input
+                        type="number"
+                        value={newItem.hourlyRate}
+                        onChange={(e) => setNewItem({ ...newItem, hourlyRate: e.target.value })}
+                        placeholder="0.00"
+                        step="0.01"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Quantidade
-                    </label>
-                    <input
-                      type="number"
-                      value={newItem.quantity}
-                      onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                      placeholder="1"
-                      step="1"
-                      min="1"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Quantidade
+                      </label>
+                      <input
+                        type="number"
+                        value={newItem.quantity}
+                        onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                        placeholder="1"
+                        step="1"
+                        min="1"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                   <button
                     onClick={addItem}
                     disabled={!newItem.name.trim()}
-                    className="px-6 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-initial px-6 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Adicionar
                   </button>
                   <button
                     onClick={() => setShowAddForm(false)}
-                    className="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition font-medium"
+                    className="flex-1 sm:flex-initial px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition font-medium border border-gray-300 dark:border-slate-700 rounded-xl"
                   >
                     Cancelar
                   </button>
@@ -406,45 +422,45 @@ export default function BudgetTemplate() {
                 return (
                   <div key={category.id}>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-10 h-10 bg-${category.color}-100 dark:bg-${category.color}-900/30 rounded-xl flex items-center justify-center`}>
+                      <div className={`w-10 h-10 bg-${category.color}-100 dark:bg-${category.color}-900/30 rounded-xl flex items-center justify-center flex-shrink-0`}>
                         <CategoryIcon className={`w-5 h-5 text-${category.color}-600 dark:text-${category.color}-400`} />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{category.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{formatCurrency(categoryTotal)}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{category.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{formatCurrency(categoryTotal)}</p>
                       </div>
                     </div>
 
-                    <div className="space-y-2 ml-13">
+                    <div className="space-y-2">
                       {categoryItems.map(item => {
                         const itemTotal = item.hours * item.hourlyRate * item.quantity;
                         return (
                           <div
                             key={item.id}
-                            className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:shadow-md transition group"
+                            className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:shadow-md transition group"
                           >
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                              <div className="font-medium text-gray-900 dark:text-gray-100 mb-1 break-words">
                                 {item.name}
                               </div>
-                              <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                                 <span>{item.hours}h</span>
                                 <span>•</span>
-                                <span>{formatCurrency(item.hourlyRate)}/h</span>
+                                <span className="truncate">{formatCurrency(item.hourlyRate)}/h</span>
                                 <span>•</span>
                                 <span>x{item.quantity}</span>
                               </div>
                             </div>
 
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                                 {formatCurrency(itemTotal)}
                               </div>
                             </div>
 
                             <button
                               onClick={() => deleteItem(item.id)}
-                              className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                              className="flex-shrink-0 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </button>
@@ -472,9 +488,9 @@ export default function BudgetTemplate() {
         </div>
 
         {/* Sidebar - Análise */}
-        <div className="space-y-6">
+        <div className={`space-y-4 sm:space-y-6 ${activeTab !== 'analysis' ? 'hidden lg:block' : ''}`}>
           {/* Margem de Lucro */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Margem de Lucro
             </h3>
@@ -486,13 +502,13 @@ export default function BudgetTemplate() {
                 step="5"
                 value={project.margin}
                 onChange={(e) => setProject({ ...project, margin: parseInt(e.target.value) })}
-                className="flex-1"
+                className="flex-1 h-2 accent-gray-900 dark:accent-slate-700"
               />
               <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 min-w-[60px] text-right">
                 {project.margin}%
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-sm">
               {[10, 20, 30, 40, 50].map(margin => (
                 <button
                   key={margin}
@@ -511,7 +527,7 @@ export default function BudgetTemplate() {
 
           {/* Viabilidade */}
           {project.clientBudget > 0 && (
-            <div className={`border rounded-2xl p-6 shadow-sm ${
+            <div className={`border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm ${
               isViable
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                 : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -519,12 +535,12 @@ export default function BudgetTemplate() {
               <div className="flex items-center gap-3 mb-4">
                 {isViable ? (
                   <>
-                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
                     <h3 className="font-semibold text-green-900 dark:text-green-100">Projeto Viável!</h3>
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0" />
                     <h3 className="font-semibold text-red-900 dark:text-red-100">Orçamento Insuficiente</h3>
                   </>
                 )}
@@ -587,11 +603,11 @@ export default function BudgetTemplate() {
           )}
 
           {/* Distribuição de Custos */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Distribuição de Custos
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {categoryTotals.sort((a, b) => b.total - a.total).map(({ category, total, hours }) => {
                 const percentage = totalCost > 0 ? (total / totalCost) * 100 : 0;
                 const categoryData = CATEGORIES.find(c => c.id === category);
@@ -601,10 +617,10 @@ export default function BudgetTemplate() {
                   <div key={category}>
                     <div className="flex items-center justify-between mb-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <CategoryIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <CategoryIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300">{categoryData?.name}</span>
                       </div>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap ml-2">
                         {formatCurrency(total)}
                       </span>
                     </div>
@@ -629,7 +645,7 @@ export default function BudgetTemplate() {
           </div>
 
           {/* Sugestões de Valores/Hora */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 shadow-sm">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
               💡 Referência de Valores/Hora
             </h3>
@@ -639,7 +655,7 @@ export default function BudgetTemplate() {
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Desenvolvimento
                 </h4>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {HOURLY_RATES.development.map(rate => (
                     <div key={rate.label} className="flex items-center justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">{rate.label}</span>
@@ -655,7 +671,7 @@ export default function BudgetTemplate() {
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Design
                 </h4>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {HOURLY_RATES.design.map(rate => (
                     <div key={rate.label} className="flex items-center justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">{rate.label}</span>
@@ -670,18 +686,18 @@ export default function BudgetTemplate() {
           </div>
 
           {/* Resumo Final */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 shadow-xl text-white">
-            <h3 className="font-bold text-xl mb-4">Resumo do Orçamento</h3>
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-slate-800 dark:to-slate-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl text-white">
+            <h3 className="font-bold text-lg sm:text-xl mb-4">Resumo do Orçamento</h3>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between py-2 border-b border-white/10">
-                <span className="text-gray-300">Custo de Produção</span>
-                <span className="font-semibold">{formatCurrency(totalCost)}</span>
+                <span className="text-gray-300 text-sm sm:text-base">Custo de Produção</span>
+                <span className="font-semibold text-sm sm:text-base">{formatCurrency(totalCost)}</span>
               </div>
               
               <div className="flex items-center justify-between py-3 pt-4 border-t border-white/20">
-                <span className="text-lg font-medium">Valor a Cobrar</span>
-                <span className="text-3xl font-bold text-white">
+                <span className="text-base sm:text-lg font-medium">Valor a Cobrar</span>
+                <span className="text-2xl sm:text-3xl font-bold text-white">
                   {formatCurrency(finalPrice)}
                 </span>
               </div>
@@ -702,26 +718,26 @@ export default function BudgetTemplate() {
           </div>
 
           {/* Dicas */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 shadow-sm">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               Dicas de Precificação
             </h3>
             <ul className="space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">•</span>
+                <span className="mt-0.5 flex-shrink-0">•</span>
                 <span>Margem de lucro ideal: 30-40% para projetos estáveis</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">•</span>
+                <span className="mt-0.5 flex-shrink-0">•</span>
                 <span>Sempre adicione 20-30% de buffer para imprevistos</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">•</span>
+                <span className="mt-0.5 flex-shrink-0">•</span>
                 <span>Considere custos indiretos (impostos, ferramentas, etc)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5">•</span>
+                <span className="mt-0.5 flex-shrink-0">•</span>
                 <span>Divida o pagamento em milestones para melhor fluxo de caixa</span>
               </li>
             </ul>
@@ -729,4 +745,5 @@ export default function BudgetTemplate() {
         </div>
       </div>
     </div>
-  );}
+  );
+}
