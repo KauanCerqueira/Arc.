@@ -1,72 +1,78 @@
-"use client";
+"use client"
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { 
-  Search, Home, Star, ChevronRight, ChevronDown, Plus, 
-  Settings, Menu, X, Bell, User, LogOut, HelpCircle, 
-  Folder, MoreVertical, Sparkles, Edit2, Trash2, GripVertical
-} from 'lucide-react';
-import ThemeToggle from '@/shared/components/ui/ThemeToggle';
-import { useWorkspaceStore } from '@/core/store/workspaceStore';
-import { TemplateType, GROUP_PRESETS, GroupPreset } from '@/core/types/workspace.types';
+import type React from "react"
+
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import {
+  Search,
+  Home,
+  Star,
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Settings,
+  Menu,
+  X,
+  Bell,
+  User,
+  LogOut,
+  HelpCircle,
+  Folder,
+  MoreVertical,
+  Sparkles,
+  Edit2,
+  Trash2,
+  GripVertical,
+} from "lucide-react"
+import ThemeToggle from "@/shared/components/ui/ThemeToggle"
+import { useWorkspaceStore } from "@/core/store/workspaceStore"
+import { type TemplateType, GROUP_PRESETS, type GroupPreset } from "@/core/types/workspace.types"
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
   closestCenter,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+} from "@dnd-kit/core"
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
-// Componente de Página Arrastável
 function SortablePage({ page, groupId, pathname }: any) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: page.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id })
 
-  const { renamePage, deletePage, togglePageFavorite } = useWorkspaceStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(page.name);
-  const [showMenu, setShowMenu] = useState(false);
-  const router = useRouter();
+  const { renamePage, deletePage, togglePageFavorite } = useWorkspaceStore()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState(page.name)
+  const [showMenu, setShowMenu] = useState(false)
+  const router = useRouter()
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }
 
   const handleRename = () => {
     if (editName.trim() && editName !== page.name) {
-      renamePage(groupId, page.id, editName);
+      renamePage(groupId, page.id, editName)
     }
-    setIsEditing(false);
-  };
+    setIsEditing(false)
+  }
 
   const handleDelete = () => {
     if (confirm(`Excluir "${page.name}"?`)) {
-      deletePage(groupId, page.id);
+      deletePage(groupId, page.id)
       if (pathname.includes(page.id)) {
-        router.push('/workspace');
+        router.push("/workspace")
       }
     }
-    setShowMenu(false);
-  };
+    setShowMenu(false)
+  }
 
   return (
     <div ref={setNodeRef} style={style} className="relative group/page">
@@ -76,36 +82,36 @@ function SortablePage({ page, groupId, pathname }: any) {
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
           onBlur={handleRename}
-          onKeyPress={(e) => e.key === 'Enter' && handleRename()}
+          onKeyPress={(e) => e.key === "Enter" && handleRename()}
           autoFocus
-          className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
         />
       ) : (
         <Link
           href={`/workspace/group/${groupId}/page/${page.id}`}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
             pathname.includes(page.id)
-              ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+              ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
+              : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
           }`}
         >
           <div
             {...listeners}
             {...attributes}
-            className="cursor-grab active:cursor-grabbing opacity-0 group-hover/page:opacity-100 transition hidden md:block"
+            className="cursor-grab active:cursor-grabbing opacity-0 group-hover/page:opacity-100 transition-opacity duration-200 hidden md:block"
           >
             <GripVertical className="w-3.5 h-3.5 text-gray-400" />
           </div>
           <span className="text-base flex-shrink-0">{page.icon}</span>
-          <span className="truncate flex-1">{page.name}</span>
-          
-          <div className="flex items-center gap-0.5 opacity-0 group-hover/page:opacity-100 transition">
+          <span className="truncate flex-1 font-medium">{page.name}</span>
+
+          <div className="flex items-center gap-1 opacity-0 group-hover/page:opacity-100 transition-opacity duration-200">
             <button
               onClick={(e) => {
-                e.preventDefault();
-                setShowMenu(!showMenu);
+                e.preventDefault()
+                setShowMenu(!showMenu)
               }}
-              className="p-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition"
+              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors duration-200"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>
@@ -116,80 +122,82 @@ function SortablePage({ page, groupId, pathname }: any) {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-          <div className="absolute right-0 top-8 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50">
+          <div className="absolute right-0 top-8 mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-1.5 z-50">
             <button
               onClick={() => {
-                setIsEditing(true);
-                setShowMenu(false);
+                setIsEditing(true)
+                setShowMenu(false)
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200"
             >
-              <Edit2 className="w-3.5 h-3.5" />
+              <Edit2 className="w-4 h-4" />
               <span>Renomear</span>
             </button>
             <button
               onClick={() => {
-                togglePageFavorite(groupId, page.id);
-                setShowMenu(false);
+                togglePageFavorite(groupId, page.id)
+                setShowMenu(false)
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200"
             >
-              <Star className={`w-3.5 h-3.5 ${page.favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-              <span>{page.favorite ? 'Remover favorito' : 'Adicionar favorito'}</span>
+              <Star className={`w-4 h-4 ${page.favorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+              <span>{page.favorite ? "Remover favorito" : "Adicionar favorito"}</span>
             </button>
-            <div className="border-t border-gray-200 dark:border-slate-700 my-1"></div>
+            <div className="border-t border-gray-200 dark:border-slate-700 my-1.5"></div>
             <button
               onClick={handleDelete}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
               <span>Excluir</span>
             </button>
           </div>
         </>
       )}
     </div>
-  );
+  )
 }
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  
+  const pathname = usePathname()
+  const router = useRouter()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [showSearchResults, setShowSearchResults] = useState(false)
+
+  const [unreadNotifications, setUnreadNotifications] = useState(3)
+
   // Modals
-  const [showGroupModal, setShowGroupModal] = useState(false);
-  const [showPageModal, setShowPageModal] = useState<string | null>(null);
-  
+  const [showGroupModal, setShowGroupModal] = useState(false)
+  const [showPageModal, setShowPageModal] = useState<string | null>(null)
+
   // Group creation
-  const [selectedPreset, setSelectedPreset] = useState<GroupPreset | null>(null);
-  const [customGroupName, setCustomGroupName] = useState('');
-  
+  const [selectedPreset, setSelectedPreset] = useState<GroupPreset | null>(null)
+  const [customGroupName, setCustomGroupName] = useState("")
+
   // Page creation
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [newPageName, setNewPageName] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [newPageName, setNewPageName] = useState("")
 
   // Drag and Drop
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [editGroupName, setEditGroupName] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
+  const [editGroupName, setEditGroupName] = useState("")
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    })
-  );
+    }),
+  )
 
   // Store
-  const { 
-    workspace, 
-    initializeWorkspace, 
+  const {
+    workspace,
+    initializeWorkspace,
     addGroup,
     addGroupFromPreset,
     addPage,
@@ -198,170 +206,228 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     toggleGroupExpanded,
     reorderPages,
     getFavoritePages,
-    searchPages
-  } = useWorkspaceStore();
+    searchPages,
+  } = useWorkspaceStore()
 
   useEffect(() => {
     if (!workspace) {
-      initializeWorkspace('Meu Workspace', 'user_123');
+      initializeWorkspace("Meu Workspace", "user_123")
     }
-  }, [workspace, initializeWorkspace]);
+  }, [workspace, initializeWorkspace])
 
   // Busca
   useEffect(() => {
     if (searchQuery.trim()) {
-      const results = searchPages(searchQuery);
-      setSearchResults(results);
-      setShowSearchResults(true);
+      const results = searchPages(searchQuery)
+      setSearchResults(results)
+      setShowSearchResults(true)
     } else {
-      setSearchResults([]);
-      setShowSearchResults(false);
+      setSearchResults([])
+      setShowSearchResults(false)
     }
-  }, [searchQuery, searchPages]);
+  }, [searchQuery, searchPages])
 
-  const favoritePages = getFavoritePages();
+  const favoritePages = getFavoritePages()
 
   const pageTemplates = [
-    { id: 'blank', name: 'Documento', description: 'Página em branco', icon: '📝', color: 'from-gray-50 to-slate-50 border-gray-200' },
-    { id: 'tasks', name: 'Tarefas', description: 'Lista de tarefas', icon: '✅', color: 'from-blue-50 to-sky-50 border-blue-200' },
-    { id: 'kanban', name: 'Quadro Kanban', description: 'Colunas visuais', icon: '📋', color: 'from-purple-50 to-violet-50 border-purple-200' },
-    { id: 'table', name: 'Planilha', description: 'Tabela editável', icon: '📊', color: 'from-green-50 to-emerald-50 border-green-200' },
-    { id: 'calendar', name: 'Calendário', description: 'Eventos e compromissos', icon: '📅', color: 'from-red-50 to-rose-50 border-red-200' },
-    { id: 'projects', name: 'Projetos', description: 'Múltiplos projetos', icon: '🎯', color: 'from-orange-50 to-amber-50 border-orange-200' },
-    { id: 'bugs', name: 'Rastreador de Bugs', description: 'Bugs e problemas', icon: '🐛', color: 'from-pink-50 to-rose-50 border-pink-200' },
-    { id: 'study', name: 'Estudos', description: 'Materiais de estudo', icon: '📚', color: 'from-indigo-50 to-blue-50 border-indigo-200' },
-    { id: 'budget', name: 'Orçamento', description: 'Receitas e despesas', icon: '💰', color: 'from-yellow-50 to-amber-50 border-yellow-200' },
-    { id: 'focus', name: 'Pomodoro', description: 'Pomodoro', icon: '🏃', color: 'from-teal-50 to-cyan-50 border-teal-200' },
-  ];
+    {
+      id: "blank",
+      name: "Documento",
+      description: "Página em branco",
+      icon: "📝",
+      color: "from-gray-50 to-slate-50 border-gray-200",
+    },
+    {
+      id: "tasks",
+      name: "Tarefas",
+      description: "Lista de tarefas",
+      icon: "✅",
+      color: "from-blue-50 to-sky-50 border-blue-200",
+    },
+    {
+      id: "kanban",
+      name: "Quadro Kanban",
+      description: "Colunas visuais",
+      icon: "📋",
+      color: "from-purple-50 to-violet-50 border-purple-200",
+    },
+    {
+      id: "table",
+      name: "Planilha",
+      description: "Tabela editável",
+      icon: "📊",
+      color: "from-green-50 to-emerald-50 border-green-200",
+    },
+    {
+      id: "calendar",
+      name: "Calendário",
+      description: "Eventos e compromissos",
+      icon: "📅",
+      color: "from-red-50 to-rose-50 border-red-200",
+    },
+    {
+      id: "projects",
+      name: "Projetos",
+      description: "Múltiplos projetos",
+      icon: "🎯",
+      color: "from-orange-50 to-amber-50 border-orange-200",
+    },
+    {
+      id: "bugs",
+      name: "Rastreador de Bugs",
+      description: "Bugs e problemas",
+      icon: "🐛",
+      color: "from-pink-50 to-rose-50 border-pink-200",
+    },
+    {
+      id: "study",
+      name: "Estudos",
+      description: "Materiais de estudo",
+      icon: "📚",
+      color: "from-indigo-50 to-blue-50 border-indigo-200",
+    },
+    {
+      id: "budget",
+      name: "Orçamento",
+      description: "Receitas e despesas",
+      icon: "💰",
+      color: "from-yellow-50 to-amber-50 border-yellow-200",
+    },
+    {
+      id: "focus",
+      name: "Pomodoro",
+      description: "Pomodoro",
+      icon: "🏃",
+      color: "from-teal-50 to-cyan-50 border-teal-200",
+    },
+  ]
 
   const handleCreateGroup = () => {
     if (selectedPreset) {
-      if (selectedPreset.id === 'blank') {
-        if (!customGroupName.trim()) return;
-        addGroup(customGroupName);
+      if (selectedPreset.id === "blank") {
+        if (!customGroupName.trim()) return
+        addGroup(customGroupName)
       } else {
-        addGroupFromPreset(selectedPreset);
+        addGroupFromPreset(selectedPreset)
       }
     }
-    
-    setShowGroupModal(false);
-    setSelectedPreset(null);
-    setCustomGroupName('');
-  };
+
+    setShowGroupModal(false)
+    setSelectedPreset(null)
+    setCustomGroupName("")
+  }
 
   const handleSelectPreset = (preset: GroupPreset) => {
-    setSelectedPreset(preset);
-    if (preset.id !== 'blank') {
-      setCustomGroupName(preset.name);
+    setSelectedPreset(preset)
+    if (preset.id !== "blank") {
+      setCustomGroupName(preset.name)
     }
-  };
+  }
 
   const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplate(templateId);
-  };
+    setSelectedTemplate(templateId)
+  }
 
   const handleCreatePage = () => {
     if (!showPageModal || !selectedTemplate || !newPageName.trim()) {
-      console.error('Erro: Campos inválidos', { 
-        showPageModal, 
-        selectedTemplate, 
-        newPageName: newPageName.trim() 
-      });
-      alert('Por favor, preencha o nome da página');
-      return;
+      console.error("Erro: Campos inválidos", {
+        showPageModal,
+        selectedTemplate,
+        newPageName: newPageName.trim(),
+      })
+      alert("Por favor, preencha o nome da página")
+      return
     }
-    
-    const groupId = showPageModal;
-    const pageName = newPageName.trim();
-    const template = selectedTemplate as TemplateType;
-    
-    console.log('Criando página:', { groupId, pageName, template });
-    
-    const pageId = addPage(groupId, pageName, template);
-    
-    console.log('Página criada com ID:', pageId);
-    
+
+    const groupId = showPageModal
+    const pageName = newPageName.trim()
+    const template = selectedTemplate as TemplateType
+
+    console.log("Criando página:", { groupId, pageName, template })
+
+    const pageId = addPage(groupId, pageName, template)
+
+    console.log("Página criada com ID:", pageId)
+
     if (pageId) {
-      // Limpar estado
-      setNewPageName('');
-      setSelectedTemplate(null);
-      setShowPageModal(null);
-      
-      // Navegar
+      setNewPageName("")
+      setSelectedTemplate(null)
+      setShowPageModal(null)
+
       setTimeout(() => {
-        router.push(`/workspace/group/${groupId}/page/${pageId}`);
-      }, 100);
+        router.push(`/workspace/group/${groupId}/page/${pageId}`)
+      }, 100)
     } else {
-      console.error('addPage retornou undefined');
-      alert('Erro ao criar página. Verifique o console.');
+      console.error("addPage retornou undefined")
+      alert("Erro ao criar página. Verifique o console.")
     }
-  };
+  }
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+    setActiveId(event.active.id as string)
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over } = event
 
     if (over && active.id !== over.id) {
-      const activePageId = active.id as string;
-      const overPageId = over.id as string;
+      const activePageId = active.id as string
+      const overPageId = over.id as string
 
       workspace?.groups.forEach((group) => {
-        const activeIndex = group.pages.findIndex(p => p.id === activePageId);
-        const overIndex = group.pages.findIndex(p => p.id === overPageId);
+        const activeIndex = group.pages.findIndex((p) => p.id === activePageId)
+        const overIndex = group.pages.findIndex((p) => p.id === overPageId)
 
         if (activeIndex !== -1 && overIndex !== -1) {
-          reorderPages(group.id, activeIndex, overIndex);
+          reorderPages(group.id, activeIndex, overIndex)
         }
-      });
+      })
     }
 
-    setActiveId(null);
-  };
+    setActiveId(null)
+  }
 
   const handleRenameGroup = (groupId: string) => {
-    if (editGroupName.trim() && editGroupName !== workspace?.groups.find(g => g.id === groupId)?.name) {
-      renameGroup(groupId, editGroupName);
+    if (editGroupName.trim() && editGroupName !== workspace?.groups.find((g) => g.id === groupId)?.name) {
+      renameGroup(groupId, editGroupName)
     }
-    setEditingGroupId(null);
-  };
+    setEditingGroupId(null)
+  }
 
   const handleDeleteGroup = (groupId: string, groupName: string) => {
     if (confirm(`Excluir o grupo "${groupName}" e todas as suas páginas?`)) {
-      deleteGroup(groupId);
+      deleteGroup(groupId)
     }
-  };
+  }
 
   const closePageModal = () => {
-    setShowPageModal(null);
-    setSelectedTemplate(null);
-    setNewPageName('');
-  };
+    setShowPageModal(null)
+    setSelectedTemplate(null)
+    setNewPageName("")
+  }
 
   const closeGroupModal = () => {
-    setShowGroupModal(false);
-    setSelectedPreset(null);
-    setCustomGroupName('');
-  };
+    setShowGroupModal(false)
+    setSelectedPreset(null)
+    setCustomGroupName("")
+  }
 
-  const selectedTemplateData = pageTemplates.find(t => t.id === selectedTemplate);
+  const selectedTemplateData = pageTemplates.find((t) => t.id === selectedTemplate)
 
   const getPresetColor = (color: string) => {
     const colors: Record<string, string> = {
-      gray: 'from-gray-50 to-slate-50 border-gray-200',
-      blue: 'from-blue-50 to-sky-50 border-blue-200',
-      purple: 'from-purple-50 to-violet-50 border-purple-200',
-      green: 'from-green-50 to-emerald-50 border-green-200',
-      indigo: 'from-indigo-50 to-blue-50 border-indigo-200',
-      orange: 'from-orange-50 to-amber-50 border-orange-200',
-      pink: 'from-pink-50 to-rose-50 border-pink-200',
-      red: 'from-red-50 to-rose-50 border-red-200',
-      yellow: 'from-yellow-50 to-amber-50 border-yellow-200',
-    };
-    return colors[color] || colors.gray;
-  };
+      gray: "from-gray-50 to-slate-50 border-gray-200",
+      blue: "from-blue-50 to-sky-50 border-blue-200",
+      purple: "from-purple-50 to-violet-50 border-purple-200",
+      green: "from-green-50 to-emerald-50 border-green-200",
+      indigo: "from-indigo-50 to-blue-50 border-indigo-200",
+      orange: "from-orange-50 to-amber-50 border-orange-200",
+      pink: "from-pink-50 to-rose-50 border-pink-200",
+      red: "from-red-50 to-rose-50 border-red-200",
+      yellow: "from-yellow-50 to-amber-50 border-yellow-200",
+    }
+    return colors[color] || colors.gray
+  }
 
   return (
     <>
@@ -374,67 +440,66 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col md:flex-row">
           {/* Sidebar Mobile Overlay */}
           {sidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black/40 md:hidden z-30" 
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden z-30"
               onClick={() => setSidebarOpen(false)}
             />
           )}
 
-          {/* Sidebar */}
-          <aside className={`fixed md:static top-0 left-0 h-screen md:h-auto w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-200 overflow-hidden flex flex-col z-40 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}>
+          <aside
+            className={`fixed md:static top-0 left-0 h-screen md:h-auto w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col z-40 shadow-lg md:shadow-none ${
+              sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            }`}
+          >
             {/* Sidebar Header */}
-            <div className="p-3 md:p-4 border-b border-gray-200 dark:border-slate-800">
+            <div className="p-4 border-b border-gray-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-4">
                 <Link href="/workspace" className="flex items-center gap-3 flex-1 group">
-                  <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0">
-                    <Folder className="w-4 h-4 text-white" />
+                  <div className="w-9 h-9 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 group-hover:shadow-lg transition-shadow duration-200">
+                    <Folder className="w-5 h-5 text-white" />
                   </div>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition truncate">
-                    {workspace?.name || 'Workspace'}
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 truncate">
+                    {workspace?.name || "Workspace"}
                   </span>
                 </Link>
-                <button 
-                  onClick={() => setSidebarOpen(false)} 
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition md:hidden flex-shrink-0"
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
                 >
-                  <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
 
-              {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar..."
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  placeholder="Buscar páginas..."
+                  className="w-full pl-9 pr-9 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-all duration-200"
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors duration-200"
                   >
-                    <X className="w-3 h-3 text-gray-400" />
+                    <X className="w-3.5 h-3.5 text-gray-400" />
                   </button>
                 )}
 
-                {/* Search Results */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg max-h-64 overflow-y-auto z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl max-h-64 overflow-y-auto z-50">
                     {searchResults.map(({ group, page }) => (
                       <Link
                         key={page.id}
                         href={`/workspace/group/${group.id}/page/${page.id}`}
                         onClick={() => {
-                          setSearchQuery('');
-                          setShowSearchResults(false);
-                          setSidebarOpen(false);
+                          setSearchQuery("")
+                          setShowSearchResults(false)
+                          setSidebarOpen(false)
                         }}
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl"
                       >
                         <span className="text-lg flex-shrink-0">{page.icon}</span>
                         <div className="flex-1 min-w-0">
@@ -451,7 +516,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 )}
 
                 {showSearchResults && searchResults.length === 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg p-4 text-center text-sm text-gray-500 dark:text-gray-400 z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl p-4 text-center text-sm text-gray-500 dark:text-gray-400 z-50">
                     Nenhuma página encontrada
                   </div>
                 )}
@@ -459,14 +524,13 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3">
-              {/* Home */}
-              <Link 
-                href="/workspace" 
+              <Link
+                href="/workspace"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  pathname === '/workspace' 
-                    ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  pathname === "/workspace"
+                    ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <Home className="w-4 h-4 flex-shrink-0" />
@@ -482,18 +546,18 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   </div>
                   <div className="mt-1 space-y-0.5">
                     {favoritePages.map(({ group, page }) => (
-                      <Link 
+                      <Link
                         key={page.id}
                         href={`/workspace/group/${group.id}/page/${page.id}`}
                         onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                           pathname.includes(page.id)
-                            ? 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100' 
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                            ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
+                            : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
                         }`}
                       >
                         <span className="text-base flex-shrink-0">{page.icon}</span>
-                        <span className="truncate flex-1">{page.name}</span>
+                        <span className="truncate flex-1 font-medium">{page.name}</span>
                       </Link>
                     ))}
                   </div>
@@ -508,7 +572,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   </span>
                   <button
                     onClick={() => setShowGroupModal(true)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition flex-shrink-0"
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 flex-shrink-0"
                     title="Novo grupo"
                   >
                     <Plus className="w-4 h-4 text-gray-500 dark:text-gray-400" />
@@ -519,16 +583,16 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   {workspace?.groups.map((group) => (
                     <div key={group.id}>
                       {/* Group Header */}
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition group/item">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-200 group/item">
                         {editingGroupId === group.id ? (
                           <input
                             type="text"
                             value={editGroupName}
                             onChange={(e) => setEditGroupName(e.target.value)}
                             onBlur={() => handleRenameGroup(group.id)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleRenameGroup(group.id)}
+                            onKeyPress={(e) => e.key === "Enter" && handleRenameGroup(group.id)}
                             autoFocus
-                            className="flex-1 px-2 py-1 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-2 py-1.5 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 shadow-sm"
                           />
                         ) : (
                           <>
@@ -536,32 +600,34 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                               onClick={() => toggleGroupExpanded(group.id)}
                               className="flex items-center gap-2 flex-1 min-w-0 text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                              <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform ${group.expanded ? 'rotate-90' : ''}`} />
+                              <ChevronRight
+                                className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${group.expanded ? "rotate-90" : ""}`}
+                              />
                               <span className="text-base flex-shrink-0">{group.icon}</span>
                               <span className="truncate">{group.name}</span>
                             </button>
-                            
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
+
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity duration-200">
                               <button
                                 onClick={() => setShowPageModal(group.id)}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition flex-shrink-0"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors duration-200 flex-shrink-0"
                                 title="Nova página"
                               >
                                 <Plus className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                               </button>
                               <button
                                 onClick={() => {
-                                  setEditingGroupId(group.id);
-                                  setEditGroupName(group.name);
+                                  setEditingGroupId(group.id)
+                                  setEditGroupName(group.name)
                                 }}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition flex-shrink-0"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors duration-200 flex-shrink-0"
                                 title="Renomear"
                               >
                                 <Edit2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                               </button>
                               <button
                                 onClick={() => handleDeleteGroup(group.id, group.name)}
-                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition flex-shrink-0"
+                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors duration-200 flex-shrink-0"
                                 title="Excluir"
                               >
                                 <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
@@ -574,21 +640,16 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                       {/* Group Pages */}
                       {group.expanded && (
                         <div className="ml-6 mt-0.5 space-y-0.5">
-                          <SortableContext items={group.pages.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                          <SortableContext items={group.pages.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                             {group.pages.map((page) => (
-                              <SortablePage
-                                key={page.id}
-                                page={page}
-                                groupId={group.id}
-                                pathname={pathname}
-                              />
+                              <SortablePage key={page.id} page={page} groupId={group.id} pathname={pathname} />
                             ))}
                           </SortableContext>
-                          
+
                           {group.pages.length === 0 && (
                             <button
                               onClick={() => setShowPageModal(group.id)}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200"
                             >
                               <Plus className="w-3 h-3" />
                               <span>Adicionar página</span>
@@ -602,7 +663,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   {workspace?.groups.length === 0 && (
                     <button
                       onClick={() => setShowGroupModal(true)}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-6 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-slate-700 hover:text-gray-700 dark:hover:text-gray-300 transition"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-6 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-slate-700 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-all duration-200"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Criar primeiro grupo</span>
@@ -614,10 +675,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
             {/* Sidebar Footer */}
             <div className="p-3 border-t border-gray-200 dark:border-slate-800">
-              <Link 
-                href="/workspace/settings" 
+              <Link
+                href="/workspace/settings"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200"
               >
                 <Settings className="w-4 h-4 flex-shrink-0" />
                 <span>Configurações</span>
@@ -627,30 +688,36 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0 w-full md:w-auto">
-            {/* Top Bar */}
-            <header className="h-14 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 sticky top-0 z-40">
-              <button 
-                onClick={() => setSidebarOpen(true)} 
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition md:hidden flex-shrink-0"
+            <header className="h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 sticky top-0 z-40 shadow-sm">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
               >
                 <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
 
               <div className="flex items-center gap-2 ml-auto">
                 <ThemeToggle />
-                
-                <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition flex-shrink-0">
-                  <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </button>
-
-                <div className="h-5 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block"></div>
 
                 <div className="relative">
-                  <button 
-                    onClick={() => setShowProfileMenu(!showProfileMenu)} 
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition flex-shrink-0"
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 flex-shrink-0">
+                    <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </button>
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-semibold rounded-full flex items-center justify-center shadow-lg">
+                      {unreadNotifications}
+                    </span>
+                  )}
+                </div>
+
+                <div className="h-6 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block"></div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 flex-shrink-0"
                   >
-                    <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-md">
                       U
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400 hidden sm:block" />
@@ -659,10 +726,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                   {showProfileMenu && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
-                      <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 py-2 z-50">
+                      <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-200 dark:border-slate-800 py-2 z-50">
                         <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-md">
                               U
                             </div>
                             <div className="flex-1 min-w-0">
@@ -673,30 +740,30 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                         </div>
 
                         <div className="py-2">
-                          <Link 
-                            href="/profile" 
-                            onClick={() => setShowProfileMenu(false)} 
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                          <Link
+                            href="/profile"
+                            onClick={() => setShowProfileMenu(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200"
                           >
                             <User className="w-4 h-4" />
                             <span>Perfil</span>
                           </Link>
-                          <Link 
-                            href="/workspace/settings" 
-                            onClick={() => setShowProfileMenu(false)} 
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                          <Link
+                            href="/workspace/settings"
+                            onClick={() => setShowProfileMenu(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200"
                           >
                             <Settings className="w-4 h-4" />
                             <span>Configurações</span>
                           </Link>
-                          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
+                          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200">
                             <HelpCircle className="w-4 h-4" />
                             <span>Ajuda</span>
                           </button>
                         </div>
 
                         <div className="border-t border-gray-200 dark:border-slate-800 pt-2">
-                          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
                             <LogOut className="w-4 h-4" />
                             <span>Sair</span>
                           </button>
@@ -708,39 +775,37 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               </div>
             </header>
 
-            <main className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-950">
-              {children}
-            </main>
+            <main className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-950">{children}</main>
           </div>
         </div>
 
         <DragOverlay>
           {activeId ? (
-            <div className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg">
-              <span className="text-sm text-gray-900 dark:text-gray-100">Arrastando...</span>
+            <div className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-xl">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Arrastando...</span>
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      {/* Modal: Criar Grupo com Presets */}
       {showGroupModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-200 dark:border-slate-800">
             <div className="p-6 border-b border-gray-200 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {!selectedPreset ? 'Criar Novo Grupo' : selectedPreset.id === 'blank' ? 'Grupo Personalizado' : selectedPreset.name}
+                    {!selectedPreset
+                      ? "Criar Novo Grupo"
+                      : selectedPreset.id === "blank"
+                        ? "Grupo Personalizado"
+                        : selectedPreset.name}
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {!selectedPreset 
-                      ? 'Escolha um template ou crie do zero'
-                      : selectedPreset.description
-                    }
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    {!selectedPreset ? "Escolha um template ou crie do zero" : selectedPreset.description}
                   </p>
                 </div>
               </div>
@@ -751,14 +816,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 <div>
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-                      📚 Para Estudos
+                      Para Estudos
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {GROUP_PRESETS.filter(p => p.category === 'study').map((preset) => (
+                      {GROUP_PRESETS.filter((p) => p.category === "study").map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
                             <span className="text-3xl flex-shrink-0">{preset.icon}</span>
@@ -772,8 +837,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                             </div>
                           </div>
                           {preset.pages.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {preset.pages.length} página{preset.pages.length !== 1 ? 's' : ''}
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                              {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
                             </div>
                           )}
                         </button>
@@ -783,14 +848,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-                      💼 Para Trabalho
+                      Para Trabalho
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {GROUP_PRESETS.filter(p => p.category === 'work').map((preset) => (
+                      {GROUP_PRESETS.filter((p) => p.category === "work").map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
                             <span className="text-3xl flex-shrink-0">{preset.icon}</span>
@@ -804,8 +869,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                             </div>
                           </div>
                           {preset.pages.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {preset.pages.length} página{preset.pages.length !== 1 ? 's' : ''}
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                              {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
                             </div>
                           )}
                         </button>
@@ -815,14 +880,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
                   <div>
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-                      🎯 Pessoal
+                      Pessoal
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {GROUP_PRESETS.filter(p => p.category === 'personal').map((preset) => (
+                      {GROUP_PRESETS.filter((p) => p.category === "personal").map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => handleSelectPreset(preset)}
-                          className={`p-4 md:p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg transition text-left`}
+                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
                         >
                           <div className="flex items-start gap-3 mb-3">
                             <span className="text-3xl flex-shrink-0">{preset.icon}</span>
@@ -836,8 +901,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                             </div>
                           </div>
                           {preset.pages.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {preset.pages.length} página{preset.pages.length !== 1 ? 's' : ''}
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                              {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
                             </div>
                           )}
                         </button>
@@ -847,20 +912,23 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 </div>
               ) : (
                 <div>
-                  <div className={`p-4 md:p-6 bg-gradient-to-br ${getPresetColor(selectedPreset.color)} border-2 rounded-xl mb-6`}>
+                  <div
+                    className={`p-6 bg-gradient-to-br ${getPresetColor(selectedPreset.color)} border-2 rounded-xl mb-6 shadow-sm`}
+                  >
                     <div className="flex items-start gap-4 flex-col md:flex-row">
                       <span className="text-5xl flex-shrink-0">{selectedPreset.icon}</span>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                           {selectedPreset.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                          {selectedPreset.description}
-                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{selectedPreset.description}</p>
                         {selectedPreset.pages.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {selectedPreset.pages.map((page, idx) => (
-                              <div key={idx} className="px-3 py-1 bg-white/50 dark:bg-slate-900/50 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
+                              <div
+                                key={idx}
+                                className="px-3 py-1.5 bg-white/60 dark:bg-slate-900/60 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700 shadow-sm"
+                              >
                                 {page.name}
                               </div>
                             ))}
@@ -870,7 +938,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                     </div>
                   </div>
 
-                  {selectedPreset.id === 'blank' && (
+                  {selectedPreset.id === "blank" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Nome do grupo
@@ -881,12 +949,12 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                         onChange={(e) => setCustomGroupName(e.target.value)}
                         placeholder="Ex: Projeto Postora"
                         autoFocus
-                        className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 shadow-sm"
                       />
                     </div>
                   )}
 
-                  {selectedPreset.id !== 'blank' && (
+                  {selectedPreset.id !== "blank" && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Nome do grupo (opcional)
@@ -896,7 +964,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                         value={customGroupName}
                         onChange={(e) => setCustomGroupName(e.target.value)}
                         placeholder={selectedPreset.name}
-                        className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 shadow-sm"
                       />
                     </div>
                   )}
@@ -904,19 +972,19 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               )}
             </div>
 
-            <div className="p-4 md:p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
+            <div className="p-6 pt-4 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
               {selectedPreset && (
                 <button
                   onClick={() => setSelectedPreset(null)}
-                  className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
+                  className="px-5 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors duration-200 font-medium"
                 >
-                  ← Voltar
+                  Voltar
                 </button>
               )}
-              
+
               <button
                 onClick={closeGroupModal}
-                className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
+                className="px-5 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors duration-200 font-medium"
               >
                 Cancelar
               </button>
@@ -924,8 +992,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               {selectedPreset && (
                 <button
                   onClick={handleCreateGroup}
-                  disabled={selectedPreset.id === 'blank' && !customGroupName.trim()}
-                  className="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 text-white rounded-xl hover:from-gray-800 hover:to-gray-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  disabled={selectedPreset.id === "blank" && !customGroupName.trim()}
+                  className="px-5 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 text-white rounded-xl hover:from-gray-800 hover:to-gray-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                 >
                   Criar Grupo
                 </button>
@@ -935,35 +1003,29 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         </div>
       )}
 
-      {/* Modal: Criar Página */}
       {showPageModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-200 dark:border-slate-800">
-            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-slate-800">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">
-                {!selectedTemplate ? 'Escolha um template' : 'Nomeie sua página'}
+            <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {!selectedTemplate ? "Escolha um template" : "Nomeie sua página"}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {!selectedTemplate 
-                  ? 'Selecione o tipo de página'
-                  : `Template: ${selectedTemplateData?.name}`
-                }
+                {!selectedTemplate ? "Selecione o tipo de página" : `Template: ${selectedTemplateData?.name}`}
               </p>
             </div>
 
-            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
               {!selectedTemplate ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {pageTemplates.map((template) => (
                     <button
                       key={template.id}
                       onClick={() => handleSelectTemplate(template.id)}
-                      className={`p-4 md:p-5 bg-gradient-to-br ${template.color} border-2 rounded-xl hover:shadow-md transition text-left`}
+                      className={`p-5 bg-gradient-to-br ${template.color} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
                     >
                       <div className="text-3xl mb-3">{template.icon}</div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-xs md:text-sm">
-                        {template.name}
-                      </div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm">{template.name}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                         {template.description}
                       </div>
@@ -972,16 +1034,16 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 </div>
               ) : (
                 <div>
-                  <div className={`p-4 md:p-6 bg-gradient-to-br ${selectedTemplateData?.color} border-2 rounded-xl mb-6`}>
+                  <div
+                    className={`p-6 bg-gradient-to-br ${selectedTemplateData?.color} border-2 rounded-xl mb-6 shadow-sm`}
+                  >
                     <div className="flex items-start gap-4 flex-col md:flex-row">
                       <div className="text-5xl flex-shrink-0">{selectedTemplateData?.icon}</div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
                           {selectedTemplateData?.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {selectedTemplateData?.description}
-                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedTemplateData?.description}</p>
                       </div>
                     </div>
                   </div>
@@ -994,29 +1056,29 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                       type="text"
                       value={newPageName}
                       onChange={(e) => setNewPageName(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
+                      onKeyPress={(e) => e.key === "Enter" && handleCreatePage()}
                       placeholder="Ex: Orçamento Q1 2025"
                       autoFocus
-                      className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100"
+                      className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 shadow-sm"
                     />
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-4 md:p-6 pt-0 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
+            <div className="p-6 pt-4 border-t border-gray-200 dark:border-slate-800 flex gap-3 flex-col sm:flex-row">
               {selectedTemplate && (
                 <button
                   onClick={() => setSelectedTemplate(null)}
-                  className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
+                  className="px-5 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors duration-200 font-medium"
                 >
-                  ← Voltar
+                  Voltar
                 </button>
               )}
-              
+
               <button
                 onClick={closePageModal}
-                className="flex-1 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition font-medium"
+                className="flex-1 px-5 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors duration-200 font-medium"
               >
                 Cancelar
               </button>
@@ -1025,7 +1087,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 <button
                   onClick={handleCreatePage}
                   disabled={!newPageName.trim()}
-                  className="flex-1 px-4 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="flex-1 px-5 py-2.5 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                 >
                   Criar Página
                 </button>
@@ -1035,5 +1097,5 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         </div>
       )}
     </>
-  );
+  )
 }
