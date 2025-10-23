@@ -76,6 +76,9 @@ export default function Home() {
             <a href="#features" className="text-gray-600 hover:text-gray-900 transition">Recursos</a>
             <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">Como Funciona</a>
             <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition">Depoimentos</a>
+            <Link href="/build-in-public" className="text-gray-600 hover:text-gray-900 transition">
+              Build in Public
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
