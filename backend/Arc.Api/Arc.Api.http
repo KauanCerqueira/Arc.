@@ -1,6 +1,6 @@
-@Arc.Api_HostAddress = http://localhost:5190
+@Arc.API_HostAddress = http://localhost:5259
 
-GET {{Arc.Api_HostAddress}}/weatherforecast/
+GET {{Arc.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

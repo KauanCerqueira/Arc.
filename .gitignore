@@ -1,34 +1,122 @@
-# dependencies
-/node_modules
-/.pnp
+# ===== BACKEND (.NET) =====
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio cache/options
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code
+.vscode/
+
+## ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+## Entity Framework
+*.db
+*.db-shm
+*.db-wal
+
+# ===== FRONTEND (Node.js / Next.js) =====
+## Dependencies
+node_modules/
+.pnp
 .pnp.js
 
-# testing
-/coverage
+## Testing
+coverage/
 
-# next.js
-/.next/
-/out/
+## Next.js
+.next/
+out/
+build/
+dist/
 
-# production
-/build
+## Production
+.vercel
+.netlify
 
-# misc
-.DS_Store
-*.pem
+## Environment variables
+.env
+.env*.local
+.env.production
 
-# debug
+## Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# local env files
-.env*.local
-.env
+## Turbo
+.turbo
 
-# vercel
-.vercel
+## Misc
+.DS_Store
+*.pem
+*.log
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ===== CLAUDE =====
+.claude/
+
+# ===== IDE =====
+## JetBrains IDEs
+.idea/
+*.iml
+*.iws
+
+## Eclipse
+.project
+.classpath
+.settings/
+
+# ===== OS =====
+## Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Linux
+*~
+.directory
+
+# ===== Database =====
+*.sqlite
+*.sqlite3
+*.db
+
+# ===== Secrets =====
+appsettings.Production.json
+secrets.json
+*.key
+*.pem
+*.pfx
