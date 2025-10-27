@@ -343,7 +343,7 @@ export default function PromoCodesPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleToggleActive(code.id, code.isActive)}
-                  disabled={isExpired}
+                  disabled={!isExpired}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isExpired
                       ? "opacity-50 cursor-not-allowed"
