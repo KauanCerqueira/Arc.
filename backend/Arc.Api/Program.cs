@@ -196,15 +196,12 @@ var app = builder.Build();
 // Middleware de exception handling (deve ser o primeiro)
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Arc. API v1");
-        options.RoutePrefix = string.Empty; // Swagger na raiz
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Arc. API v1");
+    options.RoutePrefix = string.Empty; // Swagger na raiz
+});
 
 // CORS deve vir ANTES de HttpsRedirection
 app.UseCors("DynamicCorsPolicy");
