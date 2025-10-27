@@ -2,9 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY backend/ ./backend/
+# Copia somente o conteúdo da pasta backend, não a pasta inteira
+COPY backend/. .
 
-WORKDIR /src/backend
+# Agora o Arc.sln e os projetos estarão diretamente em /src
 RUN dotnet restore Arc.sln
 RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /app/out
 
