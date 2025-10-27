@@ -2,10 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# copia tudo do backend (pois o Dockerfile já está dentro dele)
+# Copia toda a solução (Arc.sln e os projetos)
 COPY . .
 
-# publica o projeto
+# Compila a partir da solução principal
+RUN dotnet restore Arc.sln
 RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /app/out
 
 # Etapa 2: Runtime
