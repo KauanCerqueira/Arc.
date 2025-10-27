@@ -2,10 +2,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia toda a solução (Arc.sln e os projetos)
-COPY . .
+# Copia a pasta backend inteira
+COPY backend/ ./backend/
 
-# Compila a partir da solução principal
+WORKDIR /src/backend
+
+# Restaura e publica
 RUN dotnet restore Arc.sln
 RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /app/out
 
