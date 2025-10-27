@@ -1,12 +1,13 @@
 # Etapa 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /src/backend
 
-# Copia o conteúdo do backend, mas mantém a estrutura de pastas original
-COPY backend ./ 
+# Copia todo o conteúdo do backend (inclui o Arc.sln e todos os projetos)
+COPY backend/. .
 
-RUN dotnet restore backend/Arc.sln
-RUN dotnet publish backend/Arc.API/Arc.API.csproj -c Release -o /app/out
+# Restaura e publica
+RUN dotnet restore Arc.sln
+RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /app/out
 
 # Etapa 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
