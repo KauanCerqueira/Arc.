@@ -1,13 +1,17 @@
 # Etapa 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
+
+# copia tudo do backend (pois o Dockerfile já está dentro dele)
 COPY . .
-RUN dotnet publish backend/Arc.API/Arc.API.csproj -c Release -o /out
+
+# publica o projeto
+RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /app/out
 
 # Etapa 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /out .
+COPY --from=build /app/out .
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 ENTRYPOINT ["dotnet", "Arc.API.dll"]
