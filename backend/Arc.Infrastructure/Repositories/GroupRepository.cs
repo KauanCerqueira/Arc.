@@ -79,4 +79,12 @@ public class GroupRepository : IGroupRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Group>> GetAllAsync()
+    {
+        return await _context.Groups
+            .AsNoTracking()
+            .Where(g => !g.Arquivado)
+            .ToListAsync();
+    }
 }

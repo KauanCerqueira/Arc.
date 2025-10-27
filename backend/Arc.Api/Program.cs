@@ -27,6 +27,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IWorkspaceRepository, WorkspaceRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IPageRepository, PageRepository>();
+builder.Services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
+builder.Services.AddScoped<IWorkspaceMemberRepository, WorkspaceMemberRepository>();
+builder.Services.AddScoped<IWorkspaceInvitationRepository, WorkspaceInvitationRepository>();
+builder.Services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -34,11 +38,18 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IPageService, PageService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 // Template Services
 builder.Services.AddScoped<IFlowchartService, FlowchartService>();
 builder.Services.AddScoped<IRoadmapService, RoadmapService>();
 builder.Services.AddScoped<IDocumentsService, DocumentsService>();
+builder.Services.AddScoped<IKanbanService, KanbanService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddScoped<IMindMapService, MindMapService>();
+builder.Services.AddScoped<ISprintService, SprintService>();
+builder.Services.AddScoped<IWikiService, WikiService>();
 
 // ===== AUTENTICAÇÃO JWT =====
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -159,7 +170,7 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 
 // ===== CORS =====
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+    ?? new[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:5173" };
 
 builder.Services.AddCors(options =>
 {

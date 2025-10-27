@@ -15,7 +15,9 @@ export default function RegisterPage() {
     sobrenome: '',
     email: '',
     senha: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    profissao: '',
+    comoConheceu: ''
   });
 
   const [localError, setLocalError] = useState<string | null>(null);
@@ -42,6 +44,8 @@ export default function RegisterPage() {
         sobrenome: formData.sobrenome,
         email: formData.email,
         senha: formData.senha,
+        profissao: formData.profissao || undefined,
+        comoConheceu: formData.comoConheceu || undefined,
       });
 
       // Redirect to workspace on success
@@ -195,6 +199,41 @@ export default function RegisterPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Profissão
+              </label>
+              <input
+                type="text"
+                maxLength={100}
+                className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
+                placeholder="Ex: Desenvolvedor"
+                value={formData.profissao}
+                onChange={(e) => setFormData({ ...formData, profissao: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Como nos conheceu?
+              </label>
+              <select
+                className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
+                value={formData.comoConheceu}
+                onChange={(e) => setFormData({ ...formData, comoConheceu: e.target.value })}
+              >
+                <option value="">Selecione...</option>
+                <option value="Google">Google</option>
+                <option value="Twitter">Twitter</option>
+                <option value="YouTube">YouTube</option>
+                <option value="GitHub">GitHub</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Amigo">Indicação de amigo</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Senha
               </label>
               <input
@@ -206,9 +245,6 @@ export default function RegisterPage() {
                 value={formData.senha}
                 onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
               />
-              <p className="text-xs text-gray-600 mt-1.5">
-                Deve conter maiúscula, minúscula, número e caractere especial
-              </p>
             </div>
 
             <div>

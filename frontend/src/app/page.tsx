@@ -74,8 +74,8 @@ export default function Home() {
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             <a href="#features" className="text-gray-600 hover:text-gray-900 transition">Recursos</a>
+            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition">Preços</Link>
             <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">Como Funciona</a>
-            <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition">Depoimentos</a>
             <Link href="/build-in-public" className="text-gray-600 hover:text-gray-900 transition">
               Build in Public
             </Link>
@@ -99,43 +99,52 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero section - estilo Todoist/Things */}
+      {/* Hero section - Build in Public */}
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
+            {/* Badge Build in Public */}
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              Construído em público, para a comunidade
+            </div>
+
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Gerencie seus projetos do seu jeito
+              Produtividade acessível para todos
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              Escolha entre Kanban, Pomodoro, GTD ou modo Estudo. 
-              Combine metodologias. Analise seu desempenho. 
-              Tudo em uma interface que não atrapalha seu fluxo.
+              Uma ferramenta de gerenciamento de projetos 100% transparente,
+              com <strong>preços justos</strong> e foco em <strong>ajudar a comunidade</strong>.
+              Não é sobre lucro, é sobre criar algo útil juntos.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-gray-800 transition text-center"
               >
-                Criar conta grátis
+                Começar gratuitamente
               </Link>
-              <button className="border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-base font-semibold hover:border-gray-300 transition">
-                Ver como funciona
-              </button>
+              <Link
+                href="/build-in-public"
+                className="border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-base font-semibold hover:border-gray-300 transition text-center"
+              >
+                Ver métricas públicas
+              </Link>
             </div>
 
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Grátis para sempre</span>
+                <span>Plano gratuito robusto</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Sem cartão</span>
+                <span>Código aberto</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Setup em 2 min</span>
+                <span>Sem truques</span>
               </div>
             </div>
           </div>
@@ -206,26 +215,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social proof bar */}
-      <section className="bg-gray-50 border-y border-gray-200 py-12">
+      {/* Transparência & Valores */}
+      <section className="bg-blue-50 border-y border-blue-200 py-12">
         <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Transparência total
+            </h2>
+            <p className="text-gray-600">
+              Todas as nossas métricas são públicas. Sem segredos.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">12.547</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">127</div>
               <div className="text-sm text-gray-600">Usuários ativos</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">89.234</div>
-              <div className="text-sm text-gray-600">Projetos criados</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">R$ 5-15</div>
+              <div className="text-sm text-gray-600">Planos mensais</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">4.8/5</div>
-              <div className="text-sm text-gray-600">Avaliação média</div>
+              <div className="text-3xl font-bold text-green-600 mb-1">+R$ 11</div>
+              <div className="text-sm text-gray-600">Lucro mensal atual</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">99.9%</div>
-              <div className="text-sm text-gray-600">Uptime</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
+              <div className="text-sm text-gray-600">Open Source</div>
             </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/build-in-public"
+              className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 transition"
+            >
+              Ver todas as métricas em tempo real
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -353,27 +381,40 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA section */}
+      {/* CTA section - Build in Public */}
       <section className="bg-gray-900 text-white py-24">
         <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Users className="w-4 h-4" />
+            Construído pela comunidade, para a comunidade
+          </div>
+
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Comece a organizar seus projetos hoje
+            Produtividade não precisa ser cara
           </h2>
           <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-            Junte-se a mais de 12 mil pessoas que já estão gerenciando 
-            seus projetos de forma mais inteligente.
+            Comece grátis ou ajude o projeto com apenas R$ 5/mês.
+            Cada apoio mantém a ferramenta online e melhora para todos.
           </p>
-          
-          <Link 
-            href="/register" 
-            className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition"
-          >
-            Criar conta gratuita
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition"
+            >
+              Começar gratuitamente
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/build-in-public#contato"
+              className="inline-flex items-center gap-2 border-2 border-white/30 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:border-white/50 transition"
+            >
+              Apoiar o projeto
+            </Link>
+          </div>
+
           <p className="text-sm text-gray-400 mt-6">
-            Grátis para sempre • Sem cartão de crédito • Setup em 2 minutos
+            Plano gratuito robusto • Código aberto • Preços honestos
           </p>
         </div>
       </section>

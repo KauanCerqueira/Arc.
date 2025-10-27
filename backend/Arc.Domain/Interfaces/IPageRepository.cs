@@ -9,6 +9,7 @@ public interface IPageRepository
     Task<IEnumerable<Page>> GetByGroupIdAsync(Guid groupId);
     Task<IEnumerable<Page>> GetFavoritesByWorkspaceIdAsync(Guid workspaceId);
     Task<IEnumerable<Page>> SearchAsync(Guid workspaceId, string query);
+    Task<IEnumerable<Page>> GetAllAsync();
     Task<Page> CreateAsync(Page page);
     Task<Page> UpdateAsync(Page page);
     Task DeleteAsync(Guid id);

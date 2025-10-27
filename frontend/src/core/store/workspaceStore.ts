@@ -10,6 +10,7 @@ import {
   Page,
   TemplateType,
   GroupPreset,
+  TEMPLATE_ICONS,
 } from '@/core/types/workspace.types';
 import workspaceService from '../services/workspace.service';
 import groupService from '../services/group.service';
@@ -81,7 +82,7 @@ const convertApiToLocal = (apiWorkspace: any): Workspace => {
         id: p.id,
         name: p.nome,
         template: p.template as TemplateType,
-        icon: p.icone || '',
+        icon: p.icone || TEMPLATE_ICONS[p.template as TemplateType] || '📝',
         data: p.data || {},
         favorite: p.favorito,
         position: p.posicao,
@@ -304,6 +305,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const page = await pageService.createPage(groupId, {
         nome: name,
         template: template,
+        icone: TEMPLATE_ICONS[template], // Adiciona o ícone baseado no template
       });
       await get().loadWorkspace();
       set({ isLoading: false });

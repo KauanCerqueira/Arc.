@@ -60,4 +60,12 @@ public class WorkspaceRepository : IWorkspaceRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IEnumerable<Workspace>> GetAllAsync()
+    {
+        return await _context.Workspaces
+            .AsNoTracking()
+            .Where(w => w.Ativo)
+            .ToListAsync();
+    }
 }

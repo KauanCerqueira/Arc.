@@ -15,7 +15,7 @@ export default function ProfilePage() {
     refreshProfile();
   }, [refreshProfile]);
 
-  // Gera iniciais do usuário
+  // Gera iniciais do usuï¿½rio
   const getUserInitials = () => {
     if (!user) return "U";
     const firstInitial = user.nome?.charAt(0).toUpperCase() || "";
@@ -24,8 +24,8 @@ export default function ProfilePage() {
   };
 
   const getUserFullName = () => {
-    if (!user) return "Usuário";
-    return `${user.nome} ${user.sobrenome}`.trim() || "Usuário";
+    if (!user) return "Usuï¿½rio";
+    return `${user.nome} ${user.sobrenome}`.trim() || "Usuï¿½rio";
   };
 
   const formatDate = (dateString: string) => {
@@ -50,23 +50,23 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Header com ações */}
+        {/* Header com aï¿½ï¿½es */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Meu Perfil
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Visualize e gerencie suas informações pessoais
+              Visualize e gerencie suas informaï¿½ï¿½es pessoais
             </p>
           </div>
           <div className="flex gap-3">
             <Link
-              href="/workspace/settings"
+              href="/settings"
               className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Configurações</span>
+              <span className="hidden sm:inline">Configuraï¿½ï¿½es</span>
             </Link>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
           {/* Banner */}
           <div className="h-32 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600"></div>
 
-          {/* Informações do Perfil */}
+          {/* Informaï¿½ï¿½es do Perfil */}
           <div className="px-8 pb-8">
             {/* Avatar */}
             <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-16 mb-6">
@@ -100,7 +100,7 @@ export default function ProfilePage() {
               </div>
 
               <Link
-                href="/workspace/settings"
+                href="/settings"
                 className="flex items-center gap-2 px-4 py-2 border-2 border-gray-900 dark:border-slate-700 text-gray-900 dark:text-gray-100 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-200"
               >
                 <Edit className="w-4 h-4" />
@@ -108,7 +108,7 @@ export default function ProfilePage() {
               </Link>
             </div>
 
-            {/* Informações Detalhadas */}
+            {/* Informaï¿½ï¿½es Detalhadas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               {/* Nome Completo */}
               <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
@@ -151,10 +151,10 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Informações Adicionais */}
+            {/* Informaï¿½ï¿½es Adicionais */}
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800">
               <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Informações da Conta
+                Informaï¿½ï¿½es da Conta
               </h3>
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <Calendar className="w-4 h-4" />

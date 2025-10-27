@@ -16,11 +16,16 @@ export type TemplateType =
   | 'bugs'          // Rastreador de bugs
   | 'study'         // Gerenciador de estudos
   | 'budget'        // Calculadora de orçamento
-  | 'focus'        // Pomodoro
+  | 'focus'         // Pomodoro
   | 'sprint'        // Planejamento de sprint
   | 'flowchart'     // Fluxograma
   | 'roadmap'       // Roadmap do projeto
-  | 'documents';    // Gerenciador de documentos
+  | 'documents'     // Gerenciador de documentos
+  | 'dashboard'     // Dashboard personalizável
+  | 'mindmap'       // Mapa mental visual
+  | 'notes'         // Notas rápidas
+  | 'timeline'      // Linha do tempo visual
+  | 'wiki';         // Página tipo Wiki
 
 // ============================================
 // MAPEAMENTO DE ÍCONES POR TEMPLATE
@@ -40,7 +45,13 @@ export const TEMPLATE_ICONS: Record<TemplateType, string> = {
   flowchart: '🔀',
   roadmap: '🗺️',
   documents: '📁',
+  dashboard: '📊',  // Novo
+  mindmap: '🧠',    // Novo
+  notes: '🗒️',      // Novo
+  timeline: '⏳',   // Novo
+  wiki: '📘',       // Novo
 };
+
 
 // ============================================
 // PÁGINA (cada página tem um template específico)

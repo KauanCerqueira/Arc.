@@ -64,6 +64,13 @@ public class PageRepository : IPageRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Page>> GetAllAsync()
+    {
+        return await _context.Pages
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     public async Task<Page> CreateAsync(Page page)
     {
         await _context.Pages.AddAsync(page);

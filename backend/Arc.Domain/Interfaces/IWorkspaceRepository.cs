@@ -10,4 +10,5 @@ public interface IWorkspaceRepository
     Task<Workspace> CreateAsync(Workspace workspace);
     Task<Workspace> UpdateAsync(Workspace workspace);
     Task DeleteAsync(Guid id);
+    Task<IEnumerable<Workspace>> GetAllAsync();
 }

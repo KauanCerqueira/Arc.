@@ -30,7 +30,9 @@ public class AuthService : IAuthService
             Email = request.Email.ToLower(),
             SenhaHash = senhaHash,
             Bio = request.Bio,
-            Icone = request.Icone
+            Icone = request.Icone,
+            Profissao = request.Profissao,
+            ComoConheceu = request.ComoConheceu
         };
 
         var createdUser = await _userRepository.CreateAsync(user);
@@ -45,6 +47,9 @@ public class AuthService : IAuthService
             Email = createdUser.Email,
             Bio = createdUser.Bio,
             Icone = createdUser.Icone,
+            Profissao = createdUser.Profissao,
+            ComoConheceu = createdUser.ComoConheceu,
+            IsMaster = createdUser.IsMaster,
             Token = token,
             ExpiresAt = expiration
         };
@@ -72,6 +77,9 @@ public class AuthService : IAuthService
             Email = user.Email,
             Bio = user.Bio,
             Icone = user.Icone,
+            Profissao = user.Profissao,
+            ComoConheceu = user.ComoConheceu,
+            IsMaster = user.IsMaster,
             Token = token,
             ExpiresAt = expiration
         };
@@ -90,6 +98,9 @@ public class AuthService : IAuthService
             Email = user.Email,
             Bio = user.Bio,
             Icone = user.Icone,
+            Profissao = user.Profissao,
+            ComoConheceu = user.ComoConheceu,
+            IsMaster = user.IsMaster,
             CriadoEm = user.CriadoEm
         };
     }
@@ -115,6 +126,9 @@ public class AuthService : IAuthService
             Email = user.Email,
             Bio = user.Bio,
             Icone = user.Icone,
+            Profissao = user.Profissao,
+            ComoConheceu = user.ComoConheceu,
+            IsMaster = user.IsMaster,
             CriadoEm = user.CriadoEm
         };
     }

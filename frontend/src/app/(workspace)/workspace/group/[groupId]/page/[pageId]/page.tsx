@@ -20,6 +20,11 @@ import FocusTemplate from '@/app/(workspace)/templates/focus';
 import FlowchartTemplate from '@/app/(workspace)/templates/flowchart';
 import RoadmapTemplate from '@/app/(workspace)/templates/roadmap';
 import DocumentsTemplate from '@/app/(workspace)/templates/documents';
+import DashboardTemplate from '@/app/(workspace)/templates/dashboard';
+import MindmapTemplate from '@/app/(workspace)/templates/mindmap';
+import NotesTemplate from '@/app/(workspace)/templates/notes';
+import TimelineTemplate from '@/app/(workspace)/templates/timeline';
+import WikiTemplate from '@/app/(workspace)/templates/wiki';
 
 export default function PageView() {
   const params = useParams();
@@ -52,38 +57,50 @@ export default function PageView() {
   const renderTemplate = () => {
     if (!page) return null;
 
-    switch (page.template) {
-      case 'blank':
-        return <BlankTemplate />;
-      case 'tasks':
-        return <TasksTemplate />;
-      case 'kanban':
-        return <KanbanTemplate />;
-      case 'table':
-        return <TableTemplate />;
-      case 'calendar':
-        return <CalendarTemplate />;
-      case 'projects':
-        return <ProjectsTemplate />;
-      case 'bugs':
-        return <BugsTemplate />;
-      case 'study':
-        return <StudyTemplate />;
-      case 'budget':
-        return <BudgetTemplate />;
-      case 'sprint':
-        return <SprintTemplate />;
-      case 'focus':
-        return <FocusTemplate />;
-      case 'flowchart':
-        return <FlowchartTemplate data={page.data} onDataChange={handleDataChange} />;
-      case 'roadmap':
-        return <RoadmapTemplate />;
-      case 'documents':
-        return <DocumentsTemplate />;
-      default:
-        return <BlankTemplate />;
-    }
+ switch (page.template) {
+  case 'blank':
+    return <BlankTemplate />;
+  case 'tasks':
+    return <TasksTemplate />;
+  case 'kanban':
+    return <KanbanTemplate />;
+  case 'table':
+    return <TableTemplate />;
+  case 'calendar':
+    return <CalendarTemplate />;
+  case 'projects':
+    return <ProjectsTemplate />;
+  case 'bugs':
+    return <BugsTemplate />;
+  case 'study':
+    return <StudyTemplate />;
+  case 'budget':
+    return <BudgetTemplate />;
+  case 'sprint':
+    return <SprintTemplate />;
+  case 'focus':
+    return <FocusTemplate />;
+  case 'flowchart':
+    return <FlowchartTemplate data={page.data} onDataChange={handleDataChange} />;
+  case 'roadmap':
+    return <RoadmapTemplate />;
+  case 'documents':
+    return <DocumentsTemplate />;
+    //começa aqui
+  case 'dashboard':
+    return <DashboardTemplate />;
+  case 'mindmap':
+    return <MindmapTemplate />;
+  case 'notes':
+    return <NotesTemplate />;
+  case 'timeline':
+    return <TimelineTemplate />;
+  case 'wiki':
+    return <WikiTemplate />;
+    
+  default:
+    return <BlankTemplate />;
+}
   };
 
   const handleDeletePage = () => {

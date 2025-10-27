@@ -11,4 +11,5 @@ public interface IGroupRepository
     Task<Group> UpdateAsync(Group group);
     Task DeleteAsync(Guid id);
     Task ReorderAsync(Guid workspaceId, List<Guid> groupIds);
+    Task<IEnumerable<Group>> GetAllAsync();
 }

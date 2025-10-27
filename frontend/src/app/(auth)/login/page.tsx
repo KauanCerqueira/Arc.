@@ -1,10 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, TrendingUp, Zap, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
+
+const REMEMBER_ME_KEY = 'remember_me_email';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +17,17 @@ export default function LoginPage() {
     senha: ''
   });
 
+  const [rememberMe, setRememberMe] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Carregar email salvo ao montar o componente
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBER_ME_KEY);
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +38,13 @@ export default function LoginPage() {
         email: formData.email,
         senha: formData.senha,
       });
+
+      // Salvar ou remover email do localStorage baseado no checkbox
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_ME_KEY, formData.email);
+      } else {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
 
       // Redirect to workspace on success
       router.push('/workspace');
@@ -130,6 +149,8 @@ export default function LoginPage() {
               <input
                 id="remember"
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 border-gray-300 rounded focus:ring-2 focus:ring-gray-900"
               />
               <label htmlFor="remember" className="ml-2 text-sm text-gray-700">

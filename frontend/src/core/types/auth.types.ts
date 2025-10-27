@@ -7,6 +7,8 @@ export interface RegisterRequestDto {
   senha: string;
   bio?: string;
   icone?: string;
+  profissao?: string;
+  comoConheceu?: string;
 }
 
 export interface LoginRequestDto {
@@ -21,6 +23,9 @@ export interface AuthResponseDto {
   email: string;
   bio: string | null;
   icone: string | null;
+  profissao: string | null;
+  comoConheceu: string | null;
+  isMaster: boolean;
   token: string;
   expiresAt: string;
 }
@@ -32,6 +37,9 @@ export interface User {
   email: string;
   bio: string | null;
   icone: string | null;
+  profissao: string | null;
+  comoConheceu: string | null;
+  isMaster: boolean;
 }
 
 export interface AuthState {
@@ -61,5 +69,8 @@ export interface UserProfileDto {
   email: string;
   bio: string | null;
   icone: string | null;
+  profissao: string | null;
+  comoConheceu: string | null;
+  isMaster: boolean;
   criadoEm: string;
 }

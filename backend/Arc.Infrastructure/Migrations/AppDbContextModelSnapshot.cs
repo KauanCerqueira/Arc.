@@ -89,6 +89,57 @@ namespace Arc.Infrastructure.Migrations
                     b.ToTable("groups", (string)null);
                 });
 
+            modelBuilder.Entity("Arc.Domain.Entities.GroupPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_delete");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_edit");
+
+                    b.Property<bool>("CanManagePages")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_manage_pages");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_view");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("GroupId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("group_permissions", (string)null);
+                });
+
             modelBuilder.Entity("Arc.Domain.Entities.Page", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,6 +200,57 @@ namespace Arc.Infrastructure.Migrations
                     b.ToTable("pages", (string)null);
                 });
 
+            modelBuilder.Entity("Arc.Domain.Entities.PromoCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("CurrentUses")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_uses");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("DiscountPercentage")
+                        .HasColumnType("integer")
+                        .HasColumnName("discount_percentage");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("MaxUses")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_uses");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("promo_codes", (string)null);
+                });
+
             modelBuilder.Entity("Arc.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -169,6 +271,9 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("bio");
 
+                    b.Property<string>("ComoConheceu")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("criado_em");
@@ -184,11 +289,17 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("icone");
 
+                    b.Property<bool>("IsMaster")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("nome");
+
+                    b.Property<string>("Profissao")
+                        .HasColumnType("text");
 
                     b.Property<string>("SenhaHash")
                         .IsRequired()
@@ -241,6 +352,10 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("language");
 
+                    b.Property<int>("MaxMembers")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_members");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -259,6 +374,10 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("timezone");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
@@ -270,6 +389,109 @@ namespace Arc.Infrastructure.Migrations
                     b.ToTable("workspaces", (string)null);
                 });
 
+            modelBuilder.Entity("Arc.Domain.Entities.WorkspaceInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("InvitationToken")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("invitation_token");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invited_by_user_id");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workspace_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("InvitationToken")
+                        .IsUnique();
+
+                    b.HasIndex("InvitedByUserId");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.ToTable("workspace_invitations", (string)null);
+                });
+
+            modelBuilder.Entity("Arc.Domain.Entities.WorkspaceMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<DateTime?>("LastAccessAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_access_at");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workspace_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.HasIndex("WorkspaceId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("workspace_members", (string)null);
+                });
+
             modelBuilder.Entity("Arc.Domain.Entities.Group", b =>
                 {
                     b.HasOne("Arc.Domain.Entities.Workspace", "Workspace")
@@ -279,6 +501,25 @@ namespace Arc.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Arc.Domain.Entities.GroupPermission", b =>
+                {
+                    b.HasOne("Arc.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Arc.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Arc.Domain.Entities.Page", b =>
@@ -303,6 +544,44 @@ namespace Arc.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Arc.Domain.Entities.WorkspaceInvitation", b =>
+                {
+                    b.HasOne("Arc.Domain.Entities.User", "InvitedByUser")
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Arc.Domain.Entities.Workspace", "Workspace")
+                        .WithMany("Invitations")
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InvitedByUser");
+
+                    b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Arc.Domain.Entities.WorkspaceMember", b =>
+                {
+                    b.HasOne("Arc.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Arc.Domain.Entities.Workspace", "Workspace")
+                        .WithMany("Members")
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Workspace");
+                });
+
             modelBuilder.Entity("Arc.Domain.Entities.Group", b =>
                 {
                     b.Navigation("Pages");
@@ -311,6 +590,10 @@ namespace Arc.Infrastructure.Migrations
             modelBuilder.Entity("Arc.Domain.Entities.Workspace", b =>
                 {
                     b.Navigation("Groups");
+
+                    b.Navigation("Invitations");
+
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }
