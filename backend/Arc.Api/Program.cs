@@ -169,19 +169,19 @@ builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // ===== CORS =====
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:5173" };
-
+// ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", policy =>
+    options.AddPolicy("DynamicCorsPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        policy
+            .SetIsOriginAllowed(_ => true) // ✅ Permite qualquer origem dinamicamente
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials(); // se estiver usando cookies/token no header
     });
 });
+
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
@@ -207,7 +207,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // CORS deve vir ANTES de HttpsRedirection
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("DynamicCorsPolicy");
 
 // Desabilitar HttpsRedirection em desenvolvimento para evitar problemas com CORS
 if (!app.Environment.IsDevelopment())

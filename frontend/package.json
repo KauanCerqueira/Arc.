@@ -2,12 +2,18 @@
   "name": "arc.",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+  "type": "module",
+ "scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "next lint",
+  "set-env:dev": "node scripts/set-env.js dev",
+  "set-env:tunnel": "node scripts/set-env.js tunnel",
+  "set-env:prod": "node scripts/set-env.js prod",
+  "dev:tunnel": "npm run set-env:tunnel && npm run dev",
+  "dev:local": "npm run set-env:dev && npm run dev"
+},
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
