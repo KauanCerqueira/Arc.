@@ -1,9 +1,12 @@
 # Etapa 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src/backend
+WORKDIR /src
 
-# Copia todo o conteúdo do backend (inclui o Arc.sln e todos os projetos)
-COPY backend/. .
+# Copia apenas a pasta backend e mantém o caminho correto
+COPY ./backend ./backend
+
+# Entra na pasta onde está a solução
+WORKDIR /src/backend
 
 # Restaura e publica
 RUN dotnet restore Arc.sln
