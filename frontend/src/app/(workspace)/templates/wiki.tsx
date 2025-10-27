@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import React from "react";
 import {
   BookOpen,
   Plus,
@@ -129,7 +130,7 @@ Cada template pode ser customizado conforme suas necessidades.`,
   // Renderizar markdown
   const renderMarkdown = (content: string) => {
     const lines = content.split('\n');
-    const elements: JSX.Element[] = [];
+   const elements: React.ReactElement[] = [];
     let inCodeBlock = false;
     let codeBlockContent: string[] = [];
     let inList = false;
