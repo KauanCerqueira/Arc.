@@ -1,8 +1,8 @@
 # Etapa 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /src/backend
 
-# Copia o conteúdo da pasta backend
+# Copia tudo da pasta backend
 COPY . .
 
 # Restaura e publica a partir da solução
