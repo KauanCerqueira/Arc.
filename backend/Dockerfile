@@ -2,16 +2,16 @@
 # STAGE 1 - Build
 # =========================
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copia todo o conteúdo do backend
+# Copia o conteúdo do backend para dentro do container
 COPY . .
 
-# Restaura dependências
-RUN dotnet restore Arc.sln
+# Restaura dependências (usa o caminho correto do .sln)
+RUN dotnet restore ./Arc.sln
 
-# Publica a API
-RUN dotnet publish Arc.API/Arc.API.csproj -c Release -o /publish
+# Publica o projeto principal
+RUN dotnet publish ./Arc.API/Arc.API.csproj -c Release -o /app/out
 
 # =========================
 # STAGE 2 - Runtime
@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 # Copia os arquivos publicados do estágio anterior
-COPY --from=build /publish .
+COPY --from=build /app/out .
 
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Arc.API.dll"]
