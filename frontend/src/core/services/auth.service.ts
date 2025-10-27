@@ -13,17 +13,31 @@ class AuthService {
    * Register a new user
    * POST /api/auth/register
    */
-  async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
-    try {
-      const response = await apiClient.post<AuthResponseDto>('/auth/register', data);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error('Erro ao registrar usuário. Tente novamente.');
+/**
+ * Register a new user
+ * POST /api/auth/register
+ */
+async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
+  try {
+    // 🔧 Converte os campos do formulário para o formato esperado pela API
+    const payload = {
+      firstName: data.nome,
+      lastName: data.sobrenome,
+      email: data.email,
+      password: data.senha,
+      profession: data.profissao,
+      referral: data.comoConheceu,
+    };
+
+    const response = await apiClient.post<AuthResponseDto>('/auth/register', payload);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
     }
+    throw new Error('Erro ao registrar usuário. Tente novamente.');
   }
+}
 
   /**
    * Login user
