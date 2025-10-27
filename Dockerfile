@@ -2,8 +2,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia apenas a pasta backend e mantém o caminho correto
-COPY ./backend ./backend
+# Copia SOMENTE o conteúdo da pasta backend (sem criar /backend/backend)
+COPY backend/. .
 
 # Entra na pasta onde está a solução
 WORKDIR /src/backend
