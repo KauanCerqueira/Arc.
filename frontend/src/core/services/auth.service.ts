@@ -19,14 +19,16 @@ class AuthService {
  */
 async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   try {
-    // 🔧 Converte os campos do formulário para o formato esperado pela API
+    // ✅ O backend espera os nomes em português
     const payload = {
-      firstName: data.nome,
-      lastName: data.sobrenome,
+      nome: data.nome,
+      sobrenome: data.sobrenome,
       email: data.email,
-      password: data.senha,
-      profession: data.profissao,
-      referral: data.comoConheceu,
+      senha: data.senha,
+      bio: data.bio || "",
+      icone: data.icone || "",
+      profissao: data.profissao || "",
+      comoConheceu: data.comoConheceu || ""
     };
 
     const response = await apiClient.post<AuthResponseDto>('/auth/register', payload);
@@ -38,7 +40,6 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
     throw new Error('Erro ao registrar usuário. Tente novamente.');
   }
 }
-
   /**
    * Login user
    * POST /api/auth/login
