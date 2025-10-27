@@ -1,0 +1,13 @@
+# Ignorar tudo por padrão
+*
+
+# Incluir apenas o backend
+!backend/
+!backend/**
+!backend/Arc.sln
+
+# Exceções específicas para evitar lixo no build
+backend/**/*.user
+backend/**/*.vs
+backend/**/bin/
+backend/**/obj/
