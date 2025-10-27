@@ -322,7 +322,7 @@ export default function MindMap() {
 
   // Pan com espaço ou botão do meio
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 1 || e.spaceKey) {
+   if (e.button === 1) {
       e.preventDefault();
       setIsPanning(true);
       setPanStart({
