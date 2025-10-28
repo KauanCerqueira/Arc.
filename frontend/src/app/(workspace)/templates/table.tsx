@@ -302,6 +302,46 @@ export default function TableTemplate({ groupId, pageId }: WorkspaceTemplateComp
     }
   };
 
+  const compareValues = (aVal: unknown, bVal: unknown, column?: Column): number => {
+    const normalize = (value: unknown) => {
+      if (value === null || value === undefined) return null;
+      return value;
+    };
+
+    const aNormalized = normalize(aVal);
+    const bNormalized = normalize(bVal);
+
+    if (aNormalized === null && bNormalized === null) return 0;
+    if (aNormalized === null) return -1;
+    if (bNormalized === null) return 1;
+
+    switch (column?.type) {
+      case 'number': {
+        const aNum = typeof aNormalized === 'number' ? aNormalized : Number(aNormalized);
+        const bNum = typeof bNormalized === 'number' ? bNormalized : Number(bNormalized);
+        if (Number.isNaN(aNum) && Number.isNaN(bNum)) return 0;
+        if (Number.isNaN(aNum)) return -1;
+        if (Number.isNaN(bNum)) return 1;
+        return aNum - bNum;
+      }
+      case 'date': {
+        const aTime = new Date(String(aNormalized)).getTime();
+        const bTime = new Date(String(bNormalized)).getTime();
+        return aTime - bTime;
+      }
+      case 'checkbox': {
+        const aBool = Boolean(aNormalized);
+        const bBool = Boolean(bNormalized);
+        return Number(aBool) - Number(bBool);
+      }
+      default: {
+        const aStr = String(aNormalized).toLowerCase();
+        const bStr = String(bNormalized).toLowerCase();
+        return aStr.localeCompare(bStr, 'pt-BR', { numeric: true, sensitivity: 'base' });
+      }
+    }
+  };
+
   const filteredAndSortedRows = rows
     .filter(row => {
       if (!searchQuery) return true;
@@ -312,13 +352,10 @@ export default function TableTemplate({ groupId, pageId }: WorkspaceTemplateComp
     })
     .sort((a, b) => {
       if (!sortColumn) return 0;
-      
-      const aVal = a[sortColumn];
-      const bVal = b[sortColumn];
-      
-      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
+      const column = columns.find((col) => col.id === sortColumn);
+      const comparison = compareValues(a[sortColumn], b[sortColumn], column);
+      if (comparison === 0) return 0;
+      return sortDirection === 'asc' ? comparison : -comparison;
     });
 
   const visibleColumns = columns.filter(col => col.visible);
