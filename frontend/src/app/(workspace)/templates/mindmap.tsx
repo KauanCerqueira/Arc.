@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 import {
   Plus,
   Trash2,
@@ -45,9 +47,7 @@ const COLORS = [
   { name: 'Rosa Forte', value: '#F43F5E' },
 ];
 
-export default function MindMap() {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes] = useState<Record<string, MindMapNode>>({
+const DEFAULT_NODES: Record<string, MindMapNode> = {
     root: {
       id: 'root',
       label: 'Ideia Central',
@@ -104,7 +104,21 @@ export default function MindMap() {
       parentId: 'root',
       children: [],
     },
-  });
+};
+
+type MindMapData = {
+  nodes: Record<string, MindMapNode>;
+};
+
+const DEFAULT_DATA: MindMapData = {
+  nodes: DEFAULT_NODES,
+};
+
+export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { data, setData } = usePageTemplateData<MindMapData>(groupId, pageId, DEFAULT_DATA);
+  const persistedNodes = data.nodes ?? DEFAULT_NODES;
+  const [nodes, setNodes] = useState<Record<string, MindMapNode>>(persistedNodes);
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [editingNode, setEditingNode] = useState<string | null>(null);
@@ -116,6 +130,22 @@ export default function MindMap() {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<Position>({ x: 0, y: 0 });
   const [showColorPicker, setShowColorPicker] = useState(false);
+
+  useEffect(() => {
+    setNodes(persistedNodes);
+  }, [persistedNodes]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (JSON.stringify(nodes) === JSON.stringify(persistedNodes)) return;
+      setData((current) => ({
+        ...current,
+        nodes,
+      }));
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [nodes, persistedNodes, setData]);
 
   // Gerar curva Bézier suave
   const generateCurve = (start: Position, end: Position): string => {
@@ -167,13 +197,20 @@ export default function MindMap() {
       children: [],
     };
 
-    setNodes({
-      ...nodes,
-      [newId]: newNode,
-      [parentId]: {
-        ...parent,
-        children: [...parent.children, newId],
-      },
+    setNodes((current) => {
+      const parentNode = current[parentId];
+      if (!parentNode) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [newId]: newNode,
+        [parentId]: {
+          ...parentNode,
+          children: [...parentNode.children, newId],
+        },
+      };
     });
 
     setSelectedNode(newId);
@@ -186,88 +223,70 @@ export default function MindMap() {
     if (nodeId === 'root') return;
     if (!confirm('Deletar este nó e todos os seus filhos?')) return;
 
-    const node = nodes[nodeId];
-    const parent = node.parentId ? nodes[node.parentId] : null;
+    setNodes((current) => {
+      const node = current[nodeId];
+      if (!node) return current;
 
-    // Deletar nó e filhos recursivamente
-    const toDelete = [nodeId];
-    const processChildren = (id: string) => {
-      const n = nodes[id];
-      if (n) {
-        n.children.forEach(childId => {
-          toDelete.push(childId);
-          processChildren(childId);
-        });
-      }
-    };
-    processChildren(nodeId);
-
-    const newNodes = { ...nodes };
-    toDelete.forEach(id => delete newNodes[id]);
-
-    // Remover do pai
-    if (parent) {
-      newNodes[parent.id] = {
-        ...parent,
-        children: parent.children.filter(id => id !== nodeId),
+      const toDelete = [nodeId];
+      const collectChildren = (id: string) => {
+        const currentNode = current[id];
+        if (currentNode) {
+          currentNode.children.forEach((childId) => {
+            toDelete.push(childId);
+            collectChildren(childId);
+          });
+        }
       };
-    }
+      collectChildren(nodeId);
 
-    setNodes(newNodes);
+      const newNodes = { ...current };
+      toDelete.forEach((id) => delete newNodes[id]);
+
+      if (node.parentId && newNodes[node.parentId]) {
+        const parentNode = newNodes[node.parentId];
+        newNodes[node.parentId] = {
+          ...parentNode,
+          children: parentNode.children.filter((id) => id !== nodeId),
+        };
+      }
+
+      return newNodes;
+    });
     setSelectedNode(null);
   };
 
   // Atualizar label
   const updateLabel = (nodeId: string, newLabel: string) => {
     if (!newLabel.trim()) return;
-    setNodes({
-      ...nodes,
-      [nodeId]: {
-        ...nodes[nodeId],
-        label: newLabel,
-      },
+    setNodes((current) => {
+      const node = current[nodeId];
+      if (!node) return current;
+      return {
+        ...current,
+        [nodeId]: {
+          ...node,
+          label: newLabel,
+        },
+      };
     });
   };
 
   // Atualizar cor
   const updateColor = (nodeId: string, newColor: string) => {
-    const updateNodeAndChildren = (id: string, color: string) => {
-      const node = nodes[id];
-      if (!node) return;
+    setNodes((current) => {
+      if (!current[nodeId]) return current;
 
-      const updated = {
-        ...node,
-        color,
+      const newNodes = { ...current };
+      const applyColor = (id: string) => {
+        const node = newNodes[id];
+        if (!node) return;
+        newNodes[id] = { ...node, color: newColor };
+        node.children.forEach(applyColor);
       };
 
-      const newNodes = {
-        ...nodes,
-        [id]: updated,
-      };
-
-      // Atualizar filhos recursivamente
-      node.children.forEach(childId => {
-        if (nodes[childId]) {
-          newNodes[childId] = {
-            ...nodes[childId],
-            color,
-          };
-          const child = nodes[childId];
-          child.children.forEach(grandChildId => {
-            if (nodes[grandChildId]) {
-              newNodes[grandChildId] = {
-                ...nodes[grandChildId],
-                color,
-              };
-            }
-          });
-        }
-      });
-
-      setNodes(newNodes);
-    };
-
-    updateNodeAndChildren(nodeId, newColor);
+      applyColor(nodeId);
+      return newNodes;
+    });
   };
 
   // Drag & Drop
@@ -297,15 +316,20 @@ export default function MindMap() {
       const mouseX = (e.clientX - rect.left - pan.x) / zoom;
       const mouseY = (e.clientY - rect.top - pan.y) / zoom;
 
-      setNodes({
-        ...nodes,
-        [draggingNode]: {
-          ...nodes[draggingNode],
-          position: {
-            x: mouseX - dragOffset.x,
-            y: mouseY - dragOffset.y,
+      const nodeId = draggingNode;
+      setNodes((current) => {
+        const node = current[nodeId];
+        if (!node) return current;
+        return {
+          ...current,
+          [nodeId]: {
+            ...node,
+            position: {
+              x: mouseX - dragOffset.x,
+              y: mouseY - dragOffset.y,
+            },
           },
-        },
+        };
       });
     } else if (isPanning) {
       setPan({

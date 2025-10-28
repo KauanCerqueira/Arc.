@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type Task = {
   id: string;
@@ -10,17 +12,15 @@ type Task = {
   priority: 'low' | 'medium' | 'high';
   dueDate: string;
   tags: string[];
-  createdAt: Date;
+  createdAt: string;
 };
 
-const PRIORITIES = {
-  low: { label: 'Baixa', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
-  medium: { label: 'Média', color: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' },
-  high: { label: 'Alta', color: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
+type TasksTemplateData = {
+  tasks: Task[];
 };
 
-export default function TasksTemplate() {
-  const [tasks, setTasks] = useState<Task[]>([
+const DEFAULT_DATA: TasksTemplateData = {
+  tasks: [
     {
       id: '1',
       title: 'Implementar autenticação',
@@ -29,7 +29,7 @@ export default function TasksTemplate() {
       priority: 'high',
       dueDate: '2025-01-25',
       tags: ['Backend', 'Segurança'],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     },
     {
       id: '2',
@@ -39,9 +39,24 @@ export default function TasksTemplate() {
       priority: 'medium',
       dueDate: '2025-01-28',
       tags: ['Testing'],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     },
-  ]);
+  ],
+};
+
+const PRIORITIES = {
+  low: { label: 'Baixa', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+  medium: { label: 'Média', color: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' },
+  high: { label: 'Alta', color: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
+};
+
+export default function TasksTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<TasksTemplateData>(
+    groupId,
+    pageId,
+    DEFAULT_DATA,
+  );
+  const tasks = data.tasks ?? [];
 
   const [showForm, setShowForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -54,6 +69,13 @@ export default function TasksTemplate() {
     tags: '',
   });
 
+  const updateTasks = (updater: (currentTasks: Task[]) => Task[]) => {
+    setData((current) => ({
+      ...current,
+      tasks: updater(current.tasks ?? []),
+    }));
+  };
+
   const addTask = () => {
     if (!newTask.title.trim()) return;
     const task: Task = {
@@ -64,26 +86,32 @@ export default function TasksTemplate() {
       priority: newTask.priority,
       dueDate: newTask.dueDate,
       tags: newTask.tags.split(',').map(t => t.trim()).filter(t => t),
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
-    setTasks([task, ...tasks]);
+    updateTasks((current) => [task, ...current]);
     setNewTask({ title: '', description: '', priority: 'medium', dueDate: '', tags: '' });
     setShowForm(false);
   };
 
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    updateTasks((current) =>
+      current.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    );
   };
 
   const deleteTask = (id: string) => {
     if (confirm('Excluir tarefa?')) {
-      setTasks(tasks.filter(t => t.id !== id));
+      updateTasks((current) => current.filter((task) => task.id !== id));
       if (selectedTask?.id === id) setSelectedTask(null);
     }
   };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
+    updateTasks((current) =>
+      current.map((task) => (task.id === id ? { ...task, ...updates } : task)),
+    );
     if (selectedTask?.id === id) {
       setSelectedTask({ ...selectedTask, ...updates });
     }

@@ -25,6 +25,9 @@ import MindmapTemplate from '@/app/(workspace)/templates/mindmap';
 import NotesTemplate from '@/app/(workspace)/templates/notes';
 import TimelineTemplate from '@/app/(workspace)/templates/timeline';
 import WikiTemplate from '@/app/(workspace)/templates/wiki';
+import PersonalBudgetTemplate from '@/app/(workspace)/templates/personal-budget';
+import BusinessBudgetTemplate from '@/app/(workspace)/templates/business-budget';
+
 
 export default function PageView() {
   const params = useParams();
@@ -32,7 +35,7 @@ export default function PageView() {
   const groupId = params.groupId as string;
   const pageId = params.pageId as string;
 
-  const { getGroup, getPage, togglePageFavorite, deletePage, updatePage, updatePageData } = useWorkspaceStore();
+  const { getGroup, getPage, togglePageFavorite, deletePage, updatePage } = useWorkspaceStore();
   
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,53 +57,57 @@ export default function PageView() {
     setIsEditing(false);
   };
 
+  const templateProps = { groupId, pageId };
+
   const renderTemplate = () => {
     if (!page) return null;
 
- switch (page.template) {
-  case 'blank':
-    return <BlankTemplate />;
-  case 'tasks':
-    return <TasksTemplate />;
-  case 'kanban':
-    return <KanbanTemplate />;
-  case 'table':
-    return <TableTemplate />;
-  case 'calendar':
-    return <CalendarTemplate />;
-  case 'projects':
-    return <ProjectsTemplate />;
-  case 'bugs':
-    return <BugsTemplate />;
-  case 'study':
-    return <StudyTemplate />;
-  case 'budget':
-    return <BudgetTemplate />;
-  case 'sprint':
-    return <SprintTemplate />;
-  case 'focus':
-    return <FocusTemplate />;
-  case 'flowchart':
-    return <FlowchartTemplate data={page.data} onDataChange={handleDataChange} />;
-  case 'roadmap':
-    return <RoadmapTemplate />;
-  case 'documents':
-    return <DocumentsTemplate />;
-    //começa aqui
-  case 'dashboard':
-    return <DashboardTemplate />;
-  case 'mindmap':
-    return <MindmapTemplate />;
-  case 'notes':
-    return <NotesTemplate />;
-  case 'timeline':
-    return <TimelineTemplate />;
-  case 'wiki':
-    return <WikiTemplate />;
-    
-  default:
-    return <BlankTemplate />;
-}
+    switch (page.template) {
+      case 'blank':
+        return <BlankTemplate {...templateProps} />;
+      case 'tasks':
+        return <TasksTemplate {...templateProps} />;
+      case 'kanban':
+        return <KanbanTemplate {...templateProps} />;
+      case 'table':
+        return <TableTemplate {...templateProps} />;
+      case 'calendar':
+        return <CalendarTemplate {...templateProps} />;
+      case 'projects':
+        return <ProjectsTemplate {...templateProps} />;
+      case 'bugs':
+        return <BugsTemplate {...templateProps} />;
+      case 'study':
+        return <StudyTemplate {...templateProps} />;
+      case 'budget':
+        return <BudgetTemplate {...templateProps} />;
+      case 'sprint':
+        return <SprintTemplate {...templateProps} />;
+      case 'focus':
+        return <FocusTemplate {...templateProps} />;
+      case 'flowchart':
+        return <FlowchartTemplate {...templateProps} />;
+      case 'roadmap':
+        return <RoadmapTemplate {...templateProps} />;
+      case 'documents':
+        return <DocumentsTemplate {...templateProps} />;
+      case 'dashboard':
+        return <DashboardTemplate {...templateProps} />;
+      case 'mindmap':
+        return <MindmapTemplate {...templateProps} />;
+      case 'notes':
+        return <NotesTemplate {...templateProps} />;
+      case 'timeline':
+        return <TimelineTemplate {...templateProps} />;
+      case 'wiki':
+        return <WikiTemplate {...templateProps} />;
+      case 'personal-budget':
+        return <PersonalBudgetTemplate {...templateProps} />;
+      case 'business-budget':
+        return <BusinessBudgetTemplate {...templateProps} />;
+      default:
+        return <BlankTemplate {...templateProps} />;
+    }
   };
 
   const handleDeletePage = () => {
@@ -112,10 +119,6 @@ export default function PageView() {
 
   const handleToggleFavorite = () => {
     togglePageFavorite(groupId, pageId);
-  };
-
-  const handleDataChange = (data: any) => {
-    updatePageData(groupId, pageId, data);
   };
 
   if (!page || !group) {

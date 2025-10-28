@@ -15,6 +15,8 @@ import {
   Zap,
   ListTodo,
 } from "lucide-react"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
 
 type TimerMode = "work" | "shortBreak" | "longBreak"
 type TimerStatus = "idle" | "running" | "paused"
@@ -23,13 +25,13 @@ type Task = {
   id: string
   text: string
   completed: boolean
-  createdAt: Date
+  createdAt: string
 }
 
 type Session = {
   id: string
   type: TimerMode
-  completedAt: Date
+  completedAt: string
 }
 
 type Settings = {
@@ -50,16 +52,86 @@ const DEFAULT_SETTINGS: Settings = {
   autoStartPomodoros: false,
 }
 
-export default function FocusTemplate() {
+type FocusTemplateData = {
+  settings: Settings
+  tasks: Task[]
+  sessions: Session[]
+  completedPomodoros: number
+}
+
+const DEFAULT_DATA: FocusTemplateData = {
+  settings: DEFAULT_SETTINGS,
+  tasks: [],
+  sessions: [],
+  completedPomodoros: 0,
+}
+
+export default function FocusTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<FocusTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const settings = data.settings ?? DEFAULT_SETTINGS
+  const tasks = data.tasks ?? []
+  const sessions = data.sessions ?? []
+  const completedPomodoros = data.completedPomodoros ?? 0
+
+  const updateSettings = (updater: Settings | ((current: Settings) => Settings)) => {
+    setData((current) => {
+      const currentSettings = current.settings ?? DEFAULT_SETTINGS
+      const nextSettings =
+        typeof updater === "function"
+          ? (updater as (current: Settings) => Settings)({ ...currentSettings })
+          : updater
+      return {
+        ...current,
+        settings: nextSettings,
+      }
+    })
+  }
+
+  const updateTasks = (updater: Task[] | ((current: Task[]) => Task[])) => {
+    setData((current) => {
+      const currentTasks = current.tasks ?? []
+      const nextTasks =
+        typeof updater === "function"
+          ? (updater as (current: Task[]) => Task[])(JSON.parse(JSON.stringify(currentTasks)))
+          : updater
+      return {
+        ...current,
+        tasks: nextTasks,
+      }
+    })
+  }
+
+  const updateSessions = (updater: Session[] | ((current: Session[]) => Session[])) => {
+    setData((current) => {
+      const currentSessions = current.sessions ?? []
+      const nextSessions =
+        typeof updater === "function"
+          ? (updater as (current: Session[]) => Session[])(JSON.parse(JSON.stringify(currentSessions)))
+          : updater
+      return {
+        ...current,
+        sessions: nextSessions,
+      }
+    })
+  }
+
+  const updateCompletedPomodoros = (updater: number | ((prev: number) => number)) => {
+    setData((current) => {
+      const currentValue = current.completedPomodoros ?? 0
+      const nextValue =
+        typeof updater === "function" ? (updater as (prev: number) => number)(currentValue) : updater
+      return {
+        ...current,
+        completedPomodoros: nextValue,
+      }
+    })
+  }
+
   const [mode, setMode] = useState<TimerMode>("work")
   const [status, setStatus] = useState<TimerStatus>("idle")
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_SETTINGS.workDuration * 60)
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+  const [timeLeft, setTimeLeft] = useState(settings.workDuration * 60)
   const [showSettings, setShowSettings] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([])
   const [newTaskText, setNewTaskText] = useState("")
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [completedPomodoros, setCompletedPomodoros] = useState(0)
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -79,12 +151,12 @@ export default function FocusTemplate() {
     const newSession: Session = {
       id: `session_${Date.now()}`,
       type: mode,
-      completedAt: new Date(),
+      completedAt: new Date().toISOString(),
     }
-    setSessions((prev) => [...prev, newSession])
+    updateSessions((prev) => [...prev, newSession])
 
     if (mode === "work") {
-      setCompletedPomodoros((prev) => prev + 1)
+      updateCompletedPomodoros((prev) => prev + 1)
     }
 
     if ("Notification" in window && Notification.permission === "granted") {
@@ -150,19 +222,19 @@ export default function FocusTemplate() {
       id: `task_${Date.now()}`,
       text: newTaskText,
       completed: false,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     }
 
-    setTasks((prev) => [...prev, newTask])
+    updateTasks((prev) => [...prev, newTask])
     setNewTaskText("")
   }
 
   const toggleTask = (taskId: string) => {
-    setTasks((prev) => prev.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task)))
+    updateTasks((prev) => prev.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task)))
   }
 
   const deleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId))
+    updateTasks((prev) => prev.filter((task) => task.id !== taskId))
   }
 
   const formatTime = (seconds: number): string => {
@@ -411,7 +483,12 @@ export default function FocusTemplate() {
                         min="1"
                         max="60"
                         value={settings.workDuration}
-                        onChange={(e) => setSettings({ ...settings, workDuration: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            workDuration: Number(e.target.value),
+                          })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-shadow"
                       />
                     </div>
@@ -424,7 +501,12 @@ export default function FocusTemplate() {
                         min="1"
                         max="30"
                         value={settings.shortBreakDuration}
-                        onChange={(e) => setSettings({ ...settings, shortBreakDuration: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            shortBreakDuration: Number(e.target.value),
+                          })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-shadow"
                       />
                     </div>
@@ -437,7 +519,12 @@ export default function FocusTemplate() {
                         min="1"
                         max="60"
                         value={settings.longBreakDuration}
-                        onChange={(e) => setSettings({ ...settings, longBreakDuration: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            longBreakDuration: Number(e.target.value),
+                          })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-shadow"
                       />
                     </div>
@@ -450,7 +537,12 @@ export default function FocusTemplate() {
                         min="2"
                         max="10"
                         value={settings.sessionsUntilLongBreak}
-                        onChange={(e) => setSettings({ ...settings, sessionsUntilLongBreak: Number(e.target.value) })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            sessionsUntilLongBreak: Number(e.target.value),
+                          })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-shadow"
                       />
                     </div>
@@ -461,7 +553,12 @@ export default function FocusTemplate() {
                       <input
                         type="checkbox"
                         checked={settings.autoStartBreaks}
-                        onChange={(e) => setSettings({ ...settings, autoStartBreaks: e.target.checked })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            autoStartBreaks: e.target.checked,
+                          })
+                        }
                         className="w-5 h-5 rounded border-gray-300 dark:border-slate-700 text-gray-900 dark:text-slate-600 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 transition-colors"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
@@ -472,7 +569,12 @@ export default function FocusTemplate() {
                       <input
                         type="checkbox"
                         checked={settings.autoStartPomodoros}
-                        onChange={(e) => setSettings({ ...settings, autoStartPomodoros: e.target.checked })}
+                        onChange={(e) =>
+                          updateSettings({
+                            ...settings,
+                            autoStartPomodoros: e.target.checked,
+                          })
+                        }
                         className="w-5 h-5 rounded border-gray-300 dark:border-slate-700 text-gray-900 dark:text-slate-600 focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 transition-colors"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">

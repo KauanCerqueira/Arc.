@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type Priority = 'low' | 'medium' | 'high' | 'urgent';
 type CardStatus = 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
 
 type Card = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   status: CardStatus;
@@ -14,7 +16,7 @@ type Card = {
   assignee: string;
   tags: string[];
   dueDate: string;
-  createdAt: Date;
+  createdAt: string;
 };
 
 type Column = {
@@ -38,10 +40,14 @@ const PRIORITY_CONFIG = {
   urgent: { label: 'Urgente', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
 };
 
-export default function KanbanBoard() {
-  const [cards, setCards] = useState<Card[]>([
+type KanbanTemplateData = {
+  cards: Card[];
+};
+
+const DEFAULT_DATA: KanbanTemplateData = {
+  cards: [
     {
-      id: 1,
+      id: '1',
       title: 'Implementar autenticação',
       description: 'Adicionar login com Google e GitHub',
       status: 'in-progress',
@@ -49,10 +55,10 @@ export default function KanbanBoard() {
       assignee: 'João Silva',
       tags: ['Backend', 'Segurança'],
       dueDate: '2025-01-25',
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     },
     {
-      id: 2,
+      id: '2',
       title: 'Design da landing page',
       description: 'Criar mockups no Figma',
       status: 'todo',
@@ -60,10 +66,10 @@ export default function KanbanBoard() {
       assignee: 'Maria Santos',
       tags: ['Design', 'Frontend'],
       dueDate: '2025-01-30',
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     },
     {
-      id: 3,
+      id: '3',
       title: 'Configurar CI/CD',
       description: 'Setup GitHub Actions',
       status: 'backlog',
@@ -71,9 +77,18 @@ export default function KanbanBoard() {
       assignee: '',
       tags: ['DevOps'],
       dueDate: '',
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     },
-  ]);
+  ],
+};
+
+export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<KanbanTemplateData>(
+    groupId,
+    pageId,
+    DEFAULT_DATA,
+  );
+  const cards = data.cards ?? [];
 
   const [showAddCard, setShowAddCard] = useState<CardStatus | null>(null);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
@@ -90,11 +105,18 @@ export default function KanbanBoard() {
     dueDate: '',
   });
 
+  const updateCards = (updater: (current: Card[]) => Card[]) => {
+    setData((current) => ({
+      ...current,
+      cards: updater(current.cards ?? []),
+    }));
+  };
+
   const addCard = (status: CardStatus) => {
     if (!newCard.title.trim()) return;
 
     const card: Card = {
-      id: Date.now(),
+      id: Date.now().toString(),
       title: newCard.title,
       description: newCard.description,
       status,
@@ -102,24 +124,26 @@ export default function KanbanBoard() {
       assignee: newCard.assignee,
       tags: newCard.tags.split(',').map(t => t.trim()).filter(t => t),
       dueDate: newCard.dueDate,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
-    setCards([...cards, card]);
+    updateCards((current) => [...current, card]);
     setNewCard({ title: '', description: '', priority: 'medium', assignee: '', tags: '', dueDate: '' });
     setShowAddCard(null);
   };
 
-  const updateCard = (id: number, updates: Partial<Card>) => {
-    setCards(cards.map(card => card.id === id ? { ...card, ...updates } : card));
+  const updateCard = (id: string, updates: Partial<Card>) => {
+    updateCards((current) =>
+      current.map((card) => (card.id === id ? { ...card, ...updates } : card)),
+    );
     if (selectedCard?.id === id) {
       setSelectedCard({ ...selectedCard, ...updates });
     }
   };
 
-  const deleteCard = (id: number) => {
+  const deleteCard = (id: string) => {
     if (confirm('Excluir este card?')) {
-      setCards(cards.filter(card => card.id !== id));
+      updateCards((current) => current.filter((card) => card.id !== id));
       setSelectedCard(null);
     }
   };
@@ -127,11 +151,11 @@ export default function KanbanBoard() {
   const duplicateCard = (card: Card) => {
     const newCard: Card = {
       ...card,
-      id: Date.now(),
+      id: Date.now().toString(),
       title: `${card.title} (cópia)`,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
-    setCards([...cards, newCard]);
+    updateCards((current) => [...current, newCard]);
   };
 
   const filteredCards = cards.filter(card => {

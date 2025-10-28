@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 import { Plus, Search, Star, Trash2, Edit2, Hash, Archive } from 'lucide-react';
 
 type Note = {
@@ -11,8 +13,8 @@ type Note = {
   favorite: boolean;
   archived: boolean;
   color: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const NOTE_COLORS = [
@@ -24,8 +26,11 @@ const NOTE_COLORS = [
   { name: 'Laranja', class: 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700' },
 ];
 
-export default function Notes() {
-  const [notes, setNotes] = useState<Note[]>([
+type NotesTemplateData = {
+  notes: Note[];
+};
+
+const DEFAULT_NOTES: Note[] = [
     {
       id: '1',
       title: 'Ideias para Features',
@@ -34,8 +39,8 @@ export default function Notes() {
       favorite: true,
       archived: false,
       color: NOTE_COLORS[0].class,
-      createdAt: new Date(2025, 0, 10),
-      updatedAt: new Date(2025, 0, 15),
+      createdAt: new Date(2025, 0, 10).toISOString(),
+      updatedAt: new Date(2025, 0, 15).toISOString(),
     },
     {
       id: '2',
@@ -45,8 +50,8 @@ export default function Notes() {
       favorite: false,
       archived: false,
       color: NOTE_COLORS[2].class,
-      createdAt: new Date(2025, 0, 12),
-      updatedAt: new Date(2025, 0, 12),
+      createdAt: new Date(2025, 0, 12).toISOString(),
+      updatedAt: new Date(2025, 0, 12).toISOString(),
     },
     {
       id: '3',
@@ -56,8 +61,8 @@ export default function Notes() {
       favorite: true,
       archived: false,
       color: NOTE_COLORS[1].class,
-      createdAt: new Date(2025, 0, 8),
-      updatedAt: new Date(2025, 0, 14),
+      createdAt: new Date(2025, 0, 8).toISOString(),
+      updatedAt: new Date(2025, 0, 14).toISOString(),
     },
     {
       id: '4',
@@ -67,8 +72,8 @@ export default function Notes() {
       favorite: false,
       archived: false,
       color: NOTE_COLORS[3].class,
-      createdAt: new Date(2025, 0, 16),
-      updatedAt: new Date(2025, 0, 16),
+      createdAt: new Date(2025, 0, 16).toISOString(),
+      updatedAt: new Date(2025, 0, 16).toISOString(),
     },
     {
       id: '5',
@@ -78,10 +83,32 @@ export default function Notes() {
       favorite: false,
       archived: false,
       color: NOTE_COLORS[4].class,
-      createdAt: new Date(2025, 0, 14),
-      updatedAt: new Date(2025, 0, 14),
+      createdAt: new Date(2025, 0, 14).toISOString(),
+      updatedAt: new Date(2025, 0, 14).toISOString(),
     },
-  ]);
+  ];
+
+const DEFAULT_DATA: NotesTemplateData = {
+  notes: DEFAULT_NOTES,
+};
+
+export default function Notes({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<NotesTemplateData>(groupId, pageId, DEFAULT_DATA);
+  const notes = data.notes ?? DEFAULT_NOTES;
+
+  const updateNotes = (updater: Note[] | ((current: Note[]) => Note[])) => {
+    setData((current) => {
+      const currentNotes = current.notes ?? DEFAULT_NOTES;
+      const nextNotes =
+        typeof updater === 'function'
+          ? (updater as (current: Note[]) => Note[])(JSON.parse(JSON.stringify(currentNotes)))
+          : updater;
+      return {
+        ...current,
+        notes: nextNotes,
+      };
+    });
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
@@ -100,15 +127,19 @@ export default function Notes() {
   });
 
   const toggleFavorite = (id: string) => {
-    setNotes(notes.map(note =>
-      note.id === id ? { ...note, favorite: !note.favorite } : note
-    ));
+    updateNotes(current =>
+      current.map(note =>
+        note.id === id ? { ...note, favorite: !note.favorite } : note
+      )
+    );
   };
 
   const toggleArchive = (id: string) => {
-    setNotes(notes.map(note =>
-      note.id === id ? { ...note, archived: !note.archived } : note
-    ));
+    updateNotes(current =>
+      current.map(note =>
+        note.id === id ? { ...note, archived: !note.archived } : note
+      )
+    );
   };
 
   return (

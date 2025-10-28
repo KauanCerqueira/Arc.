@@ -1,7 +1,9 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
 import { Plus, Trash2, Calendar, CheckCircle2, Circle, Clock } from 'lucide-react'
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 
 type RoadmapItem = {
   id: string
@@ -12,8 +14,12 @@ type RoadmapItem = {
   priority: 'low' | 'medium' | 'high'
 }
 
-export default function RoadmapTemplate() {
-  const [items, setItems] = useState<RoadmapItem[]>([
+type RoadmapTemplateData = {
+  items: RoadmapItem[]
+}
+
+const DEFAULT_DATA: RoadmapTemplateData = {
+  items: [
     {
       id: '1',
       title: 'Lançamento da versão 1.0',
@@ -38,7 +44,26 @@ export default function RoadmapTemplate() {
       quarter: 'Q2 2025',
       priority: 'medium',
     },
-  ])
+  ],
+}
+
+export default function RoadmapTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<RoadmapTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const items = data.items ?? DEFAULT_DATA.items
+
+  const updateItems = (updater: RoadmapItem[] | ((current: RoadmapItem[]) => RoadmapItem[])) => {
+    setData((current) => {
+      const currentItems = current.items ?? DEFAULT_DATA.items
+      const nextItems =
+        typeof updater === 'function'
+          ? (updater as (current: RoadmapItem[]) => RoadmapItem[])(JSON.parse(JSON.stringify(currentItems)))
+          : updater
+      return {
+        ...current,
+        items: nextItems,
+      }
+    })
+  }
 
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -56,17 +81,19 @@ export default function RoadmapTemplate() {
     if (!formData.title.trim()) return
 
     if (editingId) {
-      setItems(items.map(item =>
-        item.id === editingId
-          ? { ...item, ...formData }
-          : item
-      ))
+      updateItems(current =>
+        current.map(item =>
+          item.id === editingId
+            ? { ...item, ...formData }
+            : item
+        )
+      )
     } else {
       const newItem: RoadmapItem = {
         id: Date.now().toString(),
         ...formData,
       }
-      setItems([...items, newItem])
+      updateItems(current => [...current, newItem])
     }
 
     setShowModal(false)
@@ -94,7 +121,7 @@ export default function RoadmapTemplate() {
 
   const handleDelete = (id: string) => {
     if (confirm('Excluir este item do roadmap?')) {
-      setItems(items.filter(item => item.id !== id))
+      updateItems(current => current.filter(item => item.id !== id))
     }
   }
 

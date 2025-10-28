@@ -6,9 +6,11 @@ import {
   AlertCircle, CheckCircle2, Code, Palette, Laptop,
   Clock, Users, Server, Zap, Calculator, Edit2, X
 } from 'lucide-react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type CostItem = {
-  id: number;
+  id: string;
   name: string;
   hours: number;
   hourlyRate: number;
@@ -48,20 +50,29 @@ const HOURLY_RATES = {
   ],
 };
 
-export default function BudgetTemplate() {
-  const [project, setProject] = useState<Project>({
+type BudgetTemplateData = {
+  project: Project;
+};
+
+const DEFAULT_DATA: BudgetTemplateData = {
+  project: {
     name: 'Novo Projeto',
     client: '',
     deadline: '',
     margin: 30,
     items: [
-      { id: 1, name: 'Frontend React', hours: 80, hourlyRate: 100, quantity: 1, category: 'development' },
-      { id: 2, name: 'Backend Node.js', hours: 60, hourlyRate: 100, quantity: 1, category: 'development' },
-      { id: 3, name: 'UI/UX Design', hours: 40, hourlyRate: 120, quantity: 1, category: 'design' },
-      { id: 4, name: 'Servidor VPS', hours: 0, hourlyRate: 0, quantity: 12, category: 'infrastructure' },
+      { id: '1', name: 'Frontend React', hours: 80, hourlyRate: 100, quantity: 1, category: 'development' },
+      { id: '2', name: 'Backend Node.js', hours: 60, hourlyRate: 100, quantity: 1, category: 'development' },
+      { id: '3', name: 'UI/UX Design', hours: 40, hourlyRate: 120, quantity: 1, category: 'design' },
+      { id: '4', name: 'Servidor VPS', hours: 0, hourlyRate: 0, quantity: 12, category: 'infrastructure' },
     ],
     clientBudget: 0,
-  });
+  },
+};
+
+export default function BudgetTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<BudgetTemplateData>(groupId, pageId, DEFAULT_DATA);
+  const project = data.project ?? DEFAULT_DATA.project;
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProject, setEditingProject] = useState(false);
@@ -74,31 +85,45 @@ export default function BudgetTemplate() {
     category: 'development' as CostItem['category'],
   });
 
+  const updateProject = (updater: (current: Project) => Project) => {
+    setData((current) => {
+      const currentProject = current.project ?? DEFAULT_DATA.project;
+      const nextProject = updater(JSON.parse(JSON.stringify(currentProject)));
+      return {
+        ...current,
+        project: nextProject,
+      };
+    });
+  };
+
   const addItem = () => {
     if (!newItem.name.trim()) return;
 
-    setProject({
-      ...project,
-      items: [...project.items, {
-        id: Date.now(),
-        name: newItem.name,
-        hours: parseFloat(newItem.hours) || 0,
-        hourlyRate: parseFloat(newItem.hourlyRate) || 0,
-        quantity: parseFloat(newItem.quantity) || 1,
-        category: newItem.category,
-      }],
-    });
+    updateProject((current) => ({
+      ...current,
+      items: [
+        ...current.items,
+        {
+          id: Date.now().toString(),
+          name: newItem.name,
+          hours: parseFloat(newItem.hours) || 0,
+          hourlyRate: parseFloat(newItem.hourlyRate) || 0,
+          quantity: parseFloat(newItem.quantity) || 1,
+          category: newItem.category,
+        },
+      ],
+    }));
 
     setNewItem({ name: '', hours: '', hourlyRate: '', quantity: '1', category: 'development' });
     setShowAddForm(false);
   };
 
-  const deleteItem = (id: number) => {
+  const deleteItem = (id: string) => {
     if (confirm('Excluir este item?')) {
-      setProject({
-        ...project,
-        items: project.items.filter(item => item.id !== id),
-      });
+      updateProject((current) => ({
+        ...current,
+        items: current.items.filter((item) => item.id !== id),
+      }));
     }
   };
 
@@ -148,7 +173,7 @@ export default function BudgetTemplate() {
                 <input
                   type="text"
                   value={project.name}
-                  onChange={(e) => setProject({ ...project, name: e.target.value })}
+                  onChange={(e) => updateProject((current) => ({ ...current, name: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
                 />
               </div>
@@ -159,7 +184,7 @@ export default function BudgetTemplate() {
                 <input
                   type="text"
                   value={project.client}
-                  onChange={(e) => setProject({ ...project, client: e.target.value })}
+                  onChange={(e) => updateProject((current) => ({ ...current, client: e.target.value }))}
                   placeholder="Nome do cliente"
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
                 />
@@ -171,7 +196,7 @@ export default function BudgetTemplate() {
                 <input
                   type="date"
                   value={project.deadline}
-                  onChange={(e) => setProject({ ...project, deadline: e.target.value })}
+                  onChange={(e) => updateProject((current) => ({ ...current, deadline: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
                 />
               </div>
@@ -182,7 +207,12 @@ export default function BudgetTemplate() {
                 <input
                   type="number"
                   value={project.clientBudget || ''}
-                  onChange={(e) => setProject({ ...project, clientBudget: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    updateProject((current) => ({
+                      ...current,
+                      clientBudget: parseFloat(e.target.value) || 0,
+                    }))
+                  }
                   placeholder="R$ 0,00"
                   step="0.01"
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
@@ -501,7 +531,12 @@ export default function BudgetTemplate() {
                 max="100"
                 step="5"
                 value={project.margin}
-                onChange={(e) => setProject({ ...project, margin: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  updateProject((current) => ({
+                    ...current,
+                    margin: Number.parseInt(e.target.value, 10) || 0,
+                  }))
+                }
                 className="flex-1 h-2 accent-gray-900 dark:accent-slate-700"
               />
               <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 min-w-[60px] text-right">
@@ -512,7 +547,12 @@ export default function BudgetTemplate() {
               {[10, 20, 30, 40, 50].map(margin => (
                 <button
                   key={margin}
-                  onClick={() => setProject({ ...project, margin })}
+                  onClick={() =>
+                    updateProject((current) => ({
+                      ...current,
+                      margin,
+                    }))
+                  }
                   className={`px-3 py-2 rounded-lg border transition ${
                     project.margin === margin
                       ? 'bg-gray-900 dark:bg-slate-700 text-white border-gray-900 dark:border-slate-700'

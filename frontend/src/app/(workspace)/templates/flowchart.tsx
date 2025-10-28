@@ -19,6 +19,8 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { Plus, Trash2, Palette, Link as LinkIcon, Minus, ZoomIn, ZoomOut } from 'lucide-react'
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 
 // Cores disponíveis
 const nodeColorOptions = [
@@ -109,14 +111,23 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode,
 }
 
-type FlowchartTemplateProps = {
-  data: any
-  onDataChange: (data: any) => void
+type FlowchartTemplateData = {
+  nodes: Node[]
+  edges: Edge[]
 }
 
-export default function FlowchartTemplate({ data, onDataChange }: FlowchartTemplateProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(data?.nodes || [])
-  const [edges, setEdges, onEdgesChange] = useEdgesState(data?.edges || [])
+const DEFAULT_DATA: FlowchartTemplateData = {
+  nodes: [],
+  edges: [],
+}
+
+export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<FlowchartTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const persistedNodes = data.nodes ?? DEFAULT_DATA.nodes
+  const persistedEdges = data.edges ?? DEFAULT_DATA.edges
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(persistedNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(persistedEdges)
   const [nodeName, setNodeName] = useState('')
   const [selectedType, setSelectedType] = useState<'default' | 'start' | 'end' | 'decision'>('default')
   const [selectedColor, setSelectedColor] = useState('blue')
@@ -124,13 +135,29 @@ export default function FlowchartTemplate({ data, onDataChange }: FlowchartTempl
   const [connectionMode, setConnectionMode] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
 
+  useEffect(() => {
+    setNodes(persistedNodes)
+  }, [persistedNodes, setNodes])
+
+  useEffect(() => {
+    setEdges(persistedEdges)
+  }, [persistedEdges, setEdges])
+
   // Sincronizar com parent
   useEffect(() => {
     const timer = setTimeout(() => {
-      onDataChange({ nodes, edges })
-    }, 300)
+      const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(persistedNodes)
+      const edgesChanged = JSON.stringify(edges) !== JSON.stringify(persistedEdges)
+      if (!nodesChanged && !edgesChanged) return
+
+      setData((current) => ({
+        ...current,
+        nodes,
+        edges,
+      }))
+    }, 400)
     return () => clearTimeout(timer)
-  }, [nodes, edges, onDataChange])
+  }, [nodes, edges, persistedNodes, persistedEdges, setData])
 
   // Conectar nós
   const onConnect = useCallback(

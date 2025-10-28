@@ -71,10 +71,10 @@ function SortablePage({ page, groupId, pathname, collapsed }: any) {
       <div ref={setNodeRef} style={style} className="relative group/page">
         <Link
           href={`/workspace/group/${groupId}/page/${page.id}`}
-          className={`flex items-center justify-center p-2 rounded-lg text-sm transition-all duration-200 ${
+          className={`flex items-center justify-center p-2 rounded-lg text-sm transition-colors ${
             pathname.includes(page.id)
-              ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
-              : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+              ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"
+              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
           title={page.name}
         >
@@ -111,15 +111,15 @@ function SortablePage({ page, groupId, pathname, collapsed }: any) {
           onBlur={handleRename}
           onKeyPress={(e) => e.key === "Enter" && handleRename()}
           autoFocus
-          className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+          className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white shadow-sm"
         />
       ) : (
         <Link
           href={`/workspace/group/${groupId}/page/${page.id}`}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
             pathname.includes(page.id)
-              ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
-              : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+              ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"
+              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
         >
           <div
@@ -421,6 +421,20 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       icon: "📁",
       color: "from-cyan-50 to-blue-50 border-cyan-200",
     },
+    {
+  id: "business-budget",
+  name: "Orçamento Empresarial",
+  description: "Gerencie receitas, despesas e relatórios de empresas",
+  icon: "🏢",
+  color: "from-blue-50 to-indigo-50 border-blue-200",
+},
+{
+  id: "personal-budget",
+  name: "Orçamento Pessoal",
+  description: "Controle de gastos e planejamento financeiro pessoal",
+  icon: "💸",
+  color: "from-green-50 to-emerald-50 border-green-200",
+},
   ]
 
   const handleCreateGroup = () => {
@@ -568,54 +582,54 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           )}
 
           <aside
-            className={`fixed top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col z-40 shadow-lg md:shadow-none
+            className={`fixed top-0 left-0 h-screen bg-white dark:bg-black border-r border-gray-200 dark:border-gray-900 flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col z-40 shadow-lg
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             ${sidebarCollapsed ? "md:w-20 w-64" : "w-64"}`}
           >
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-slate-800">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-900">
               <div className="flex items-center justify-between mb-4">
                 <Link href="/workspace" className={`flex items-center gap-3 flex-1 group ${sidebarCollapsed ? 'justify-center' : ''}`}>
-                  <div className="w-9 h-9 bg-gradient-to-br from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 group-hover:shadow-lg transition-shadow duration-200">
-                    <Folder className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                    <Folder className="w-4 h-4 text-white dark:text-black" />
                   </div>
                   {!sidebarCollapsed && (
-                    <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 truncate">
+                    <span className="font-semibold text-gray-900 dark:text-white transition-colors truncate">
                       {workspace?.name || "Workspace"}
                     </span>
                   )}
                 </Link>
                 <button
                   onClick={toggleSidebarCollapsed}
-                  className="hidden md:block p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 flex-shrink-0"
+                  className="hidden md:block p-1.5 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors duration-200 flex-shrink-0"
                   title={sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
                 >
-                  <ChevronRight className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${sidebarCollapsed ? '' : 'rotate-180'}`} />
+                  <ChevronRight className={`w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all duration-200 ${sidebarCollapsed ? '' : 'rotate-180'}`} />
                 </button>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
                 >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white" />
                 </button>
               </div>
 
               {!sidebarCollapsed && (
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Buscar páginas..."
-                    className="w-full pl-9 pr-9 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent transition-all duration-200"
+                    className="w-full pl-9 pr-9 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-all duration-200"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors duration-200"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors duration-200"
                     >
-                      <X className="w-3.5 h-3.5 text-gray-400" />
+                      <X className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                     </button>
                   )}
 
@@ -659,10 +673,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               <Link
                 href="/workspace"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   pathname === "/workspace"
-                    ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                    ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
                 } ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title={sidebarCollapsed ? "Início" : ""}
               >
@@ -685,10 +699,10 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                             key={page.id}
                             href={`/workspace/group/${group.id}/page/${page.id}`}
                             onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                               pathname.includes(page.id)
-                                ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 shadow-sm"
-                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"
+                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
                             }`}
                           >
                             <span className="text-base flex-shrink-0">{page.icon}</span>
@@ -861,11 +875,11 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             </nav>
 
             {/* Sidebar Footer */}
-            <div className="p-3 border-t border-gray-200 dark:border-slate-800">
+            <div className="p-3 border-t border-gray-200 dark:border-gray-900">
               <Link
                 href="/settings"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title={sidebarCollapsed ? "Configurações" : ""}
               >
                 <Settings className="w-4 h-4 flex-shrink-0" />
@@ -876,7 +890,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
           {/* Main Content */}
           <div className={`flex-1 flex flex-col min-w-0 w-full transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
-            <header className={`h-16 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 fixed top-0 right-0 z-30 shadow-sm transition-all duration-300 ${sidebarCollapsed ? 'md:left-20' : 'md:left-64'} left-0`}>
+            <header className={`h-16 border-b border-gray-200 dark:border-gray-900 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-black fixed top-0 right-0 z-30 transition-all duration-300 ${sidebarCollapsed ? 'md:left-20' : 'md:left-64'} left-0`}>
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
@@ -1124,7 +1138,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               </div>
             </header>
 
-            <main className="h-screen overflow-auto bg-gray-50 dark:bg-slate-950 pt-16">{children}</main>
+            <main className="h-screen overflow-auto bg-gray-50 dark:bg-black pt-16">{children}</main>
           </div>
         </div>
 
@@ -1167,64 +1181,64 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
                       Para Estudos
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {GROUP_PRESETS.filter((p) => p.category === "study").map((preset) => (
-                        <button
-                          key={preset.id}
-                          onClick={() => handleSelectPreset(preset)}
-                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
-                        >
-                          <div className="flex items-start gap-3 mb-3">
-                            <span className="text-3xl flex-shrink-0">{preset.icon}</span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
-                                {preset.name}
-                              </h4>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                                {preset.description}
-                              </p>
-                            </div>
-                          </div>
-                          {preset.pages.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                              {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {GROUP_PRESETS.filter((p) => p.category === "education").map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleSelectPreset(preset)}
+                      className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="text-3xl flex-shrink-0">{preset.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
+                            {preset.name}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                            {preset.description}
+                          </p>
+                        </div>
+                      </div>
+                      {preset.pages.length > 0 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
                   </div>
 
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
                       Para Trabalho
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {GROUP_PRESETS.filter((p) => p.category === "work").map((preset) => (
-                        <button
-                          key={preset.id}
-                          onClick={() => handleSelectPreset(preset)}
-                          className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
-                        >
-                          <div className="flex items-start gap-3 mb-3">
-                            <span className="text-3xl flex-shrink-0">{preset.icon}</span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
-                                {preset.name}
-                              </h4>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                                {preset.description}
-                              </p>
-                            </div>
-                          </div>
-                          {preset.pages.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                              {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {GROUP_PRESETS.filter((p) => p.category === "business").map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleSelectPreset(preset)}
+                      className={`p-5 bg-gradient-to-br ${getPresetColor(preset.color)} border-2 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-left`}
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="text-3xl flex-shrink-0">{preset.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm md:text-base">
+                            {preset.name}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                            {preset.description}
+                          </p>
+                        </div>
+                      </div>
+                      {preset.pages.length > 0 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          {preset.pages.length} página{preset.pages.length !== 1 ? "s" : ""}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
                   </div>
 
                   <div>

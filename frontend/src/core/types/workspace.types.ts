@@ -7,25 +7,27 @@
 // TIPOS DE TEMPLATES DISPONÍVEIS
 // ============================================
 export type TemplateType =
-  | 'blank'         // Página em branco
-  | 'tasks'         // Lista de tarefas
-  | 'kanban'        // Quadro Kanban
-  | 'table'         // Tabela editável
-  | 'calendar'      // Calendário
-  | 'projects'      // Gerenciador de projetos
-  | 'bugs'          // Rastreador de bugs
-  | 'study'         // Gerenciador de estudos
-  | 'budget'        // Calculadora de orçamento
-  | 'focus'         // Pomodoro
-  | 'sprint'        // Planejamento de sprint
-  | 'flowchart'     // Fluxograma
-  | 'roadmap'       // Roadmap do projeto
-  | 'documents'     // Gerenciador de documentos
-  | 'dashboard'     // Dashboard personalizável
-  | 'mindmap'       // Mapa mental visual
-  | 'notes'         // Notas rápidas
-  | 'timeline'      // Linha do tempo visual
-  | 'wiki';         // Página tipo Wiki
+  | 'blank'                // Página em branco
+  | 'tasks'                // Lista de tarefas
+  | 'kanban'               // Quadro Kanban
+  | 'table'                // Tabela editável
+  | 'calendar'             // Calendário
+  | 'projects'             // Gerenciador de projetos
+  | 'bugs'                 // Rastreador de bugs
+  | 'study'                // Gerenciador de estudos
+  | 'budget'               // Calculadora de orçamento
+  | 'personal-budget'      // Orçamento Financeiro Pessoal
+  | 'business-budget'      // Orçamento Empresarial
+  | 'focus'                // Pomodoro
+  | 'sprint'               // Planejamento de sprint
+  | 'flowchart'            // Fluxograma
+  | 'roadmap'              // Roadmap do projeto
+  | 'documents'            // Gerenciador de documentos
+  | 'dashboard'            // Dashboard personalizável
+  | 'mindmap'              // Mapa mental visual
+  | 'notes'                // Notas rápidas
+  | 'timeline'             // Linha do tempo visual
+  | 'wiki';                // Página tipo Wiki
 
 // ============================================
 // MAPEAMENTO DE ÍCONES POR TEMPLATE
@@ -40,16 +42,18 @@ export const TEMPLATE_ICONS: Record<TemplateType, string> = {
   bugs: '🐛',
   study: '📚',
   budget: '💰',
+  'personal-budget': '💵',
+  'business-budget': '💼',
   sprint: '🏃',
-  focus: '🏃',
+  focus: '⏱️',
   flowchart: '🔀',
   roadmap: '🗺️',
   documents: '📁',
-  dashboard: '📊',  // Novo
-  mindmap: '🧠',    // Novo
-  notes: '🗒️',      // Novo
-  timeline: '⏳',   // Novo
-  wiki: '📘',       // Novo
+  dashboard: '📈',
+  mindmap: '🧠',
+  notes: '🗒️',
+  timeline: '⏳',
+  wiki: '📘',
 };
 
 
@@ -113,17 +117,72 @@ export type WorkspaceSettings = {
 // ============================================
 // TEMPLATE PRESET (grupos pré-configurados)
 // ============================================
+// ============================================
+// CATEGORIAS DE TEMPLATES
+// ============================================
+export type PresetCategory =
+  | 'business'      // Negócios e Empresas
+  | 'personal'      // Pessoal e Vida
+  | 'education'     // Educação e Estudos
+  | 'development'   // Desenvolvimento e Tecnologia
+  | 'finance'       // Finanças e Orçamento
+  | 'creative';     // Criativo e Conteúdo
+
+export const CATEGORY_INFO: Record<PresetCategory, { name: string; description: string; icon: string; color: string }> = {
+  business: {
+    name: 'Negócios',
+    description: 'Templates para empresas e profissionais',
+    icon: '💼',
+    color: 'blue'
+  },
+  personal: {
+    name: 'Pessoal',
+    description: 'Organize sua vida pessoal e objetivos',
+    icon: '🎯',
+    color: 'orange'
+  },
+  education: {
+    name: 'Educação',
+    description: 'Para estudantes e professores',
+    icon: '📚',
+    color: 'green'
+  },
+  development: {
+    name: 'Desenvolvimento',
+    description: 'Projetos de software e tecnologia',
+    icon: '💻',
+    color: 'purple'
+  },
+  finance: {
+    name: 'Finanças',
+    description: 'Controle financeiro pessoal e empresarial',
+    icon: '💰',
+    color: 'emerald'
+  },
+  creative: {
+    name: 'Criativo',
+    description: 'Criação de conteúdo e projetos criativos',
+    icon: '🎨',
+    color: 'pink'
+  }
+};
+
 export type GroupPreset = {
   id: string;
   name: string;
   description: string;
   icon: string;
   color: string;
-  category: 'work' | 'study' | 'personal';
+  category: PresetCategory;
   pages: {
     name: string;
     template: TemplateType;
   }[];
+};
+
+export type WorkspaceTemplateComponentProps = {
+  groupId: string;
+  pageId: string;
 };
 
 // ============================================
@@ -212,54 +271,105 @@ export const createWorkspace = (name: string, ownerId: string): Workspace => ({
 // ============================================
 
 export const GROUP_PRESETS: GroupPreset[] = [
+  // ============================================
+  // CATEGORIA: FINANÇAS
+  // ============================================
   {
-    id: 'blank',
-    name: 'Grupo Vazio',
-    description: 'Comece do zero e adicione suas próprias páginas',
-    icon: '📁',
-    color: 'gray',
-    category: 'personal',
-    pages: []
+    id: 'personal-finance',
+    name: 'Finanças Pessoais',
+    description: 'Controle completo do seu dinheiro pessoal',
+    icon: '💵',
+    color: 'emerald',
+    category: 'finance',
+    pages: [
+      { name: 'Orçamento Mensal', template: 'personal-budget' },
+      { name: 'Despesas', template: 'table' },
+      { name: 'Investimentos', template: 'table' },
+      { name: 'Metas Financeiras', template: 'tasks' },
+      { name: 'Notas', template: 'blank' },
+    ]
   },
+  {
+    id: 'business-finance',
+    name: 'Finanças Empresariais',
+    description: 'Gestão financeira completa para sua empresa',
+    icon: '💼',
+    color: 'emerald',
+    category: 'finance',
+    pages: [
+      { name: 'Orçamento Anual', template: 'business-budget' },
+      { name: 'Fluxo de Caixa', template: 'table' },
+      { name: 'Despesas Operacionais', template: 'table' },
+      { name: 'Receitas', template: 'table' },
+      { name: 'Relatórios', template: 'dashboard' },
+    ]
+  },
+
+  // ============================================
+  // CATEGORIA: NEGÓCIOS
+  // ============================================
   {
     id: 'freelancer-project',
     name: 'Projeto Freelancer',
     description: 'Gerencie clientes, orçamentos e entregas',
     icon: '💼',
     color: 'blue',
-    category: 'work',
+    category: 'business',
     pages: [
       { name: 'Visão Geral', template: 'kanban' },
-      { name: 'Orçamento', template: 'budget' },
+      { name: 'Orçamento', template: 'personal-budget' },
       { name: 'Tarefas', template: 'tasks' },
       { name: 'Cronograma', template: 'calendar' },
       { name: 'Notas', template: 'blank' },
     ]
   },
   {
+    id: 'startup',
+    name: 'Startup / Produto',
+    description: 'Gerencie produto, desenvolvimento e lançamento',
+    icon: '💡',
+    color: 'blue',
+    category: 'business',
+    pages: [
+      { name: 'Roadmap', template: 'kanban' },
+      { name: 'Sprints', template: 'sprint' },
+      { name: 'Bugs', template: 'bugs' },
+      { name: 'Métricas', template: 'table' },
+      { name: 'Documentação', template: 'blank' },
+    ]
+  },
+
+  // ============================================
+  // CATEGORIA: DESENVOLVIMENTO
+  // ============================================
+  {
     id: 'dev-project',
-    name: 'Projeto de Desenvolvimento',
+    name: 'Projeto de Software',
     description: 'Organize sprints, bugs e documentação',
-    icon: '🚀',
+    icon: '💻',
     color: 'purple',
-    category: 'work',
+    category: 'development',
     pages: [
       { name: 'Backlog', template: 'kanban' },
       { name: 'Sprint Atual', template: 'sprint' },
       { name: 'Bugs', template: 'bugs' },
-      { name: 'Documentação', template: 'blank' },
+      { name: 'Documentação', template: 'wiki' },
       { name: 'Releases', template: 'table' },
     ]
   },
+
+  // ============================================
+  // CATEGORIA: EDUCAÇÃO
+  // ============================================
   {
     id: 'student-subject',
     name: 'Matéria Escolar',
     description: 'Organize conteúdo, exercícios e provas',
     icon: '📚',
     color: 'green',
-    category: 'study',
+    category: 'education',
     pages: [
-      { name: 'Conteúdo', template: 'blank' },
+      { name: 'Conteúdo', template: 'notes' },
       { name: 'Exercícios', template: 'tasks' },
       { name: 'Progresso', template: 'study' },
       { name: 'Cronograma', template: 'calendar' },
@@ -270,16 +380,20 @@ export const GROUP_PRESETS: GroupPreset[] = [
     name: 'Disciplina Universitária',
     description: 'Gerencie matérias complexas da faculdade',
     icon: '🎓',
-    color: 'indigo',
-    category: 'study',
+    color: 'green',
+    category: 'education',
     pages: [
-      { name: 'Resumos', template: 'blank' },
+      { name: 'Resumos', template: 'notes' },
       { name: 'Trabalhos', template: 'projects' },
       { name: 'Exercícios', template: 'tasks' },
       { name: 'Estudo', template: 'study' },
       { name: 'Provas', template: 'calendar' },
     ]
   },
+
+  // ============================================
+  // CATEGORIA: PESSOAL
+  // ============================================
   {
     id: 'personal-goals',
     name: 'Metas Pessoais',
@@ -291,21 +405,7 @@ export const GROUP_PRESETS: GroupPreset[] = [
       { name: 'Objetivos', template: 'tasks' },
       { name: 'Hábitos', template: 'table' },
       { name: 'Calendário', template: 'calendar' },
-      { name: 'Progresso', template: 'blank' },
-    ]
-  },
-  {
-    id: 'content-creator',
-    name: 'Criador de Conteúdo',
-    description: 'Planeje posts, vídeos e campanhas',
-    icon: '📹',
-    color: 'pink',
-    category: 'work',
-    pages: [
-      { name: 'Calendário Editorial', template: 'calendar' },
-      { name: 'Ideias', template: 'kanban' },
-      { name: 'Scripts', template: 'blank' },
-      { name: 'Métricas', template: 'table' },
+      { name: 'Progresso', template: 'dashboard' },
     ]
   },
   {
@@ -313,28 +413,40 @@ export const GROUP_PRESETS: GroupPreset[] = [
     name: 'Organização de Evento',
     description: 'Planeje festas, casamentos ou eventos',
     icon: '🎉',
-    color: 'red',
+    color: 'orange',
     category: 'personal',
     pages: [
       { name: 'Checklist', template: 'tasks' },
-      { name: 'Orçamento', template: 'budget' },
+      { name: 'Orçamento', template: 'personal-budget' },
       { name: 'Convidados', template: 'table' },
       { name: 'Cronograma', template: 'calendar' },
     ]
   },
   {
-    id: 'startup',
-    name: 'Startup / Produto',
-    description: 'Gerencie produto, desenvolvimento e lançamento',
-    icon: '💡',
-    color: 'yellow',
-    category: 'work',
+    id: 'blank',
+    name: 'Grupo Vazio',
+    description: 'Comece do zero e adicione suas próprias páginas',
+    icon: '📁',
+    color: 'gray',
+    category: 'personal',
+    pages: []
+  },
+
+  // ============================================
+  // CATEGORIA: CRIATIVO
+  // ============================================
+  {
+    id: 'content-creator',
+    name: 'Criador de Conteúdo',
+    description: 'Planeje posts, vídeos e campanhas',
+    icon: '🎨',
+    color: 'pink',
+    category: 'creative',
     pages: [
-      { name: 'Roadmap', template: 'kanban' },
-      { name: 'Sprints', template: 'sprint' },
-      { name: 'Bugs', template: 'bugs' },
+      { name: 'Calendário Editorial', template: 'calendar' },
+      { name: 'Ideias', template: 'kanban' },
+      { name: 'Scripts', template: 'notes' },
       { name: 'Métricas', template: 'table' },
-      { name: 'Documentação', template: 'blank' },
     ]
   },
 ];

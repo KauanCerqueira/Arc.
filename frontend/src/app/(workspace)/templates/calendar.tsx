@@ -1,26 +1,52 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X, Calendar as CalendarIcon, Clock, Trash2 } from 'lucide-react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type Event = {
-  id: number;
+  id: string;
   title: string;
   date: string;
   time: string;
   description?: string;
 };
 
-export default function CalendarTemplate() {
+type CalendarTemplateData = {
+  events: Event[];
+};
+
+const DEFAULT_DATA: CalendarTemplateData = {
+  events: [
+    { id: '1', title: 'Reunião de equipe', date: '2025-01-20', time: '10:00', description: 'Discussão sobre Q1' },
+    { id: '2', title: 'Apresentação cliente', date: '2025-01-22', time: '14:30', description: 'Review do projeto' },
+    { id: '3', title: 'Sprint planning', date: '2025-01-25', time: '09:00' },
+  ],
+};
+
+export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<CalendarTemplateData>(groupId, pageId, DEFAULT_DATA);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<Event[]>([
-    { id: 1, title: 'Reunião de equipe', date: '2025-01-20', time: '10:00', description: 'Discussão sobre Q1' },
-    { id: 2, title: 'Apresentação cliente', date: '2025-01-22', time: '14:30', description: 'Review do projeto' },
-    { id: 3, title: 'Sprint planning', date: '2025-01-25', time: '09:00' },
-  ]);
+  const [events, setEvents] = useState<Event[]>(data.events ?? DEFAULT_DATA.events);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', time: '09:00', description: '' });
+
+  useEffect(() => {
+    setEvents(data.events ?? DEFAULT_DATA.events);
+  }, [data.events]);
+
+  const persistEvents = (updater: (current: Event[]) => Event[]) => {
+    setEvents((current) => {
+      const next = updater(current);
+      setData((prev) => ({
+        ...prev,
+        events: next,
+      }));
+      return next;
+    });
+  };
 
   const monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -73,22 +99,25 @@ export default function CalendarTemplate() {
 
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
 
-    setEvents([...events, {
-      id: Date.now(),
-      title: newEvent.title,
-      date: dateStr,
-      time: newEvent.time,
-      description: newEvent.description,
-    }]);
+    persistEvents((current) => [
+      ...current,
+      {
+        id: Date.now().toString(),
+        title: newEvent.title,
+        date: dateStr,
+        time: newEvent.time,
+        description: newEvent.description,
+      },
+    ]);
 
     setNewEvent({ title: '', time: '09:00', description: '' });
     setShowEventModal(false);
     setSelectedDay(null);
   };
 
-  const deleteEvent = (id: number) => {
+  const deleteEvent = (id: string) => {
     if (confirm('Excluir este evento?')) {
-      setEvents(events.filter(e => e.id !== id));
+      persistEvents((current) => current.filter((event) => event.id !== id));
     }
   };
 
@@ -101,7 +130,7 @@ export default function CalendarTemplate() {
 
   const days = getDaysInMonth(currentDate);
 
-  const upcomingEvents = events
+  const upcomingEvents = [...events]
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 8);
 

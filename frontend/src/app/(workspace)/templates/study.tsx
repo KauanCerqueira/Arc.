@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { Plus, BookOpen, CheckCircle2, Circle, Clock, Trash2 } from "lucide-react"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
 
 type Topic = {
-  id: number
+  id: string
   title: string
   subject: string
   completed: boolean
@@ -12,13 +14,36 @@ type Topic = {
   notes?: string
 }
 
-export default function StudyTemplate() {
-  const [topics, setTopics] = useState<Topic[]>([
-    { id: 1, title: "Estruturas de Dados", subject: "Algoritmos", completed: false, timeSpent: 45 },
-    { id: 2, title: "React Hooks", subject: "Frontend", completed: true, timeSpent: 120 },
-    { id: 3, title: "Clean Architecture", subject: "Backend", completed: false, timeSpent: 60 },
-    { id: 4, title: "SQL Avançado", subject: "Banco de Dados", completed: false, timeSpent: 30 },
-  ])
+type StudyTemplateData = {
+  topics: Topic[]
+}
+
+const DEFAULT_DATA: StudyTemplateData = {
+  topics: [
+    { id: "1", title: "Estruturas de Dados", subject: "Algoritmos", completed: false, timeSpent: 45 },
+    { id: "2", title: "React Hooks", subject: "Frontend", completed: true, timeSpent: 120 },
+    { id: "3", title: "Clean Architecture", subject: "Backend", completed: false, timeSpent: 60 },
+    { id: "4", title: "SQL Avançado", subject: "Banco de Dados", completed: false, timeSpent: 30 },
+  ],
+}
+
+export default function StudyTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<StudyTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const topics = data.topics ?? DEFAULT_DATA.topics
+
+  const updateTopics = (updater: Topic[] | ((current: Topic[]) => Topic[])) => {
+    setData((current) => {
+      const currentTopics = current.topics ?? DEFAULT_DATA.topics
+      const nextTopics =
+        typeof updater === "function"
+          ? (updater as (current: Topic[]) => Topic[])(JSON.parse(JSON.stringify(currentTopics)))
+          : updater
+      return {
+        ...current,
+        topics: nextTopics,
+      }
+    })
+  }
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTopic, setNewTopic] = useState({ title: "", subject: "", timeSpent: 0 })
@@ -27,10 +52,10 @@ export default function StudyTemplate() {
   const addTopic = () => {
     if (!newTopic.title.trim() || !newTopic.subject.trim()) return
 
-    setTopics([
-      ...topics,
+    updateTopics((current) => [
+      ...current,
       {
-        id: Date.now(),
+        id: Date.now().toString(),
         title: newTopic.title,
         subject: newTopic.subject,
         completed: false,
@@ -42,16 +67,18 @@ export default function StudyTemplate() {
     setShowAddForm(false)
   }
 
-  const toggleTopic = (id: number) => {
-    setTopics(topics.map((topic) => (topic.id === id ? { ...topic, completed: !topic.completed } : topic)))
+  const toggleTopic = (id: string) => {
+    updateTopics((current) => current.map((topic) => (topic.id === id ? { ...topic, completed: !topic.completed } : topic)))
   }
 
-  const deleteTopic = (id: number) => {
-    setTopics(topics.filter((topic) => topic.id !== id))
+  const deleteTopic = (id: string) => {
+    updateTopics((current) => current.filter((topic) => topic.id !== id))
   }
 
-  const updateTime = (id: number, timeSpent: number) => {
-    setTopics(topics.map((topic) => (topic.id === id ? { ...topic, timeSpent: Math.max(0, timeSpent) } : topic)))
+  const updateTime = (id: string, timeSpent: number) => {
+    updateTopics((current) =>
+      current.map((topic) => (topic.id === id ? { ...topic, timeSpent: Math.max(0, timeSpent) } : topic)),
+    )
   }
 
   const subjects = ["all", ...Array.from(new Set(topics.map((t) => t.subject)))]

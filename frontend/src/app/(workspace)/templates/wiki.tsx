@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 import React from "react";
 import {
   BookOpen,
@@ -32,13 +34,12 @@ type WikiPage = {
   content: string;
   tags: string[];
   author: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   published: boolean;
 };
 
-export default function Wiki() {
-  const [pages, setPages] = useState<WikiPage[]>([
+const DEFAULT_PAGES: WikiPage[] = [
     {
       id: '1',
       title: 'Bem-vindo ao Arc.',
@@ -62,8 +63,8 @@ Arc. é uma plataforma de gerenciamento de projetos moderna e flexível.
 Para mais informações, consulte as outras páginas da Wiki.`,
       tags: ['introdução', 'guia'],
       author: 'Admin',
-      createdAt: new Date(2025, 0, 1),
-      updatedAt: new Date(2025, 0, 15),
+      createdAt: new Date(2025, 0, 1).toISOString(),
+      updatedAt: new Date(2025, 0, 15).toISOString(),
       published: true,
     },
     {
@@ -91,13 +92,39 @@ Documente seu projeto (você está aqui!)
 Cada template pode ser customizado conforme suas necessidades.`,
       tags: ['templates', 'guia'],
       author: 'Admin',
-      createdAt: new Date(2025, 0, 5),
-      updatedAt: new Date(2025, 0, 10),
+      createdAt: new Date(2025, 0, 5).toISOString(),
+      updatedAt: new Date(2025, 0, 10).toISOString(),
       published: true,
     },
-  ]);
+  ];
 
-  const [selectedPage, setSelectedPage] = useState<WikiPage | null>(pages[0]);
+type WikiData = {
+  pages: WikiPage[];
+};
+
+const DEFAULT_DATA: WikiData = {
+  pages: DEFAULT_PAGES,
+};
+
+export default function Wiki({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<WikiData>(groupId, pageId, DEFAULT_DATA);
+  const pages = data.pages ?? DEFAULT_PAGES;
+
+  const updatePages = (updater: WikiPage[] | ((current: WikiPage[]) => WikiPage[])) => {
+    setData((current) => {
+      const currentPages = current.pages ?? DEFAULT_PAGES;
+      const nextPages =
+        typeof updater === 'function'
+          ? (updater as (current: WikiPage[]) => WikiPage[])(JSON.parse(JSON.stringify(currentPages)))
+          : updater;
+      return {
+        ...current,
+        pages: nextPages,
+      };
+    });
+  };
+
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(pages[0]?.id ?? null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
   const [isEditing, setIsEditing] = useState(false);
@@ -110,7 +137,20 @@ Cada template pode ser customizado conforme suas necessidades.`,
     published: true,
   });
 
-  const allTags = Array.from(new Set(pages.flatMap(p => p.tags)));
+  useEffect(() => {
+    if (!pages.length) {
+      setSelectedPageId(null);
+      return;
+    }
+
+    if (!selectedPageId || !pages.some((page) => page.id === selectedPageId)) {
+      setSelectedPageId(pages[0].id);
+    }
+  }, [pages, selectedPageId]);
+
+  const selectedPage = selectedPageId ? pages.find((page) => page.id === selectedPageId) ?? null : null;
+
+  const allTags = useMemo(() => Array.from(new Set(pages.flatMap(p => p.tags))), [pages]);
 
   const filteredPages = pages.filter(page => {
     const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -119,7 +159,8 @@ Cada template pode ser customizado conforme suas necessidades.`,
     return matchesSearch && matchesTag;
   });
 
-  const formatDate = (date: Date) => {
+  const formatDate = (isoDate: string) => {
+    const date = new Date(isoDate);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'short',
@@ -292,19 +333,17 @@ Cada template pode ser customizado conforme suas necessidades.`,
       content: formData.content,
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
       author: editingPage?.author || 'Você',
-      createdAt: editingPage?.createdAt || new Date(),
-      updatedAt: new Date(),
+      createdAt: editingPage?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       published: formData.published,
     };
 
     if (editingPage) {
-      setPages(pages.map(p => p.id === editingPage.id ? pageData : p));
-      if (selectedPage?.id === editingPage.id) {
-        setSelectedPage(pageData);
-      }
+      updatePages((current) => current.map((p) => (p.id === editingPage.id ? pageData : p)));
+      setSelectedPageId(pageData.id);
     } else {
-      setPages([...pages, pageData]);
-      setSelectedPage(pageData);
+      updatePages((current) => [...current, pageData]);
+      setSelectedPageId(pageData.id);
     }
 
     closeModal();
@@ -312,20 +351,22 @@ Cada template pode ser customizado conforme suas necessidades.`,
 
   const deletePage = (id: string) => {
     if (confirm('Deletar esta página da wiki?')) {
-      setPages(pages.filter(p => p.id !== id));
-      if (selectedPage?.id === id) {
-        setSelectedPage(pages.find(p => p.id !== id) || null);
+      const nextPages = pages.filter((p) => p.id !== id);
+      updatePages(nextPages);
+      if (!nextPages.length) {
+        setSelectedPageId(null);
+      } else if (selectedPageId === id) {
+        setSelectedPageId(nextPages[0].id);
       }
     }
   };
 
   const togglePublished = (id: string) => {
-    setPages(pages.map(p =>
-      p.id === id ? { ...p, published: !p.published, updatedAt: new Date() } : p
-    ));
-    if (selectedPage?.id === id) {
-      setSelectedPage({ ...selectedPage, published: !selectedPage.published });
-    }
+    updatePages((current) =>
+      current.map((p) =>
+        p.id === id ? { ...p, published: !p.published, updatedAt: new Date().toISOString() } : p,
+      ),
+    );
   };
 
   // Insert markdown helper
@@ -390,7 +431,7 @@ Cada template pode ser customizado conforme suas necessidades.`,
             filteredPages.map(page => (
               <button
                 key={page.id}
-                onClick={() => setSelectedPage(page)}
+                onClick={() => setSelectedPageId(page.id)}
                 className={`w-full text-left p-3 rounded-lg mb-2 transition-all group ${
                   selectedPage?.id === page.id
                     ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500'

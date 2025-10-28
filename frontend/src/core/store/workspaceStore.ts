@@ -382,12 +382,50 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   // PÁGINAS - ATUALIZAR DATA
   // ============================================
   updatePageData: async (groupId: string, pageId: string, data: Record<string, unknown>) => {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
       await pageService.updatePageData(pageId, data);
-      await get().loadWorkspace();
+
+      set((state) => {
+        if (!state.workspace) {
+          return state;
+        }
+
+        const updatedWorkspace = {
+          ...state.workspace,
+          updatedAt: new Date(),
+          groups: state.workspace.groups.map((group) => {
+            if (group.id !== groupId) {
+              return group;
+            }
+
+            return {
+              ...group,
+              updatedAt: new Date(),
+              pages: group.pages.map((page) => {
+                if (page.id !== pageId) {
+                  return page;
+                }
+
+                return {
+                  ...page,
+                  data,
+                  updatedAt: new Date(),
+                };
+              }),
+            };
+          }),
+        };
+
+        return {
+          ...state,
+          workspace: updatedWorkspace,
+          isLoading: false,
+        };
+      });
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
+      throw error;
     }
   },
 

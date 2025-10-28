@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import { Plus, Bug, AlertCircle, CheckCircle2, Clock, Trash2 } from "lucide-react"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
 
 type BugStatus = "open" | "in_progress" | "resolved"
 type BugPriority = "low" | "medium" | "high" | "critical"
 
 type BugItem = {
-  id: number
+  id: string
   title: string
   description: string
   status: BugStatus
@@ -16,10 +18,14 @@ type BugItem = {
   createdAt: string
 }
 
-export default function BugsTemplate() {
-  const [bugs, setBugs] = useState<BugItem[]>([
+type BugsTemplateData = {
+  bugs: BugItem[]
+}
+
+const DEFAULT_DATA: BugsTemplateData = {
+  bugs: [
     {
-      id: 1,
+      id: "1",
       title: "Botão de login não funciona no Safari",
       description: "Usuários relatam que o botão não responde",
       status: "open",
@@ -28,7 +34,7 @@ export default function BugsTemplate() {
       createdAt: "2025-01-18",
     },
     {
-      id: 2,
+      id: "2",
       title: "Erro 500 ao criar projeto",
       description: "API retorna erro interno",
       status: "in_progress",
@@ -37,7 +43,7 @@ export default function BugsTemplate() {
       createdAt: "2025-01-17",
     },
     {
-      id: 3,
+      id: "3",
       title: "Layout quebrado em mobile",
       description: "Sidebar não fecha corretamente",
       status: "resolved",
@@ -45,7 +51,26 @@ export default function BugsTemplate() {
       assignee: "Pedro Costa",
       createdAt: "2025-01-15",
     },
-  ])
+  ],
+}
+
+export default function BugsTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<BugsTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const bugs = data.bugs ?? DEFAULT_DATA.bugs
+
+  const updateBugs = (updater: BugItem[] | ((current: BugItem[]) => BugItem[])) => {
+    setData((current) => {
+      const currentBugs = current.bugs ?? DEFAULT_DATA.bugs
+      const nextBugs =
+        typeof updater === "function"
+          ? (updater as (current: BugItem[]) => BugItem[])(JSON.parse(JSON.stringify(currentBugs)))
+          : updater
+      return {
+        ...current,
+        bugs: nextBugs,
+      }
+    })
+  }
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [newBug, setNewBug] = useState({
@@ -58,10 +83,10 @@ export default function BugsTemplate() {
   const addBug = () => {
     if (!newBug.title.trim()) return
 
-    setBugs([
-      ...bugs,
+    updateBugs((current) => [
+      ...current,
       {
-        id: Date.now(),
+        id: Date.now().toString(),
         title: newBug.title,
         description: newBug.description,
         status: "open",
@@ -75,12 +100,12 @@ export default function BugsTemplate() {
     setShowAddForm(false)
   }
 
-  const updateStatus = (id: number, status: BugStatus) => {
-    setBugs(bugs.map((bug) => (bug.id === id ? { ...bug, status } : bug)))
+  const updateStatus = (id: string, status: BugStatus) => {
+    updateBugs((current) => current.map((bug) => (bug.id === id ? { ...bug, status } : bug)))
   }
 
-  const deleteBug = (id: number) => {
-    setBugs(bugs.filter((bug) => bug.id !== id))
+  const deleteBug = (id: string) => {
+    updateBugs((current) => current.filter((bug) => bug.id !== id))
   }
 
   const getPriorityColor = (priority: BugPriority) => {

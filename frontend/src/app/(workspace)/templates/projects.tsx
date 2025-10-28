@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
 
 type ProjectStatus = "planning" | "active" | "paused" | "review" | "completed" | "archived"
 type ProjectPriority = "low" | "medium" | "high" | "critical"
 
 type Project = {
-  id: number
+  id: string
   name: string
   description: string
   status: ProjectStatus
@@ -87,10 +89,14 @@ const PRIORITY_CONFIG = {
   },
 }
 
-export default function ProjectsManager() {
-  const [projects, setProjects] = useState<Project[]>([
+type ProjectsTemplateData = {
+  projects: Project[]
+}
+
+const DEFAULT_DATA: ProjectsTemplateData = {
+  projects: [
     {
-      id: 1,
+      id: "1",
       name: "Website Redesign",
       description: "Redesign completo do site institucional com nova identidade visual",
       status: "active",
@@ -108,7 +114,7 @@ export default function ProjectsManager() {
       client: "Tech Corp",
     },
     {
-      id: 2,
+      id: "2",
       name: "App Mobile",
       description: "Desenvolvimento do aplicativo iOS e Android",
       status: "active",
@@ -126,7 +132,7 @@ export default function ProjectsManager() {
       client: "StartupXYZ",
     },
     {
-      id: 3,
+      id: "3",
       name: "Marketing Q1",
       description: "Campanhas de marketing para o primeiro trimestre",
       status: "paused",
@@ -142,7 +148,27 @@ export default function ProjectsManager() {
       spent: 5000,
       favorite: false,
     },
-  ])
+  ],
+}
+
+export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<ProjectsTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const [projects, setProjects] = useState<Project[]>(data.projects ?? DEFAULT_DATA.projects)
+
+  useEffect(() => {
+    setProjects(data.projects ?? DEFAULT_DATA.projects)
+  }, [data.projects])
+
+  const persistProjects = (updater: (current: Project[]) => Project[]) => {
+    setProjects((current) => {
+      const next = updater(current)
+      setData((prev) => ({
+        ...prev,
+        projects: next,
+      }))
+      return next
+    })
+  }
 
   const [view, setView] = useState<"grid" | "list">("grid")
   const [showAddForm, setShowAddForm] = useState(false)
@@ -167,7 +193,7 @@ export default function ProjectsManager() {
     const randomColor = PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]
 
     const project: Project = {
-      id: Date.now(),
+      id: Date.now().toString(),
       name: newProject.name,
       description: newProject.description,
       status: "planning",
@@ -188,27 +214,29 @@ export default function ProjectsManager() {
       client: newProject.client,
     }
 
-    setProjects([...projects, project])
+    persistProjects((current) => [...current, project])
     setNewProject({ name: "", description: "", client: "", deadline: "", team: "", budget: "", priority: "medium" })
     setShowAddForm(false)
   }
 
-  const updateProject = (id: number, updates: Partial<Project>) => {
-    setProjects(projects.map((p) => (p.id === id ? { ...p, ...updates } : p)))
+  const updateProject = (id: string, updates: Partial<Project>) => {
+    persistProjects((current) => current.map((project) => (project.id === id ? { ...project, ...updates } : project)))
     if (selectedProject?.id === id) {
       setSelectedProject({ ...selectedProject, ...updates })
     }
   }
 
-  const deleteProject = (id: number) => {
+  const deleteProject = (id: string) => {
     if (confirm("Excluir este projeto?")) {
-      setProjects(projects.filter((p) => p.id !== id))
+      persistProjects((current) => current.filter((project) => project.id !== id))
       setSelectedProject(null)
     }
   }
 
-  const toggleFavorite = (id: number) => {
-    updateProject(id, { favorite: !projects.find((p) => p.id === id)?.favorite })
+  const toggleFavorite = (id: string) => {
+    const project = projects.find((p) => p.id === id)
+    if (!project) return
+    updateProject(id, { favorite: !project.favorite })
   }
 
   const filteredProjects = projects.filter((project) => {

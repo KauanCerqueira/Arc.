@@ -7,6 +7,8 @@ import {
   EyeOff, Lock, MoreVertical, Grid3x3, ChevronDown,
   Menu, Settings, List, LayoutGrid
 } from 'lucide-react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type ColumnType = 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'url';
 
@@ -21,8 +23,8 @@ type Column = {
 };
 
 type TableRow = {
-  id: number;
-  [key: string]: any;
+  id: string;
+  [key: string]: unknown;
 };
 
 const COLUMN_TYPES = [
@@ -34,55 +36,95 @@ const COLUMN_TYPES = [
   { value: 'url', label: 'Link', icon: '🔗' },
 ];
 
-export default function TableTemplate() {
-  const [columns, setColumns] = useState<Column[]>([
+type TableTemplateData = {
+  columns: Column[];
+  rows: TableRow[];
+};
+
+const DEFAULT_DATA: TableTemplateData = {
+  columns: [
     { id: 'col1', name: 'Nome', type: 'text', visible: true, locked: false },
     { id: 'col2', name: 'Email', type: 'text', visible: true, locked: false },
     { id: 'col3', name: 'Cargo', type: 'text', visible: true, locked: false },
-    { id: 'col4', name: 'Status', type: 'select', visible: true, locked: false, options: ['Ativo', 'Inativo', 'Férias'] },
+    {
+      id: 'col4',
+      name: 'Status',
+      type: 'select',
+      visible: true,
+      locked: false,
+      options: ['Ativo', 'Inativo', 'Férias'],
+    },
     { id: 'col5', name: 'Salário', type: 'number', visible: true, locked: false },
     { id: 'col6', name: 'Data Admissão', type: 'date', visible: true, locked: false },
-  ]);
-
-  const [rows, setRows] = useState<TableRow[]>([
-    { 
-      id: 1, 
-      col1: 'João Silva', 
-      col2: 'joao@email.com', 
-      col3: 'Desenvolvedor', 
+  ],
+  rows: [
+    {
+      id: '1',
+      col1: 'João Silva',
+      col2: 'joao@email.com',
+      col3: 'Desenvolvedor',
       col4: 'Ativo',
       col5: '8000',
-      col6: '2024-01-15'
+      col6: '2024-01-15',
     },
-    { 
-      id: 2, 
-      col1: 'Maria Santos', 
-      col2: 'maria@email.com', 
-      col3: 'Designer', 
+    {
+      id: '2',
+      col1: 'Maria Santos',
+      col2: 'maria@email.com',
+      col3: 'Designer',
       col4: 'Ativo',
       col5: '7500',
-      col6: '2024-02-20'
+      col6: '2024-02-20',
     },
-    { 
-      id: 3, 
-      col1: 'Pedro Costa', 
-      col2: 'pedro@email.com', 
-      col3: 'Product Manager', 
+    {
+      id: '3',
+      col1: 'Pedro Costa',
+      col2: 'pedro@email.com',
+      col3: 'Product Manager',
       col4: 'Férias',
       col5: '9000',
-      col6: '2023-11-10'
+      col6: '2023-11-10',
     },
-  ]);
+  ],
+};
 
-  const [editingCell, setEditingCell] = useState<{ rowId: number; columnId: string } | null>(null);
+export default function TableTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData, isSaving } = usePageTemplateData<TableTemplateData>(
+    groupId,
+    pageId,
+    DEFAULT_DATA,
+  );
+  const columns = data.columns ?? DEFAULT_DATA.columns;
+  const rows = data.rows ?? DEFAULT_DATA.rows;
+
+  const applyTableChanges = (
+    updater: (state: { columns: Column[]; rows: TableRow[] }) => {
+      columns?: Column[];
+      rows?: TableRow[];
+    },
+  ) => {
+    setData((current) => {
+      const currentColumns = [...(current.columns ?? [])];
+      const currentRows = [...(current.rows ?? [])];
+      const result = updater({ columns: currentColumns, rows: currentRows });
+
+      return {
+        ...current,
+        columns: result.columns ?? currentColumns,
+        rows: result.rows ?? currentRows,
+      };
+    });
+  };
+
+  const [editingCell, setEditingCell] = useState<{ rowId: string; columnId: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [showColumnMenu, setShowColumnMenu] = useState<string | null>(null);
-  const [showRowMenu, setShowRowMenu] = useState<number | null>(null);
+  const [showRowMenu, setShowRowMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -93,38 +135,48 @@ export default function TableTemplate() {
   });
 
   const addRow = () => {
-    const newRow: TableRow = { id: Date.now() };
-    columns.forEach(col => {
-      if (col.type === 'checkbox') {
-        newRow[col.id] = false;
-      } else {
-        newRow[col.id] = '';
-      }
+    applyTableChanges(({ columns, rows }) => {
+      const newRow: TableRow = { id: Date.now().toString() };
+      columns.forEach((col) => {
+        if (col.type === 'checkbox') {
+          newRow[col.id] = false;
+        } else {
+          newRow[col.id] = '';
+        }
+      });
+
+      return {
+        rows: [...rows, newRow],
+      };
     });
-    setRows([...rows, newRow]);
   };
 
-  const deleteRow = (id: number) => {
+  const deleteRow = (id: string) => {
     if (confirm('Excluir esta linha?')) {
-      setRows(rows.filter(row => row.id !== id));
-      setSelectedRows(selectedRows.filter(rowId => rowId !== id));
+      applyTableChanges(({ rows }) => ({
+        rows: rows.filter((row) => row.id !== id),
+      }));
+      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
     }
   };
 
   const deleteSelectedRows = () => {
     if (selectedRows.length === 0) return;
     if (confirm(`Excluir ${selectedRows.length} linha(s) selecionada(s)?`)) {
-      setRows(rows.filter(row => !selectedRows.includes(row.id)));
+      applyTableChanges(({ rows }) => ({
+        rows: rows.filter((row) => !selectedRows.includes(row.id)),
+      }));
       setSelectedRows([]);
     }
   };
 
-  const duplicateRow = (rowId: number) => {
-    const row = rows.find(r => r.id === rowId);
+  const duplicateRow = (rowId: string) => {
+    const row = rows.find((r) => r.id === rowId);
     if (!row) return;
-    
-    const newRow = { ...row, id: Date.now() };
-    setRows([...rows, newRow]);
+
+    applyTableChanges(({ rows }) => ({
+      rows: [...rows, { ...row, id: Date.now().toString() }],
+    }));
     setShowRowMenu(null);
   };
 
@@ -137,37 +189,51 @@ export default function TableTemplate() {
       type: newColumn.type,
       visible: true,
       locked: false,
-      options: newColumn.type === 'select' ? newColumn.options.split(',').map(o => o.trim()).filter(o => o) : undefined,
+      options:
+        newColumn.type === 'select'
+          ? newColumn.options.split(',').map((o) => o.trim()).filter((o) => o)
+          : undefined,
     };
 
-    setColumns([...columns, col]);
-    setRows(rows.map(row => ({ 
-      ...row, 
-      [col.id]: col.type === 'checkbox' ? false : '' 
-    })));
-    
+    applyTableChanges(({ columns, rows }) => ({
+      columns: [...columns, col],
+      rows: rows.map((row) => ({
+        ...row,
+        [col.id]: col.type === 'checkbox' ? false : '',
+      })),
+    }));
+
     setNewColumn({ name: '', type: 'text', options: '' });
     setShowAddColumn(false);
   };
 
   const deleteColumn = (columnId: string) => {
     if (confirm('Excluir esta coluna?')) {
-      setColumns(columns.filter(col => col.id !== columnId));
-      setRows(rows.map(row => {
-        const newRow = { ...row };
-        delete newRow[columnId];
-        return newRow;
-      }));
+      applyTableChanges(({ columns, rows }) => {
+        const updatedColumns = columns.filter((col) => col.id !== columnId);
+        const updatedRows = rows.map((row) => {
+          const newRow = { ...row };
+          delete newRow[columnId];
+          return newRow;
+        });
+
+        return {
+          columns: updatedColumns,
+          rows: updatedRows,
+        };
+      });
     }
   };
 
   const toggleColumnVisibility = (columnId: string) => {
-    setColumns(columns.map(col => 
-      col.id === columnId ? { ...col, visible: !col.visible } : col
-    ));
+    applyTableChanges(({ columns }) => ({
+      columns: columns.map((col) =>
+        col.id === columnId ? { ...col, visible: !col.visible } : col,
+      ),
+    }));
   };
 
-  const startEditing = (rowId: number, columnId: string, currentValue: any) => {
+  const startEditing = (rowId: string, columnId: string, currentValue: unknown) => {
     const column = columns.find(c => c.id === columnId);
     if (column?.locked) return;
     
@@ -186,11 +252,11 @@ export default function TableTemplate() {
         value = editValue === 'true';
       }
 
-      setRows(rows.map(row =>
-        row.id === editingCell.rowId
-          ? { ...row, [editingCell.columnId]: value }
-          : row
-      ));
+      applyTableChanges(({ rows }) => ({
+        rows: rows.map((row) =>
+          row.id === editingCell.rowId ? { ...row, [editingCell.columnId]: value } : row,
+        ),
+      }));
       setEditingCell(null);
       setEditValue('');
     }
@@ -201,15 +267,17 @@ export default function TableTemplate() {
     setEditValue('');
   };
 
-  const toggleCheckbox = (rowId: number, columnId: string) => {
-    setRows(rows.map(row =>
-      row.id === rowId
-        ? { ...row, [columnId]: !row[columnId] }
-        : row
-    ));
+  const toggleCheckbox = (rowId: string, columnId: string) => {
+    applyTableChanges(({ rows }) => ({
+      rows: rows.map((row) => {
+        if (row.id !== rowId) return row;
+        const currentValue = Boolean(row[columnId]);
+        return { ...row, [columnId]: !currentValue };
+      }),
+    }));
   };
 
-  const toggleRowSelection = (rowId: number) => {
+  const toggleRowSelection = (rowId: string) => {
     if (selectedRows.includes(rowId)) {
       setSelectedRows(selectedRows.filter(id => id !== rowId));
     } else {

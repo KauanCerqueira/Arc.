@@ -1,18 +1,45 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Bold, Italic, Underline, Strikethrough, Code,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote,
   Link2, Image, Download, Copy, Check, MoreVertical, X
 } from 'lucide-react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
 
-export default function BlankTemplate() {
-  const [content, setContent] = useState('');
+type BlankTemplateProps = {
+  groupId: string;
+  pageId: string;
+};
+
+type BlankTemplateData = {
+  content: string;
+};
+
+const DEFAULT_DATA: BlankTemplateData = {
+  content: '',
+};
+
+export default function BlankTemplate({ groupId, pageId }: BlankTemplateProps) {
+  const { data, setData, isSaving } = usePageTemplateData<BlankTemplateData>(groupId, pageId, DEFAULT_DATA);
+  const [content, setContent] = useState(data.content ?? '');
   const [copied, setCopied] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
   const [fontSize, setFontSize] = useState(16);
   const [lineHeight, setLineHeight] = useState(1.6);
+
+  useEffect(() => {
+    setContent(data.content ?? '');
+  }, [data.content]);
+
+  const persistContent = (value: string) => {
+    setContent(value);
+    setData((current) => ({
+      ...current,
+      content: value,
+    }));
+  };
 
   const insertFormatting = (before: string, after: string = '') => {
     const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
@@ -22,7 +49,7 @@ export default function BlankTemplate() {
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
     const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
-    setContent(newText);
+    persistContent(newText);
     
     setTimeout(() => {
       textarea.focus();
@@ -203,9 +230,9 @@ export default function BlankTemplate() {
 
       {/* Editor */}
       <div className="flex-1 overflow-hidden">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+              <textarea
+                value={content}
+                onChange={(e) => persistContent(e.target.value)}
           placeholder="Comece a escrever aqui...
 
 Use a barra de ferramentas acima para formatar seu texto com Markdown. Você pode usar **negrito**, *itálico*, `código` e muito mais.

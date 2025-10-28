@@ -30,6 +30,8 @@ import {
   Calendar,
   HardDrive,
 } from 'lucide-react'
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 
 type ViewMode = 'grid' | 'list'
 type SortBy = 'name' | 'date' | 'size' | 'type'
@@ -43,7 +45,7 @@ type Document = {
   folder: string
   tags: string[]
   favorite: boolean
-  lastModified: Date
+  lastModified: string
   author: string
 }
 
@@ -54,8 +56,13 @@ type Folder = {
   color: string
 }
 
-export default function DocumentsTemplate() {
-  const [documents, setDocuments] = useState<Document[]>([
+type DocumentsTemplateData = {
+  documents: Document[]
+  folders: Folder[]
+}
+
+const DEFAULT_DATA: DocumentsTemplateData = {
+  documents: [
     {
       id: '1',
       name: 'Especificações Técnicas.pdf',
@@ -64,7 +71,7 @@ export default function DocumentsTemplate() {
       folder: 'docs',
       tags: ['importante', 'técnico'],
       favorite: true,
-      lastModified: new Date('2025-01-15'),
+      lastModified: new Date('2025-01-15').toISOString(),
       author: 'João Silva',
     },
     {
@@ -75,7 +82,7 @@ export default function DocumentsTemplate() {
       folder: 'design',
       tags: ['arquitetura', 'visual'],
       favorite: false,
-      lastModified: new Date('2025-01-14'),
+      lastModified: new Date('2025-01-14').toISOString(),
       author: 'Maria Costa',
     },
     {
@@ -86,7 +93,7 @@ export default function DocumentsTemplate() {
       folder: 'code',
       tags: ['código', 'backup'],
       favorite: true,
-      lastModified: new Date('2025-01-12'),
+      lastModified: new Date('2025-01-12').toISOString(),
       author: 'João Silva',
     },
     {
@@ -97,16 +104,49 @@ export default function DocumentsTemplate() {
       folder: 'docs',
       tags: ['contrato', 'legal'],
       favorite: false,
-      lastModified: new Date('2025-01-10'),
+      lastModified: new Date('2025-01-10').toISOString(),
       author: 'Ana Santos',
     },
-  ])
-
-  const [folders, setFolders] = useState<Folder[]>([
+  ],
+  folders: [
     { id: 'docs', name: 'Documentação', parent: null, color: 'blue' },
     { id: 'design', name: 'Design', parent: null, color: 'purple' },
     { id: 'code', name: 'Código', parent: null, color: 'green' },
-  ])
+  ],
+}
+
+export default function DocumentsTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<DocumentsTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const documents = data.documents ?? DEFAULT_DATA.documents
+  const folders = data.folders ?? DEFAULT_DATA.folders
+
+  const updateDocuments = (updater: Document[] | ((current: Document[]) => Document[])) => {
+    setData((current) => {
+      const currentDocs = current.documents ?? DEFAULT_DATA.documents
+      const nextDocs =
+        typeof updater === 'function'
+          ? (updater as (current: Document[]) => Document[])(JSON.parse(JSON.stringify(currentDocs)))
+          : updater
+      return {
+        ...current,
+        documents: nextDocs,
+      }
+    })
+  }
+
+  const updateFolders = (updater: Folder[] | ((current: Folder[]) => Folder[])) => {
+    setData((current) => {
+      const currentFolders = current.folders ?? DEFAULT_DATA.folders
+      const nextFolders =
+        typeof updater === 'function'
+          ? (updater as (current: Folder[]) => Folder[])(JSON.parse(JSON.stringify(currentFolders)))
+          : updater
+      return {
+        ...current,
+        folders: nextFolders,
+      }
+    })
+  }
 
   const [currentFolder, setCurrentFolder] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -129,7 +169,8 @@ export default function DocumentsTemplate() {
   }
 
   // Formatar data
-  const formatDate = (date: Date): string => {
+  const formatDate = (isoDate: string): string => {
+    const date = new Date(isoDate)
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'short',
@@ -190,7 +231,7 @@ export default function DocumentsTemplate() {
           comparison = a.name.localeCompare(b.name)
           break
         case 'date':
-          comparison = b.lastModified.getTime() - a.lastModified.getTime()
+          comparison = new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
           break
         case 'size':
           comparison = a.size - b.size
@@ -211,7 +252,7 @@ export default function DocumentsTemplate() {
 
   // Toggle favorito
   const toggleFavorite = (id: string) => {
-    setDocuments(docs => docs.map(doc =>
+    updateDocuments(docs => docs.map(doc =>
       doc.id === id ? { ...doc, favorite: !doc.favorite } : doc
     ))
   }
@@ -228,7 +269,7 @@ export default function DocumentsTemplate() {
   // Deletar documento
   const deleteDocument = (id: string) => {
     if (confirm('Excluir este documento?')) {
-      setDocuments(docs => docs.filter(doc => doc.id !== id))
+      updateDocuments(docs => docs.filter(doc => doc.id !== id))
       setSelectedDocs(prev => prev.filter(docId => docId !== id))
     }
     setShowMenu(null)
@@ -499,7 +540,16 @@ export default function DocumentsTemplate() {
               </button>
               <button
                 onClick={() => {
-                  // Criar pasta
+                  const trimmedName = newFolderName.trim()
+                  if (trimmedName) {
+                    const newFolder: Folder = {
+                      id: `folder_${Date.now()}`,
+                      name: trimmedName,
+                      parent: currentFolder,
+                      color: 'blue',
+                    }
+                    updateFolders((current) => [...current, newFolder])
+                  }
                   setShowFolderModal(false)
                   setNewFolderName('')
                 }}

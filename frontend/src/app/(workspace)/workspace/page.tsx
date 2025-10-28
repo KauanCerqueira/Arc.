@@ -84,14 +84,14 @@ export default function WorkspaceHome() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 md:mb-2">
-            Bem-vindo de volta!
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Bem-vindo de volta
           </h1>
-          <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-base text-gray-600 dark:text-gray-300">
             {workspace?.name || 'Meu Workspace'}
           </p>
         </div>
@@ -142,23 +142,23 @@ export default function WorkspaceHome() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <div 
-                key={stat.label} 
-                className={`${stat.bgLight} ${stat.bgDark} border-2 ${stat.borderLight} ${stat.borderDark} rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md transition`}
+              <div
+                key={stat.label}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-900 rounded-xl p-6 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 ${stat.iconBg} rounded-xl flex items-center justify-center shadow-sm`}>
-                    <Icon className={`w-5 h-5 md:w-6 md:h-6 ${stat.iconColor}`} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-black rounded-lg flex items-center justify-center border dark:border-gray-800">
+                    <Icon className="w-5 h-5 text-gray-700 dark:text-white" />
                   </div>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                <div className="text-3xl font-semibold text-gray-900 dark:text-white mb-1">
                   {stat.value}
                 </div>
-                <div className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   {stat.label}
                 </div>
               </div>
@@ -178,27 +178,27 @@ export default function WorkspaceHome() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentPages.map((page) => (
                 <Link
                   key={page.id}
                   href={`/workspace/group/${page.groupId}/page/${page.id}`}
-                  className="group bg-white dark:bg-slate-800/50 border-2 border-gray-200 dark:border-slate-700/50 rounded-xl p-4 md:p-5 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-lg transition"
+                  className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-900 rounded-xl p-5 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="text-2xl md:text-3xl flex-shrink-0">{page.icon}</div>
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="text-2xl flex-shrink-0">{page.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition truncate text-sm md:text-base">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
                         {page.name}
                       </h3>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-300">
                         <span>{page.groupIcon}</span>
                         <span className="truncate">{page.groupName}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>{getRelativeTime(page.updatedAt)}</span>
                   </div>

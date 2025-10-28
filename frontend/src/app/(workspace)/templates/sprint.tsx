@@ -2,28 +2,73 @@
 
 import { useState } from 'react';
 import { Plus, Calendar, Target, TrendingUp } from 'lucide-react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 
 type SprintTask = {
-  id: number;
+  id: string;
   title: string;
   points: number;
   status: 'backlog' | 'todo' | 'in_progress' | 'done';
   assignee?: string;
 };
 
-export default function SprintTemplate() {
-  const [sprintName, setSprintName] = useState('Sprint 1');
-  const [sprintGoal, setSprintGoal] = useState('Implementar autenticação e dashboard inicial');
-  const [startDate] = useState('2025-01-20');
-  const [endDate] = useState('2025-02-03');
-  
-  const [tasks, setTasks] = useState<SprintTask[]>([
-    { id: 1, title: 'Criar tela de login', points: 5, status: 'done', assignee: 'João' },
-    { id: 2, title: 'Implementar API de auth', points: 8, status: 'done', assignee: 'Maria' },
-    { id: 3, title: 'Dashboard principal', points: 13, status: 'in_progress', assignee: 'Pedro' },
-    { id: 4, title: 'Testes unitários', points: 5, status: 'todo', assignee: 'Ana' },
-    { id: 5, title: 'Documentação API', points: 3, status: 'todo' },
-  ]);
+type SprintData = {
+  name: string;
+  goal: string;
+  startDate: string;
+  endDate: string;
+  tasks: SprintTask[];
+};
+
+type SprintTemplateData = {
+  sprint: SprintData;
+};
+
+const DEFAULT_DATA: SprintTemplateData = {
+  sprint: {
+    name: 'Sprint 1',
+    goal: 'Implementar autenticação e dashboard inicial',
+    startDate: '2025-01-20',
+    endDate: '2025-02-03',
+    tasks: [
+      { id: '1', title: 'Criar tela de login', points: 5, status: 'done', assignee: 'João' },
+      { id: '2', title: 'Implementar API de auth', points: 8, status: 'done', assignee: 'Maria' },
+      { id: '3', title: 'Dashboard principal', points: 13, status: 'in_progress', assignee: 'Pedro' },
+      { id: '4', title: 'Testes unitários', points: 5, status: 'todo', assignee: 'Ana' },
+      { id: '5', title: 'Documentação API', points: 3, status: 'todo' },
+    ],
+  },
+};
+
+export default function SprintTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<SprintTemplateData>(groupId, pageId, DEFAULT_DATA);
+  const sprint = data.sprint ?? DEFAULT_DATA.sprint;
+  const tasks = sprint.tasks ?? [];
+
+  const updateSprint = (updater: (current: SprintData) => SprintData) => {
+    setData((current) => {
+      const currentSprint = current.sprint ?? DEFAULT_DATA.sprint;
+      const nextSprint = updater(JSON.parse(JSON.stringify(currentSprint)));
+      return {
+        ...current,
+        sprint: nextSprint,
+      };
+    });
+  };
+
+  const updateTasks = (updater: SprintTask[] | ((current: SprintTask[]) => SprintTask[])) => {
+    updateSprint((current) => {
+      const nextTasks =
+        typeof updater === 'function'
+          ? (updater as (current: SprintTask[]) => SprintTask[])(JSON.parse(JSON.stringify(current.tasks ?? [])))
+          : updater;
+      return {
+        ...current,
+        tasks: nextTasks,
+      };
+    });
+  };
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', points: 5 });
@@ -31,19 +76,22 @@ export default function SprintTemplate() {
   const addTask = () => {
     if (!newTask.title.trim()) return;
 
-    setTasks([...tasks, {
-      id: Date.now(),
-      title: newTask.title,
-      points: newTask.points,
-      status: 'backlog'
-    }]);
+    updateTasks((current) => [
+      ...current,
+      {
+        id: Date.now().toString(),
+        title: newTask.title,
+        points: newTask.points,
+        status: 'backlog',
+      },
+    ]);
 
     setNewTask({ title: '', points: 5 });
     setShowAddForm(false);
   };
 
-  const updateTaskStatus = (id: number, status: SprintTask['status']) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, status } : task));
+  const updateTaskStatus = (id: string, status: SprintTask['status']) => {
+    updateTasks((current) => current.map((task) => (task.id === id ? { ...task, status } : task)));
   };
 
   const totalPoints = tasks.reduce((sum, task) => sum + task.points, 0);
@@ -80,14 +128,19 @@ export default function SprintTemplate() {
           <div className="flex-1">
             <input
               type="text"
-              value={sprintName}
-              onChange={(e) => setSprintName(e.target.value)}
+              value={sprint.name}
+              onChange={(e) =>
+                updateSprint((current) => ({
+                  ...current,
+                  name: e.target.value,
+                }))
+              }
               className="text-2xl font-bold text-gray-900 bg-transparent border-none outline-none w-full mb-2"
             />
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                <span>{startDate} - {endDate}</span>
+                <span>{sprint.startDate} - {sprint.endDate}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
@@ -102,8 +155,13 @@ export default function SprintTemplate() {
             Meta do Sprint
           </label>
           <textarea
-            value={sprintGoal}
-            onChange={(e) => setSprintGoal(e.target.value)}
+            value={sprint.goal}
+            onChange={(e) =>
+              updateSprint((current) => ({
+                ...current,
+                goal: e.target.value,
+              }))
+            }
             rows={2}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />

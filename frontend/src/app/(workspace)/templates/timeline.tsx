@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 import {
   Plus,
   Calendar,
@@ -20,7 +22,7 @@ type TimelineEvent = {
   id: string;
   title: string;
   description: string;
-  date: Date;
+  date: string;
   type: 'milestone' | 'meeting' | 'release' | 'event';
   status: 'pending' | 'completed' | 'cancelled';
   location?: string;
@@ -40,13 +42,12 @@ const STATUS_CONFIG = {
   cancelled: { label: 'Cancelado', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-900/20' },
 };
 
-export default function Timeline() {
-  const [events, setEvents] = useState<TimelineEvent[]>([
+const DEFAULT_EVENTS: TimelineEvent[] = [
     {
       id: '1',
       title: 'Lançamento do MVP',
       description: 'Primeira versão do Arc. disponível para testes',
-      date: new Date(2025, 0, 15),
+      date: new Date(2025, 0, 15).toISOString(),
       type: 'milestone',
       status: 'completed',
     },
@@ -54,7 +55,7 @@ export default function Timeline() {
       id: '2',
       title: 'Sprint Planning',
       description: 'Planejamento da Sprint #5',
-      date: new Date(2025, 1, 1),
+      date: new Date(2025, 1, 1).toISOString(),
       type: 'meeting',
       status: 'completed',
       location: 'Sala de Reunião Virtual',
@@ -64,7 +65,7 @@ export default function Timeline() {
       id: '3',
       title: 'Release v1.0',
       description: 'Lançamento oficial da versão 1.0',
-      date: new Date(2025, 2, 15),
+      date: new Date(2025, 2, 15).toISOString(),
       type: 'release',
       status: 'pending',
     },
@@ -72,7 +73,7 @@ export default function Timeline() {
       id: '4',
       title: 'Conferência Build in Public',
       description: 'Apresentação do Arc. na conferência',
-      date: new Date(2025, 3, 20),
+      date: new Date(2025, 3, 20).toISOString(),
       type: 'event',
       status: 'pending',
       location: 'São Paulo Convention Center',
@@ -82,11 +83,37 @@ export default function Timeline() {
       id: '5',
       title: 'Feature: Templates Avançados',
       description: 'Implementação de novos templates',
-      date: new Date(2025, 1, 28),
+      date: new Date(2025, 1, 28).toISOString(),
       type: 'milestone',
       status: 'pending',
     },
-  ]);
+  ];
+
+type TimelineTemplateData = {
+  events: TimelineEvent[];
+};
+
+const DEFAULT_DATA: TimelineTemplateData = {
+  events: DEFAULT_EVENTS,
+};
+
+export default function Timeline({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<TimelineTemplateData>(groupId, pageId, DEFAULT_DATA);
+  const events = data.events ?? DEFAULT_EVENTS;
+
+  const updateEvents = (updater: TimelineEvent[] | ((current: TimelineEvent[]) => TimelineEvent[])) => {
+    setData((current) => {
+      const currentEvents = current.events ?? DEFAULT_EVENTS;
+      const nextEvents =
+        typeof updater === 'function'
+          ? (updater as (current: TimelineEvent[]) => TimelineEvent[])(JSON.parse(JSON.stringify(currentEvents)))
+          : updater;
+      return {
+        ...current,
+        events: nextEvents,
+      };
+    });
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
@@ -112,9 +139,10 @@ export default function Timeline() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const sortedEvents = [...filteredEvents].sort((a, b) => a.date.getTime() - b.date.getTime());
+  const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateIso: string) => {
+    const date = new Date(dateIso);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'long',
@@ -122,24 +150,26 @@ export default function Timeline() {
     }).format(date);
   };
 
-  const formatDateShort = (date: Date) => {
+  const formatDateShort = (dateIso: string) => {
+    const date = new Date(dateIso);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'short'
     }).format(date);
   };
 
-  const getMonthYear = (date: Date) => {
+  const getMonthYear = (dateIso: string) => {
+    const date = new Date(dateIso);
     return new Intl.DateTimeFormat('pt-BR', {
       month: 'long',
       year: 'numeric'
     }).format(date);
   };
 
-  const getDaysUntil = (date: Date) => {
+  const getDaysUntil = (dateIso: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const eventDate = new Date(date);
+    const eventDate = new Date(dateIso);
     eventDate.setHours(0, 0, 0, 0);
     const diff = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -196,7 +226,7 @@ export default function Timeline() {
       id: editingEvent?.id || `${Date.now()}`,
       title: formData.title,
       description: formData.description,
-      date: new Date(formData.date),
+      date: new Date(formData.date).toISOString(),
       type: formData.type,
       status: formData.status,
       location: formData.location || undefined,
@@ -204,9 +234,9 @@ export default function Timeline() {
     };
 
     if (editingEvent) {
-      setEvents(events.map(e => e.id === editingEvent.id ? eventData : e));
+      updateEvents(events => events.map(e => e.id === editingEvent.id ? eventData : e));
     } else {
-      setEvents([...events, eventData]);
+      updateEvents(events => [...events, eventData]);
     }
 
     closeModal();
@@ -214,12 +244,12 @@ export default function Timeline() {
 
   const deleteEvent = (id: string) => {
     if (confirm('Deletar este evento?')) {
-      setEvents(events.filter(e => e.id !== id));
+      updateEvents(events => events.filter(e => e.id !== id));
     }
   };
 
   const toggleStatus = (id: string) => {
-    setEvents(events.map(e => {
+    updateEvents(events => events.map(e => {
       if (e.id === id) {
         if (e.status === 'pending') return { ...e, status: 'completed' as const };
         if (e.status === 'completed') return { ...e, status: 'pending' as const };
