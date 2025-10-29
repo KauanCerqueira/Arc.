@@ -13,6 +13,8 @@ import Link from "@tiptap/extension-link"
 import Image from "@tiptap/extension-image"
 import Highlight from "@tiptap/extension-highlight"
 import { Extension } from "@tiptap/core"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
+
 
 import {
   Bold,
@@ -77,11 +79,10 @@ const FontSize = Extension.create({
 type RichTextTemplateData = { content: string }
 const DEFAULT_DATA: RichTextTemplateData = { content: "" }
 
-export default function BlankTemplate() {
+export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
   const data = DEFAULT_DATA
   const setData = (fn: any) => {}
-  const groupId = "demo"
-  const pageId = "demo"
+
 
   const [isClient, setIsClient] = useState(false)
   useEffect(() => setIsClient(true), [])
@@ -471,4 +472,5 @@ export default function BlankTemplate() {
       </div>
     </div>
   )
+  
 }
