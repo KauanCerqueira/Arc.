@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useMemo, useRef, MouseEvent as ReactMouseEvent } from 'react'
 import ReactFlow, {
   Background,
   Controls,
@@ -16,24 +16,43 @@ import ReactFlow, {
   Handle,
   Position,
   NodeProps,
+  OnSelectionChangeParams,
+  ReactFlowInstance,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Plus, Trash2, Palette, Link as LinkIcon, Minus, ZoomIn, ZoomOut } from 'lucide-react'
+import { Plus, Trash2, Palette, Link as LinkIcon, X } from 'lucide-react'
 import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
 import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 
 // Cores disponíveis
 const nodeColorOptions = [
   { id: 'blue', name: 'Azul', bg: '#3b82f6', border: '#2563eb' },
-  { id: 'green', name: 'Verde', bg: '#22c55e', border: '#16a34a' },
+  { id: 'green', name: 'Verde', bg: '#22c55e', border: '#15803d' },
+  { id: 'emerald', name: 'Esmeralda', bg: '#10b981', border: '#047857' },
   { id: 'red', name: 'Vermelho', bg: '#ef4444', border: '#dc2626' },
+  { id: 'rose', name: 'Magenta', bg: '#f43f5e', border: '#e11d48' },
   { id: 'yellow', name: 'Amarelo', bg: '#eab308', border: '#ca8a04' },
-  { id: 'purple', name: 'Roxo', bg: '#a855f7', border: '#9333ea' },
   { id: 'orange', name: 'Laranja', bg: '#f97316', border: '#ea580c' },
+  { id: 'purple', name: 'Roxo', bg: '#a855f7', border: '#7e22ce' },
+  { id: 'indigo', name: 'Índigo', bg: '#6366f1', border: '#4f46e5' },
   { id: 'pink', name: 'Rosa', bg: '#ec4899', border: '#db2777' },
   { id: 'cyan', name: 'Ciano', bg: '#06b6d4', border: '#0891b2' },
+  { id: 'teal', name: 'Turquesa', bg: '#14b8a6', border: '#0f766e' },
   { id: 'gray', name: 'Cinza', bg: '#6b7280', border: '#4b5563' },
+  { id: 'slate', name: 'Ardósia', bg: '#475569', border: '#334155' },
 ]
+
+const cloneNodes = (source: Node[]): Node[] =>
+  source.map((node) => ({
+    ...node,
+    data: node.data ? { ...node.data } : node.data,
+  }))
+
+const cloneEdges = (source: Edge[]): Edge[] =>
+  source.map((edge) => ({
+    ...edge,
+    data: edge.data ? { ...edge.data } : edge.data,
+  }))
 
 // Nó customizado com botões de conexão
 const CustomNode = ({ data, id, selected }: NodeProps) => {
@@ -46,24 +65,56 @@ const CustomNode = ({ data, id, selected }: NodeProps) => {
     >
       {/* Handles - mais visíveis */}
       <Handle
+        id={`${id}-target-top`}
         type="target"
         position={Position.Top}
         className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
         style={{ borderColor: color.border }}
       />
       <Handle
+        id={`${id}-source-top`}
+        type="source"
+        position={Position.Top}
+        className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
+        style={{ borderColor: color.border }}
+      />
+      <Handle
+        id={`${id}-target-bottom`}
+        type="target"
+        position={Position.Bottom}
+        className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
+        style={{ borderColor: color.border }}
+      />
+      <Handle
+        id={`${id}-source-bottom`}
         type="source"
         position={Position.Bottom}
         className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
         style={{ borderColor: color.border }}
       />
       <Handle
+        id={`${id}-target-left`}
+        type="target"
+        position={Position.Left}
+        className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
+        style={{ borderColor: color.border }}
+      />
+      <Handle
+        id={`${id}-source-left`}
         type="source"
         position={Position.Left}
         className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
         style={{ borderColor: color.border }}
       />
       <Handle
+        id={`${id}-target-right`}
+        type="target"
+        position={Position.Right}
+        className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
+        style={{ borderColor: color.border }}
+      />
+      <Handle
+        id={`${id}-source-right`}
         type="source"
         position={Position.Right}
         className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 dark:!border-gray-600"
@@ -126,38 +177,217 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
   const persistedNodes = data.nodes ?? DEFAULT_DATA.nodes
   const persistedEdges = data.edges ?? DEFAULT_DATA.edges
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(persistedNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(persistedEdges)
+  const storageKey = useMemo(() => `flowchart-template-${groupId}-${pageId}`, [groupId, pageId])
+
+  const initialDataRef = useRef<{ key: string; data: FlowchartTemplateData } | null>(null)
+  if (!initialDataRef.current || initialDataRef.current.key !== storageKey) {
+    let initialNodes = cloneNodes(persistedNodes)
+    let initialEdges = cloneEdges(persistedEdges)
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem(storageKey)
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<FlowchartTemplateData>
+          if (parsed && Array.isArray(parsed.nodes)) {
+            initialNodes = cloneNodes(parsed.nodes as Node[])
+          }
+          if (parsed && Array.isArray(parsed.edges)) {
+            initialEdges = cloneEdges(parsed.edges as Edge[])
+          }
+        }
+      } catch {
+        // ignore invalid stored data
+      }
+    }
+
+    initialDataRef.current = {
+      key: storageKey,
+      data: {
+        nodes: initialNodes,
+        edges: initialEdges,
+      },
+    }
+  }
+
+  const initialNodes = initialDataRef.current.data.nodes
+  const initialEdges = initialDataRef.current.data.edges
+
+  const [nodes, setNodesState, onNodesChangeState] = useNodesState(initialNodes)
+  const [edges, setEdgesState, onEdgesChangeState] = useEdgesState(initialEdges)
   const [nodeName, setNodeName] = useState('')
   const [selectedType, setSelectedType] = useState<'default' | 'start' | 'end' | 'decision'>('default')
   const [selectedColor, setSelectedColor] = useState('blue')
   const [edgeColor, setEdgeColor] = useState('#64748b')
-  const [connectionMode, setConnectionMode] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
+  const [editLabel, setEditLabel] = useState('')
+  const [editType, setEditType] = useState<'default' | 'start' | 'end' | 'decision'>('default')
+  const [editColor, setEditColor] = useState('blue')
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null)
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
+  const skipNodesSyncRef = useRef(false)
+  const skipEdgesSyncRef = useRef(false)
+  const pendingSyncRef = useRef<FlowchartTemplateData | null>(null)
+  const isHydratingRef = useRef(true)
+
+  const nodesSignatureRef = useRef<string>(JSON.stringify(initialNodes))
+  const edgesSignatureRef = useRef<string>(JSON.stringify(initialEdges))
 
   useEffect(() => {
-    setNodes(persistedNodes)
-  }, [persistedNodes, setNodes])
+    nodesSignatureRef.current = JSON.stringify(nodes)
+  }, [nodes])
 
   useEffect(() => {
-    setEdges(persistedEdges)
-  }, [persistedEdges, setEdges])
+    edgesSignatureRef.current = JSON.stringify(edges)
+  }, [edges])
 
-  // Sincronizar com parent
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(persistedNodes)
-      const edgesChanged = JSON.stringify(edges) !== JSON.stringify(persistedEdges)
-      if (!nodesChanged && !edgesChanged) return
+    const payload: FlowchartTemplateData = {
+      nodes,
+      edges,
+    }
 
-      setData((current) => ({
-        ...current,
-        nodes,
-        edges,
-      }))
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [nodes, edges, persistedNodes, persistedEdges, setData])
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(payload))
+      } catch {
+        // ignore storage quota errors
+      }
+    }
+
+    if (isHydratingRef.current) {
+      isHydratingRef.current = false
+      pendingSyncRef.current = null
+      return
+    }
+
+    pendingSyncRef.current = payload
+  }, [nodes, edges, storageKey])
+
+  useEffect(() => {
+    const persistedSignature = JSON.stringify(persistedNodes)
+    if (skipNodesSyncRef.current) {
+      skipNodesSyncRef.current = false
+      nodesSignatureRef.current = persistedSignature
+      return
+    }
+    if (persistedSignature === nodesSignatureRef.current) return
+    isHydratingRef.current = true
+    nodesSignatureRef.current = persistedSignature
+    setNodesState(cloneNodes(persistedNodes))
+  }, [persistedNodes, setNodesState])
+
+  useEffect(() => {
+    const persistedSignature = JSON.stringify(persistedEdges)
+    if (skipEdgesSyncRef.current) {
+      skipEdgesSyncRef.current = false
+      edgesSignatureRef.current = persistedSignature
+      return
+    }
+    if (persistedSignature === edgesSignatureRef.current) return
+    isHydratingRef.current = true
+    edgesSignatureRef.current = persistedSignature
+    setEdgesState(cloneEdges(persistedEdges))
+  }, [persistedEdges, setEdgesState])
+
+  const activeNode = useMemo(
+    () => nodes.find((node) => node.id === activeNodeId) ?? null,
+    [nodes, activeNodeId],
+  )
+
+  useEffect(() => {
+    if (activeNode) {
+      setEditLabel(activeNode.data?.label ?? '')
+      setEditType(activeNode.data?.type ?? 'default')
+      setEditColor(activeNode.data?.color ?? 'blue')
+    } else {
+      setEditLabel('')
+    }
+  }, [activeNode])
+
+  useEffect(() => {
+    if (activeNodeId && !nodes.some((node) => node.id === activeNodeId)) {
+      setActiveNodeId(null)
+    }
+  }, [nodes, activeNodeId])
+
+  const setNodes = useCallback(
+    (
+      updater:
+        | Node[]
+        | ((nodes: Node[]) => Node[]),
+    ) => {
+      skipNodesSyncRef.current = true
+      setNodesState(updater)
+    },
+    [setNodesState],
+  )
+
+  const setEdges = useCallback(
+    (
+      updater:
+        | Edge[]
+        | ((edges: Edge[]) => Edge[]),
+    ) => {
+      skipEdgesSyncRef.current = true
+      setEdgesState(updater)
+    },
+    [setEdgesState],
+  )
+
+  const handleNodesChange = useCallback(
+    (changes: Parameters<typeof onNodesChangeState>[0]) => {
+      skipNodesSyncRef.current = true
+      onNodesChangeState(changes)
+    },
+    [onNodesChangeState],
+  )
+
+  const handleEdgesChange = useCallback(
+    (changes: Parameters<typeof onEdgesChangeState>[0]) => {
+      skipEdgesSyncRef.current = true
+      onEdgesChangeState(changes)
+    },
+    [onEdgesChangeState],
+  )
+
+  const flushPending = useCallback(() => {
+    const payload = pendingSyncRef.current
+    if (!payload) return
+
+    pendingSyncRef.current = null
+    skipNodesSyncRef.current = true
+    skipEdgesSyncRef.current = true
+    nodesSignatureRef.current = JSON.stringify(payload.nodes)
+    edgesSignatureRef.current = JSON.stringify(payload.edges)
+
+    setData(
+      () => ({
+        nodes: payload.nodes,
+        edges: payload.edges,
+      }),
+      { immediate: true },
+    )
+  }, [setData])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(flushPending, 3000)
+    return () => {
+      window.clearInterval(intervalId)
+      flushPending()
+    }
+  }, [flushPending])
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      flushPending()
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [flushPending])
 
   // Conectar nós
   const onConnect = useCallback(
@@ -183,7 +413,8 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
 
   // Adicionar nó
   const addNode = () => {
-    if (!nodeName.trim()) return
+    const trimmedName = nodeName.trim()
+    if (!trimmedName) return
 
     const newNode: Node = {
       id: `node_${Date.now()}`,
@@ -193,7 +424,7 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
         y: Math.random() * 200 + 100,
       },
       data: {
-        label: nodeName,
+        label: trimmedName,
         type: selectedType,
         color: selectedColor,
       },
@@ -201,26 +432,49 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
 
     setNodes((nds) => [...nds, newNode])
     setNodeName('')
+    setActiveNodeId(newNode.id)
+    setEditLabel(trimmedName)
+    setEditType(selectedType)
+    setEditColor(selectedColor)
   }
 
-  // Deletar selecionados
-  const deleteSelected = () => {
-    const selectedNodes = nodes.filter(n => n.selected)
-    const selectedEdges = edges.filter(e => e.selected)
+  const removeNodesByIds = useCallback(
+    (ids: string[]) => {
+      if (!ids.length) return
+      const idSet = new Set(ids)
+      setNodes((nds) => nds.filter((node) => !idSet.has(node.id)))
+      setEdges((eds) => eds.filter((edge) => !idSet.has(edge.source) && !idSet.has(edge.target)))
+    },
+    [setNodes, setEdges],
+  )
 
-    if (selectedNodes.length === 0 && selectedEdges.length === 0) {
+  const deleteSelected = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected)
+    const selectedEdges = edges.filter((e) => e.selected)
+
+    if (!selectedNodes.length && !selectedEdges.length) {
       return
     }
 
-    setNodes((nds) => nds.filter((node) => !node.selected))
-    setEdges((eds) => eds.filter((edge) => !edge.selected))
-  }
+    if (selectedNodes.length) {
+      const selectedNodeIds = selectedNodes.map((node) => node.id)
+      removeNodesByIds(selectedNodeIds)
+      if (activeNodeId && selectedNodeIds.includes(activeNodeId)) {
+        setActiveNodeId(null)
+      }
+    }
+
+    if (selectedEdges.length) {
+      setEdges((eds) => eds.filter((edge) => !edge.selected))
+    }
+  }, [nodes, edges, removeNodesByIds, activeNodeId, setEdges])
 
   // Limpar tudo
   const clearAll = () => {
     if (confirm('Limpar todo o fluxograma?')) {
       setNodes([])
       setEdges([])
+      setActiveNodeId(null)
     }
   }
 
@@ -236,12 +490,149 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
     setShowColorPicker(false)
   }
 
+  const updateActiveNodeData = useCallback(
+    (updater: (data: Record<string, any>) => Record<string, any>) => {
+      if (!activeNodeId) return
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === activeNodeId
+            ? { ...node, data: updater({ ...(node.data ?? {}) }) }
+            : node
+        )
+      )
+    },
+    [activeNodeId, setNodes],
+  )
+
+  const handleEditLabelChange = (value: string) => {
+    setEditLabel(value)
+    updateActiveNodeData((data) => ({ ...data, label: value }))
+  }
+
+  const handleEditTypeChange = (value: 'default' | 'start' | 'end' | 'decision') => {
+    setEditType(value)
+    setSelectedType(value)
+    updateActiveNodeData((data) => ({ ...data, type: value }))
+  }
+
+  const handleEditColorChange = (colorId: string) => {
+    setEditColor(colorId)
+    setSelectedColor(colorId)
+    updateActiveNodeData((data) => ({ ...data, color: colorId }))
+  }
+
+  const deleteActiveNode = useCallback(() => {
+    if (!activeNodeId) return
+    removeNodesByIds([activeNodeId])
+    setActiveNodeId(null)
+  }, [activeNodeId, removeNodesByIds])
+
+  const handlePaneDoubleClick = useCallback(
+    (event: ReactMouseEvent) => {
+      event.preventDefault()
+      const bounds = reactFlowWrapper.current?.getBoundingClientRect()
+      if (!bounds) return
+
+      const rawPosition = {
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
+      }
+
+      const position = reactFlowInstance.current
+        ? reactFlowInstance.current.project(rawPosition)
+        : rawPosition
+
+      const newNode: Node = {
+        id: `node_${Date.now()}`,
+        type: 'custom',
+        position,
+        data: {
+          label: 'Novo bloco',
+          type: selectedType,
+          color: selectedColor,
+        },
+      }
+
+      setNodes((nds) => [...nds, newNode])
+      setActiveNodeId(newNode.id)
+      setEditLabel('Novo bloco')
+      setEditType(selectedType)
+      setEditColor(selectedColor)
+    },
+    [selectedType, selectedColor, setNodes],
+  )
+
+  const handleFlowInit = useCallback((instance: ReactFlowInstance) => {
+    reactFlowInstance.current = instance
+  }, [])
+
+  const handleNodeClick = useCallback((_: ReactMouseEvent, node: Node) => {
+    setActiveNodeId(node.id)
+  }, [])
+
+  const handlePaneClick = useCallback((event: ReactMouseEvent) => {
+    const target = event.target as HTMLElement | null
+    if (!target || !target.classList.contains('react-flow__pane')) {
+      return
+    }
+
+    if (event.detail === 2) {
+      handlePaneDoubleClick(event)
+      return
+    }
+
+    setActiveNodeId(null)
+    setShowColorPicker(false)
+  }, [handlePaneDoubleClick])
+
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: OnSelectionChangeParams) => {
+      if (selectedNodes.length) {
+        setActiveNodeId(selectedNodes[selectedNodes.length - 1].id)
+      } else {
+        setActiveNodeId(null)
+      }
+    },
+    [],
+  )
+
   const nodeTypeOptions = [
     { id: 'default', name: 'Processo', icon: '□' },
     { id: 'start', name: 'Início', icon: '▶' },
     { id: 'end', name: 'Fim', icon: '⏹' },
     { id: 'decision', name: 'Decisão', icon: '?' },
   ]
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return
+
+      const target = event.target as HTMLElement | null
+      if (target) {
+        const tagName = target.tagName.toLowerCase()
+        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) {
+          return
+        }
+      }
+
+      if (activeNodeId) {
+        event.preventDefault()
+        removeNodesByIds([activeNodeId])
+        setActiveNodeId(null)
+        return
+      }
+
+      const hasSelectedNodes = nodes.some((node) => node.selected)
+      const hasSelectedEdges = edges.some((edge) => edge.selected)
+      if (hasSelectedNodes || hasSelectedEdges) {
+        event.preventDefault()
+        deleteSelected()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeNodeId, nodes, edges, deleteSelected, removeNodesByIds])
 
   const hasSelection = nodes.some(n => n.selected) || edges.some(e => e.selected)
 
@@ -387,13 +778,17 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
       </div>
 
       {/* Canvas */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          onSelectionChange={handleSelectionChange}
+          onInit={handleFlowInit}
           nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-right"
@@ -424,6 +819,94 @@ export default function FlowchartTemplate({ groupId, pageId }: WorkspaceTemplate
             zoomable
           />
         </ReactFlow>
+
+        {activeNode && (
+          <div className="absolute right-4 top-4 z-20 w-72 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-4">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Bloco selecionado
+                </p>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 break-words">
+                  {editLabel || 'Sem título'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveNodeId(null)}
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition"
+                aria-label="Fechar painel de edição"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
+                Título
+              </label>
+              <input
+                type="text"
+                value={editLabel}
+                onChange={(e) => handleEditLabelChange(e.target.value)}
+                placeholder="Descreva o bloco..."
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
+                Tipo
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {nodeTypeOptions.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => handleEditTypeChange(type.id as 'default' | 'start' | 'end' | 'decision')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      editType === type.id
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <span className="mr-1">{type.icon}</span>
+                    {type.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
+                Cor
+              </span>
+              <div className="grid grid-cols-7 gap-2">
+                {nodeColorOptions.map((color) => (
+                  <button
+                    key={color.id}
+                    onClick={() => handleEditColorChange(color.id)}
+                    className={`w-8 h-8 rounded-lg border-2 transition-transform ${
+                      editColor === color.id
+                        ? 'scale-110 border-gray-900 dark:border-gray-100'
+                        : 'border-transparent hover:scale-110'
+                    }`}
+                    style={{ background: color.bg }}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={deleteActiveNode}
+              className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Remover bloco
+            </button>
+
+           
+          </div>
+        )}
 
         {/* Dica inicial */}
         {nodes.length === 0 && (
