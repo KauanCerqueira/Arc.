@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams } from 'next/navigation';
 import { useWorkspaceStore } from '@/core/store/workspaceStore';
 import { useMemo } from 'react';
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
 import {
   CheckCircle2,
   Clock,
@@ -66,9 +66,7 @@ type RecentActivity = {
   icon: any;
 };
 
-export default function DashboardTemplate() {
-  const params = useParams();
-  const groupId = params.groupId as string;
+export default function DashboardTemplate({ groupId }: WorkspaceTemplateComponentProps) {
   const { getGroup } = useWorkspaceStore();
 
   const group = getGroup(groupId);

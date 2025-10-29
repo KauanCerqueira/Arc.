@@ -193,7 +193,7 @@ export default function Timeline({ groupId, pageId }: WorkspaceTemplateComponent
       setFormData({
         title: event.title,
         description: event.description,
-        date: event.date.toISOString().split('T')[0],
+        date: new Date(event.date).toISOString().split('T')[0],
         type: event.type,
         status: event.status,
         location: event.location || '',
