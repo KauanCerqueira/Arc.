@@ -1,252 +1,474 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from 'react';
-import { 
-  Bold, Italic, Underline, Strikethrough, Code,
-  Heading1, Heading2, Heading3, List, ListOrdered, Quote,
-  Link2, Image, Download, Copy, Check, MoreVertical, X
-} from 'lucide-react';
-import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEditor, EditorContent } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import Underline from "@tiptap/extension-underline"
+import { TextStyle } from "@tiptap/extension-text-style"
+import Color from "@tiptap/extension-color"
+import FontFamily from "@tiptap/extension-font-family"
+import TextAlign from "@tiptap/extension-text-align"
+import Placeholder from "@tiptap/extension-placeholder"
+import Link from "@tiptap/extension-link"
+import Image from "@tiptap/extension-image"
+import Highlight from "@tiptap/extension-highlight"
+import { Extension } from "@tiptap/core"
 
-type BlankTemplateProps = {
-  groupId: string;
-  pageId: string;
-};
+import {
+  Bold,
+  Italic,
+  UnderlineIcon,
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Minus,
+  Link2,
+  ImageIcon,
+  IndentIncrease,
+  IndentDecrease,
+  Palette,
+  Type,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react"
 
-type BlankTemplateData = {
-  content: string;
-};
+/**
+ * Extensão FontSize: adiciona atributo `fontSize` ao mark `textStyle`
+ * sem apagar outras propriedades (cor, família etc).
+ */
+const FontSize = Extension.create({
+  name: "fontSize",
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["textStyle"],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element) => element.style.fontSize || null,
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize) return {}
+              return { style: `font-size: ${attributes.fontSize}` }
+            },
+          },
+        },
+      },
+    ]
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain }) =>
+          chain().setMark("textStyle", { fontSize }).run(),
+      unsetFontSize:
+        () =>
+        ({ chain }) =>
+          chain().setMark("textStyle", { fontSize: null }).run(),
+    }
+  },
+})
 
-const DEFAULT_DATA: BlankTemplateData = {
-  content: '',
-};
+type RichTextTemplateData = { content: string }
+const DEFAULT_DATA: RichTextTemplateData = { content: "" }
 
-export default function BlankTemplate({ groupId, pageId }: BlankTemplateProps) {
-  const { data, setData, isSaving } = usePageTemplateData<BlankTemplateData>(groupId, pageId, DEFAULT_DATA);
-  const [content, setContent] = useState(data.content ?? '');
-  const [copied, setCopied] = useState(false);
-  const [showToolbar, setShowToolbar] = useState(true);
-  const [fontSize, setFontSize] = useState(16);
-  const [lineHeight, setLineHeight] = useState(1.6);
+export default function BlankTemplate() {
+  const data = DEFAULT_DATA
+  const setData = (fn: any) => {}
+  const groupId = "demo"
+  const pageId = "demo"
+
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => setIsClient(true), [])
+
+  const [showToolbar, setShowToolbar] = useState(true)
+  const [toolbarExpanded, setToolbarExpanded] = useState(false)
+  const storageKey = useMemo(() => `richtext-${groupId}-${pageId}`, [groupId, pageId])
+
+  const pendingRef = useRef<RichTextTemplateData | null>(null)
+  const lastSavedRef = useRef<string>("")
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
+      Underline,
+      TextStyle,
+      Color,
+      FontFamily,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Placeholder.configure({ placeholder: "Comece a escrever seu documento…" }),
+      Link.configure({
+        openOnClick: true,
+        autolink: true,
+        HTMLAttributes: { rel: "noopener noreferrer nofollow" },
+      }),
+      Image,
+      Highlight.configure({ multicolor: true }),
+      FontSize,
+    ],
+    content: data.content ?? "",
+    editorProps: {
+      attributes: {
+        class:
+          "prose dark:prose-invert max-w-none min-h-[calc(100vh-120px)] md:min-h-[85vh] p-3 md:p-6 outline-none bg-transparent text-gray-900 dark:text-gray-100",
+      },
+    },
+    immediatelyRender: false,
+    onUpdate({ editor }) {
+      const html = editor.getHTML()
+      pendingRef.current = { content: html }
+      try {
+        localStorage.setItem(storageKey, html)
+      } catch {}
+    },
+  })
 
   useEffect(() => {
-    setContent(data.content ?? '');
-  }, [data.content]);
+    if (!editor) return
+    const local = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null
+    const finalContent = local || data.content || ""
+    if (finalContent && finalContent !== editor.getHTML()) {
+      editor.commands.setContent(finalContent)
+    }
+  }, [editor, data.content, storageKey])
 
-  const persistContent = (value: string) => {
-    setContent(value);
-    setData((current) => ({
-      ...current,
-      content: value,
-    }));
-  };
+  const flushPending = useCallback(() => {
+    const payload = pendingRef.current
+    if (!payload) return
+    pendingRef.current = null
 
-  const insertFormatting = (before: string, after: string = '') => {
-    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
-    persistContent(newText);
-    
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, end + before.length);
-    }, 0);
-  };
+    const json = JSON.stringify(payload)
+    if (json === lastSavedRef.current) return
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    lastSavedRef.current = json
+    setData(() => payload)
+  }, [setData])
 
-  const downloadAsText = () => {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'documento.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  useEffect(() => {
+    const id = setInterval(flushPending, 3000)
+    return () => {
+      clearInterval(id)
+      flushPending()
+    }
+  }, [flushPending])
 
-  const wordCount = content.trim().split(/\s+/).filter(w => w.length > 0).length;
-  const charCount = content.length;
+  const applyColor = (color: string) => editor?.chain().focus().setColor(color).run()
+  const applyHighlight = (color: string) => editor?.chain().focus().toggleHighlight({ color }).run()
 
-  const toolbarButtons = [
-    { icon: Bold, title: 'Negrito', action: () => insertFormatting('**', '**') },
-    { icon: Italic, title: 'Itálico', action: () => insertFormatting('*', '*') },
-    { icon: Underline, title: 'Sublinhado', action: () => insertFormatting('_', '_') },
-    { icon: Strikethrough, title: 'Tachado', action: () => insertFormatting('~~', '~~') },
-    { icon: Code, title: 'Código', action: () => insertFormatting('`', '`') },
-    { icon: Heading1, title: 'H1', action: () => insertFormatting('# ', '') },
-    { icon: Heading2, title: 'H2', action: () => insertFormatting('## ', '') },
-    { icon: Heading3, title: 'H3', action: () => insertFormatting('### ', '') },
-    { icon: List, title: 'Lista', action: () => insertFormatting('- ', '') },
-    { icon: ListOrdered, title: 'Lista numerada', action: () => insertFormatting('1. ', '') },
-    { icon: Quote, title: 'Citação', action: () => insertFormatting('> ', '') },
-    { icon: Link2, title: 'Link', action: () => insertFormatting('[', '](url)') },
-    { icon: Image, title: 'Imagem', action: () => insertFormatting('![alt](', ')') },
-  ];
+  const setFontSize = (px: string) => editor?.chain().focus().setFontSize(px).run()
+  const clearFontSize = () => editor?.chain().focus().unsetFontSize().run()
+
+  const indent = () => {
+    if (!editor) return
+    if (editor.can().sinkListItem("listItem")) editor.chain().focus().sinkListItem("listItem").run()
+  }
+  const outdent = () => {
+    if (!editor) return
+    if (editor.can().liftListItem("listItem")) editor.chain().focus().liftListItem("listItem").run()
+  }
+
+  const askLink = () => {
+    const previous = editor?.getAttributes("link")?.href as string | undefined
+    const url = window.prompt("URL do link:", previous || "https://")
+    if (url === null) return
+    if (url === "") return editor?.chain().focus().unsetLink().run()
+    editor?.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
+  }
+
+  const askImage = () => {
+    const url = window.prompt("URL da imagem (https://…):")
+    if (!url) return
+    editor?.chain().focus().setImage({ src: url }).run()
+  }
+
+  const fontSizes = useMemo(
+    () => [
+      { label: "12", value: "12px" },
+      { label: "14", value: "14px" },
+      { label: "16", value: "16px" },
+      { label: "18", value: "18px" },
+      { label: "20", value: "20px" },
+      { label: "24", value: "24px" },
+      { label: "32", value: "32px" },
+    ],
+    [],
+  )
+
+  if (!isClient || !editor) {
+    return <div className="p-4 md:p-6 text-gray-500 dark:text-gray-400">Carregando editor…</div>
+  }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-slate-900">
-      {/* Toolbar */}
+    <div className="flex flex-col h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
+      {/* TOOLBAR */}
       {showToolbar && (
-        <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
-          <div className="flex flex-col">
-            {/* Main toolbar */}
-            <div className="flex items-center gap-1 p-3 md:p-4 overflow-x-auto">
-              {toolbarButtons.map((btn, i) => {
-                const Icon = btn.icon;
-                return (
-                  <button
-                    key={i}
-                    onClick={btn.action}
-                    className="p-2 md:p-2.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition flex-shrink-0 group"
-                    title={btn.title}
-                  >
-                    <Icon className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-                  </button>
-                );
-              })}
-              
-              <div className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-1 flex-shrink-0"></div>
+        <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
+          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 p-2 md:p-3">
+            {/* Controles essenciais - sempre visíveis */}
+            <button
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("bold") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Negrito"
+            >
+              <Bold className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("italic") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Itálico"
+            >
+              <Italic className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("underline") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Sublinhado"
+            >
+              <UnderlineIcon className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
 
-              {/* Controls */}
-              <button
-                onClick={copyToClipboard}
-                className="p-2 md:p-2.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition flex-shrink-0 group"
-                title="Copiar"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
-                ) : (
-                  <Copy className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-                )}
-              </button>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
 
-              <button
-                onClick={downloadAsText}
-                className="p-2 md:p-2.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition flex-shrink-0 group"
-                title="Baixar"
-              >
-                <Download className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-              </button>
+            {/* Alinhamento */}
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Esquerda"
+            >
+              <AlignLeft className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("center").run()}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Centro"
+            >
+              <AlignCenter className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Direita"
+            >
+              <AlignRight className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
 
-              <div className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-1 flex-shrink-0"></div>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
 
-              {/* Settings - Desktop only */}
-              <div className="hidden md:flex items-center gap-2 ml-auto pl-2">
-                <select
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={12}>12px</option>
-                  <option value={14}>14px</option>
-                  <option value={16}>16px</option>
-                  <option value={18}>18px</option>
-                  <option value={20}>20px</option>
-                  <option value={24}>24px</option>
-                </select>
+            {/* Listas */}
+            <button
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("bulletList") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Lista"
+            >
+              <List className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("orderedList") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Lista numerada"
+            >
+              <ListOrdered className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
 
-                <select
-                  value={lineHeight}
-                  onChange={(e) => setLineHeight(Number(e.target.value))}
-                  className="px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={1.4}>Compacto</option>
-                  <option value={1.6}>Normal</option>
-                  <option value={1.8}>Confortável</option>
-                  <option value={2.0}>Espaçoso</option>
-                </select>
-              </div>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
 
-              <button
-                onClick={() => setShowToolbar(false)}
-                className="p-2 md:p-2.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition flex-shrink-0 ml-auto md:ml-0"
-                title="Ocultar toolbar"
-              >
-                <X className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
+            {/* Link e Imagem */}
+            <button
+              onClick={askLink}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("link") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Inserir/Editar link"
+            >
+              <Link2 className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={askImage}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Inserir imagem"
+            >
+              <ImageIcon className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
 
-            {/* Mobile controls */}
-            <div className="md:hidden flex items-center justify-between px-3 py-2 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
-              <select
-                value={fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value))}
-                className="px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-gray-300 focus:outline-none"
-              >
-                <option value={12}>12px</option>
-                <option value={14}>14px</option>
-                <option value={16}>16px</option>
-                <option value={18}>18px</option>
-                <option value={20}>20px</option>
-              </select>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 md:hidden" />
+            <button
+              onClick={() => setToolbarExpanded(!toolbarExpanded)}
+              className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors md:hidden ml-auto"
+              title={toolbarExpanded ? "Ocultar mais opções" : "Mostrar mais opções"}
+            >
+              {toolbarExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
 
-              <select
-                value={lineHeight}
-                onChange={(e) => setLineHeight(Number(e.target.value))}
-                className="px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-gray-300 focus:outline-none"
-              >
-                <option value={1.4}>Compacto</option>
-                <option value={1.6}>Normal</option>
-                <option value={1.8}>Confortável</option>
-                <option value={2.0}>Espaçoso</option>
-              </select>
-            </div>
+          <div
+            className={`${
+              toolbarExpanded ? "flex" : "hidden"
+            } md:flex flex-wrap items-center gap-1.5 md:gap-2 px-2 pb-2 md:px-3 md:pb-3 md:pt-0 border-t md:border-t-0 border-gray-200 dark:border-gray-800 md:border-0`}
+          >
+            {/* Formatação adicional */}
+            <button
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("strike") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Tachado"
+            >
+              <Strikethrough className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
 
-            {/* Stats */}
-            <div className="px-3 md:px-4 py-2 bg-gray-50 dark:bg-slate-950 border-t border-gray-200 dark:border-slate-700 text-xs text-gray-600 dark:text-gray-400 flex items-center gap-4 overflow-x-auto">
-              <span className="flex-shrink-0">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">{wordCount}</span>
-                <span className="ml-1">palavras</span>
-              </span>
-              <span className="text-gray-300 dark:text-slate-700">•</span>
-              <span className="flex-shrink-0">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">{charCount}</span>
-                <span className="ml-1">caracteres</span>
-              </span>
-            </div>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
+
+            {/* Cores */}
+            <label
+              className="flex items-center gap-1 cursor-pointer p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Cor do texto"
+            >
+              <Palette className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-300" />
+              <input
+                type="color"
+                onChange={(e) => applyColor(e.target.value)}
+                className="w-6 h-6 md:w-7 md:h-7 border border-gray-300 dark:border-gray-700 rounded bg-transparent cursor-pointer"
+              />
+            </label>
+
+            <label
+              className="flex items-center gap-1 cursor-pointer p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Marca-texto"
+            >
+              <Type className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-300" />
+              <input
+                type="color"
+                onChange={(e) => applyHighlight(e.target.value)}
+                className="w-6 h-6 md:w-7 md:h-7 border border-gray-300 dark:border-gray-700 rounded bg-transparent cursor-pointer"
+              />
+            </label>
+
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
+
+            {/* Fonte e tamanho */}
+            <select
+              onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+              defaultValue="system-ui, sans-serif"
+              className="px-2 py-1.5 md:py-2 text-xs md:text-sm rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 min-w-[80px]"
+              title="Fonte"
+            >
+              <option value="system-ui, sans-serif">Sans</option>
+              <option value="serif">Serif</option>
+              <option value="monospace">Mono</option>
+              <option value="cursive">Cursiva</option>
+            </select>
+
+            <select
+              onChange={(e) => {
+                const v = e.target.value
+                if (v === "clear") clearFontSize()
+                else setFontSize(v)
+              }}
+              defaultValue="16px"
+              className="px-2 py-1.5 md:py-2 text-xs md:text-sm rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 min-w-[70px]"
+              title="Tamanho"
+            >
+              {fontSizes.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}px
+                </option>
+              ))}
+              <option value="clear">Padrão</option>
+            </select>
+
+            {/* Títulos */}
+            <select
+              onChange={(e) => {
+                const valNum = Number(e.target.value)
+                if (valNum === 0) editor.chain().focus().setParagraph().run()
+                else
+                  editor
+                    .chain()
+                    .focus()
+                    .toggleHeading({ level: valNum as 1 | 2 | 3 })
+                    .run()
+              }}
+              defaultValue={0}
+              className="px-2 py-1.5 md:py-2 text-xs md:text-sm rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 min-w-[90px]"
+              title="Títulos"
+            >
+              <option value={0}>Parágrafo</option>
+              <option value={1}>Título 1</option>
+              <option value={2}>Título 2</option>
+              <option value={3}>Título 3</option>
+            </select>
+
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
+
+            {/* Indent */}
+            <button
+              onClick={indent}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Aumentar recuo"
+            >
+              <IndentIncrease className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={outdent}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Reduzir recuo"
+            >
+              <IndentDecrease className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
+
+            {/* Blocos */}
+            <button
+              onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("blockquote") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Citação"
+            >
+              <Quote className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              className={`p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("codeBlock") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Bloco de código"
+            >
+              <Code className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setHorizontalRule().run()}
+              className="p-2 md:p-2.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Linha horizontal"
+            >
+              <Minus className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* Show toolbar button when hidden */}
-      {!showToolbar && (
-        <button
-          onClick={() => setShowToolbar(true)}
-          className="absolute top-4 left-4 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition z-20"
-          title="Mostrar toolbar"
-        >
-          <MoreVertical className="w-5 h-5" />
-        </button>
-      )}
-
-      {/* Editor */}
-      <div className="flex-1 overflow-hidden">
-              <textarea
-                value={content}
-                onChange={(e) => persistContent(e.target.value)}
-          placeholder="Comece a escrever aqui...
-
-Use a barra de ferramentas acima para formatar seu texto com Markdown. Você pode usar **negrito**, *itálico*, `código` e muito mais.
-
-Pressione Ctrl+B para negrito, Ctrl+I para itálico ou use os botões acima!"
-          className="w-full h-full p-6 md:p-8 lg:p-12 text-gray-900 dark:text-gray-50 bg-white dark:bg-slate-900 border-none outline-none resize-none placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0"
-          style={{ 
-            fontSize: `${fontSize}px`,
-            lineHeight: `${lineHeight}`,
-            fontFamily: 'ui-monospace, "Monaco", "Menlo", "Ubuntu Mono", monospace'
-          }}
-          spellCheck="true"
-        />
+      {/* EDITOR */}
+      <div className="flex-1 overflow-y-auto">
+        <EditorContent editor={editor} />
       </div>
     </div>
-  );
+  )
 }

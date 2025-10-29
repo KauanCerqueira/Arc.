@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   title: 'Arc. - Gestão de Projetos',
   description: 'Plataforma de produtividade pessoal',
   icons: {
-  icon: '/icon/arclogo.svg',
-  shortcut: '/icon/arclogo.svg',
-  apple: '/icon/arclogo.svg',
-}
+    icon: '/icon/arclogo.svg',
+    shortcut: '/icon/arclogo.svg',
+    apple: '/icon/arclogo.svg',
+  },
 };
 
 export default function RootLayout({
@@ -18,8 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body>
+    <html lang="pt-BR" suppressHydrationWarning={true}>
+      {/* ✅ Adicionamos suppressHydrationWarning no body */}
+      <body suppressHydrationWarning={true}>
         <ThemeProvider>
           {children}
         </ThemeProvider>
