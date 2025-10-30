@@ -18,6 +18,8 @@ export type TemplateType =
   | 'budget'               // Calculadora de orçamento
   | 'personal-budget'      // Orçamento Financeiro Pessoal
   | 'business-budget'      // Orçamento Empresarial
+  | 'workout'              // Treino/Exercícios
+  | 'nutrition'            // Nutrição/Alimentação
   | 'focus'                // Pomodoro
   | 'sprint'               // Planejamento de sprint
   | 'flowchart'            // Fluxograma
@@ -54,6 +56,8 @@ export const TEMPLATE_ICONS: Record<TemplateType, string> = {
   notes: '🗒️',
   timeline: '⏳',
   wiki: '📘',
+  workout: '🏋️',
+  nutrition: '🍎',
 };
 
 

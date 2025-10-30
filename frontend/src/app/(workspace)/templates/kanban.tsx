@@ -13,7 +13,6 @@ import {
   useSensor,
   useSensors,
   closestCorners,
-  DragOver,
   useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
