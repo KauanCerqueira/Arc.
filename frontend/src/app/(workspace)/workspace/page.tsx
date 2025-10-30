@@ -1,14 +1,23 @@
 "use client";
 
 import Link from 'next/link';
-import { FileText, Clock, TrendingUp, FolderOpen, Plus, Sparkles, X } from 'lucide-react';
+import { FileText, Clock, FolderOpen, Plus, Sparkles, X, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { useWorkspaceStore } from '@/core/store/workspaceStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GROUP_PRESETS } from '@/core/types/workspace.types';
 
 export default function WorkspaceHome() {
-  const { workspace } = useWorkspaceStore();
+  const { workspace, workspaces, createWorkspace, renameWorkspace, deleteWorkspace, switchWorkspace, loadAllWorkspaces } = useWorkspaceStore();
   const [showQuickStart, setShowQuickStart] = useState(true);
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(null);
+  const [editingWorkspaceName, setEditingWorkspaceName] = useState('');
+  const [workspaceMenuId, setWorkspaceMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadAllWorkspaces();
+  }, [loadAllWorkspaces]);
 
   const totalGroups = workspace?.groups.length || 0;
   const totalPages = workspace?.groups.reduce((sum, group) => sum + group.pages.length, 0) || 0;
@@ -79,9 +88,30 @@ export default function WorkspaceHome() {
     },
   ];
 
-  const popularPresets = GROUP_PRESETS.filter(p => 
+  const popularPresets = GROUP_PRESETS.filter(p =>
     ['freelancer-project', 'dev-project', 'student-subject', 'personal-goals'].includes(p.id)
   );
+
+  const handleCreateWorkspace = async () => {
+    if (!newWorkspaceName.trim()) return;
+    await createWorkspace(newWorkspaceName);
+    setNewWorkspaceName('');
+    setShowCreateWorkspace(false);
+  };
+
+  const handleRenameWorkspace = async (workspaceId: string) => {
+    if (!editingWorkspaceName.trim()) return;
+    await renameWorkspace(workspaceId, editingWorkspaceName);
+    setEditingWorkspaceId(null);
+    setEditingWorkspaceName('');
+  };
+
+  const handleDeleteWorkspace = async (workspaceId: string) => {
+    if (confirm('Tem certeza que deseja deletar este workspace? Esta ação não pode ser desfeita.')) {
+      await deleteWorkspace(workspaceId);
+      setWorkspaceMenuId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black">
@@ -89,16 +119,202 @@ export default function WorkspaceHome() {
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Bem-vindo de volta
+            Meus Workspaces
           </h1>
           <p className="text-base text-gray-600 dark:text-gray-300">
-            {workspace?.name || 'Meu Workspace'}
+            Gerencie todos os seus espaços de trabalho
           </p>
         </div>
 
-        {/* Quick Start */}
-        {totalGroups === 0 && showQuickStart && (
-          <div className="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800/50 rounded-2xl p-4 md:p-8 relative">
+        {/* All Workspaces */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Todos os Workspaces
+            </h2>
+            <button
+              onClick={() => setShowCreateWorkspace(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-semibold text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Novo Workspace
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {workspaces.map((ws) => (
+              <div
+                key={ws.id}
+                className={`group relative bg-white dark:bg-gray-900 border-2 rounded-xl p-6 transition-all ${
+                  workspace?.id === ws.id
+                    ? 'border-blue-600 shadow-lg'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md'
+                }`}
+              >
+                {editingWorkspaceId === ws.id ? (
+                  <div className="flex flex-col gap-3">
+                    <input
+                      type="text"
+                      value={editingWorkspaceName}
+                      onChange={(e) => setEditingWorkspaceName(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleRenameWorkspace(ws.id);
+                        if (e.key === 'Escape') setEditingWorkspaceId(null);
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleRenameWorkspace(ws.id)}
+                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={() => setEditingWorkspaceId(null)}
+                        className="flex-1 px-3 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition text-sm font-medium"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between mb-4">
+                      <h3
+                        onClick={() => switchWorkspace(ws.id)}
+                        className="text-lg font-bold text-gray-900 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition"
+                      >
+                        {ws.name}
+                      </h3>
+                      <div className="relative">
+                        <button
+                          onClick={() => setWorkspaceMenuId(workspaceMenuId === ws.id ? null : ws.id)}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                        >
+                          <MoreVertical className="w-5 h-5 text-gray-500" />
+                        </button>
+                        {workspaceMenuId === ws.id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                            <button
+                              onClick={() => {
+                                setEditingWorkspaceId(ws.id);
+                                setEditingWorkspaceName(ws.name);
+                                setWorkspaceMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg transition"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              Renomear
+                            </button>
+                            {workspaces.length > 1 && (
+                              <button
+                                onClick={() => handleDeleteWorkspace(ws.id)}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Deletar
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <FolderOpen className="w-4 h-4" />
+                        <span>{ws.groups.length} grupos</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <FileText className="w-4 h-4" />
+                        <span>{ws.groups.reduce((sum, g) => sum + g.pages.length, 0)} páginas</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Clock className="w-4 h-4" />
+                        <span>Atualizado {getRelativeTime(ws.updatedAt)}</span>
+                      </div>
+                    </div>
+
+                    {workspace?.id !== ws.id && (
+                      <button
+                        onClick={() => switchWorkspace(ws.id)}
+                        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium"
+                      >
+                        Abrir Workspace
+                      </button>
+                    )}
+                    {workspace?.id === ws.id && (
+                      <div className="text-center text-sm font-medium text-blue-600 dark:text-blue-400">
+                        Workspace Atual
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Create Workspace Modal */}
+        {showCreateWorkspace && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full border-2 border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Novo Workspace
+                </h2>
+                <button
+                  onClick={() => setShowCreateWorkspace(false)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Crie um novo espaço de trabalho para organizar seus projetos
+              </p>
+              <input
+                type="text"
+                value={newWorkspaceName}
+                onChange={(e) => setNewWorkspaceName(e.target.value)}
+                placeholder="Nome do workspace"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 mb-6"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateWorkspace()}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCreateWorkspace}
+                  disabled={!newWorkspaceName.trim()}
+                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+                >
+                  Criar Workspace
+                </button>
+                <button
+                  onClick={() => setShowCreateWorkspace(false)}
+                  className="px-6 py-3 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition font-semibold"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Current Workspace Stats */}
+        {workspace && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Workspace Atual: {workspace.name}
+              </h2>
+            </div>
+
+            {/* Quick Start */}
+            {totalGroups === 0 && showQuickStart && (
+              <div className="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800/50 rounded-2xl p-4 md:p-8 relative">
             <button
               onClick={() => setShowQuickStart(false)}
               className="absolute top-3 md:top-4 right-3 md:right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1"
@@ -255,11 +471,11 @@ export default function WorkspaceHome() {
                   </div>
                 ))}
             </div>
-          </div>
-        )}
+            </div>
+            )}
 
-        {/* Call to Action */}
-        {totalGroups === 0 && !showQuickStart && (
+            {/* Call to Action */}
+            {totalGroups === 0 && !showQuickStart && (
           <div className="text-center py-12 md:py-20">
             <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-xl">
               <Plus className="w-10 h-10 md:w-12 md:h-12 text-white" />
@@ -276,8 +492,10 @@ export default function WorkspaceHome() {
             >
               <Plus className="w-4 h-4 md:w-5 md:h-5" />
               Criar Primeiro Grupo
-            </Link>
-          </div>
+              </Link>
+            </div>
+            )}
+          </>
         )}
       </div>
     </div>

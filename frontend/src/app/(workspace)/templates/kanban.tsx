@@ -3,6 +3,21 @@
 import { useState } from 'react';
 import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
 import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  DragOverEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+  DragOver,
+  useDroppable,
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type Priority = 'low' | 'medium' | 'high' | 'urgent';
 type CardStatus = 'backlog' | 'todo' | 'in-progress' | 'review' | 'done';
@@ -82,6 +97,102 @@ const DEFAULT_DATA: KanbanTemplateData = {
   ],
 };
 
+// Componente de Coluna Droppable
+function DroppableColumn({ columnId, children }: { columnId: CardStatus; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: columnId,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-3 transition-colors ${
+        isOver ? 'bg-blue-50 dark:bg-blue-900/10' : ''
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Componente de Card Draggable
+function SortableCard({ card, onClick, isOverdue }: {
+  card: Card;
+  onClick: () => void;
+  isOverdue: (date: string) => boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: card.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={onClick}
+      className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-3 md:p-4 hover:shadow-md transition cursor-move group"
+    >
+      {/* Priority */}
+      <div className="flex items-start justify-between mb-3">
+        <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium border ${PRIORITY_CONFIG[card.priority].color}`}>
+          {PRIORITY_CONFIG[card.priority].label}
+        </span>
+      </div>
+
+      {/* Title */}
+      <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+        {card.title}
+      </h4>
+
+      {/* Description */}
+      {card.description && (
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          {card.description}
+        </p>
+      )}
+
+      {/* Tags */}
+      {card.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {card.tags.map((tag, idx) => (
+            <span
+              key={idx}
+              className="px-2 py-0.5 bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-300 rounded text-xs font-medium border border-gray-200 dark:border-slate-700"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+        {card.assignee && (
+          <span className="truncate">{card.assignee.split(' ')[0]}</span>
+        )}
+        {card.dueDate && (
+          <span className={isOverdue(card.dueDate) ? 'text-red-600 dark:text-red-400 font-semibold' : ''}>
+            {new Date(card.dueDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateComponentProps) {
   const { data, setData, isSaving } = usePageTemplateData<KanbanTemplateData>(
     groupId,
@@ -95,6 +206,7 @@ export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateCompon
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState<Priority | 'all'>('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
 
   const [newCard, setNewCard] = useState({
     title: '',
@@ -104,6 +216,14 @@ export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateCompon
     tags: '',
     dueDate: '',
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const updateCards = (updater: (current: Card[]) => Card[]) => {
     setData((current) => ({
@@ -177,195 +297,238 @@ export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateCompon
     return new Date(dueDate) < new Date();
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const card = cards.find(c => c.id === active.id);
+    setActiveCard(card || null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const cardId = active.id as string;
+    const overId = over.id as string;
+
+    // Verifica se é uma coluna
+    const overColumn = COLUMNS.find(col => col.id === overId);
+    if (overColumn) {
+      // Atualiza o status do card durante o drag
+      updateCards((current) =>
+        current.map((card) =>
+          card.id === cardId ? { ...card, status: overColumn.id } : card
+        )
+      );
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveCard(null);
+
+    if (!over) return;
+
+    const cardId = active.id as string;
+    const overId = over.id as string;
+
+    // Verifica se é uma coluna ou outro card
+    const overColumn = COLUMNS.find(col => col.id === overId);
+    if (overColumn) {
+      updateCards((current) =>
+        current.map((card) =>
+          card.id === cardId ? { ...card, status: overColumn.id } : card
+        )
+      );
+    } else {
+      // Se dropado em outro card, pega o status desse card
+      const overCard = cards.find(c => c.id === overId);
+      if (overCard) {
+        updateCards((current) =>
+          current.map((card) =>
+            card.id === cardId ? { ...card, status: overCard.status } : card
+          )
+        );
+      }
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Quadro Kanban
-              </h1>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {filteredCards.length} {filteredCards.length === 1 ? 'card' : 'cards'} • {uniqueAssignees.length} {uniqueAssignees.length === 1 ? 'pessoa' : 'pessoas'}
-              </p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-950">
+        {/* Header */}
+        <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 md:p-6">
+          <div className="max-w-7xl mx-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Quadro Kanban
+                </h1>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {filteredCards.length} {filteredCards.length === 1 ? 'card' : 'cards'} • {uniqueAssignees.length} {uniqueAssignees.length === 1 ? 'pessoa' : 'pessoas'}
+                  {isSaving && <span className="ml-2 text-blue-600 dark:text-blue-400">Salvando...</span>}
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Filtros */}
-          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar..."
-              className="flex-shrink-0 w-40 md:flex-1 md:min-w-[200px] px-3 md:px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-            />
+            {/* Filtros */}
+            <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="flex-shrink-0 w-40 md:flex-1 md:min-w-[200px] px-3 md:px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+              />
 
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as Priority | 'all')}
-              className="flex-shrink-0 px-3 md:px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-            >
-              <option value="all">Prioridade</option>
-              <option value="urgent">Urgente</option>
-              <option value="high">Alta</option>
-              <option value="medium">Média</option>
-              <option value="low">Baixa</option>
-            </select>
-
-            {uniqueAssignees.length > 0 && (
               <select
-                value={filterAssignee}
-                onChange={(e) => setFilterAssignee(e.target.value)}
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value as Priority | 'all')}
                 className="flex-shrink-0 px-3 md:px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
               >
-                <option value="all">Pessoa</option>
-                {uniqueAssignees.map(assignee => (
-                  <option key={assignee} value={assignee}>{assignee.split(' ')[0]}</option>
-                ))}
+                <option value="all">Prioridade</option>
+                <option value="urgent">Urgente</option>
+                <option value="high">Alta</option>
+                <option value="medium">Média</option>
+                <option value="low">Baixa</option>
               </select>
-            )}
+
+              {uniqueAssignees.length > 0 && (
+                <select
+                  value={filterAssignee}
+                  onChange={(e) => setFilterAssignee(e.target.value)}
+                  className="flex-shrink-0 px-3 md:px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                >
+                  <option value="all">Pessoa</option>
+                  {uniqueAssignees.map(assignee => (
+                    <option key={assignee} value={assignee}>{assignee.split(' ')[0]}</option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="h-full px-4 md:px-6 py-6">
-          <div className="flex gap-3 md:gap-4 h-full min-w-max max-w-7xl mx-auto">
-            {COLUMNS.map(column => {
-              const columnCards = getCardsForColumn(column.id);
+        {/* Kanban Board */}
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="h-full px-4 md:px-6 py-6">
+            <div className="flex gap-3 md:gap-4 h-full min-w-max max-w-7xl mx-auto">
+              {COLUMNS.map(column => {
+                const columnCards = getCardsForColumn(column.id);
 
-              return (
-                <div
-                  key={column.id}
-                  className="flex-shrink-0 w-72 md:w-80 flex flex-col bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm"
-                >
-                  {/* Column Header */}
-                  <div className="p-4 border-b border-gray-200 dark:border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm md:text-base text-gray-900 dark:text-gray-100">
-                          {column.title}
-                        </h3>
-                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium">
-                          {columnCards.length}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setShowAddCard(column.id)}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-                      >
-                        <span className="text-gray-600 dark:text-gray-400 text-lg">+</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Cards Container */}
-                  <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
-                    {/* Add Card Form */}
-                    {showAddCard === column.id && (
-                      <div className="bg-gray-50 dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-700 rounded-xl p-3 md:p-4 space-y-3">
-                        <input
-                          type="text"
-                          value={newCard.title}
-                          onChange={(e) => setNewCard({ ...newCard, title: e.target.value })}
-                          placeholder="Título do card"
-                          autoFocus
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                        />
-                        <textarea
-                          value={newCard.description}
-                          onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
-                          placeholder="Descrição"
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 resize-none"
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => addCard(column.id)}
-                            disabled={!newCard.title.trim()}
-                            className="flex-1 px-3 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-slate-600 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Adicionar
-                          </button>
-                          <button
-                            onClick={() => setShowAddCard(null)}
-                            className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition text-sm"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Cards */}
-                    {columnCards.length === 0 && showAddCard !== column.id ? (
-                      <div className="text-center py-8 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                        Nenhum card
-                      </div>
-                    ) : (
-                      columnCards.map(card => (
-                        <div
-                          key={card.id}
-                          onClick={() => setSelectedCard(card)}
-                          className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-3 md:p-4 hover:shadow-md transition cursor-pointer group"
-                        >
-                          {/* Priority */}
-                          <div className="flex items-start justify-between mb-3">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium border ${PRIORITY_CONFIG[card.priority].color}`}>
-                              {PRIORITY_CONFIG[card.priority].label}
+                return (
+                  <SortableContext
+                    key={column.id}
+                    id={column.id}
+                    items={columnCards.map(c => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div
+                      id={column.id}
+                      className="flex-shrink-0 w-72 md:w-80 flex flex-col bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm"
+                    >
+                      {/* Column Header */}
+                      <div className="p-4 border-b border-gray-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-sm md:text-base text-gray-900 dark:text-gray-100">
+                              {column.title}
+                            </h3>
+                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium">
+                              {columnCards.length}
                             </span>
                           </div>
-
-                          {/* Title */}
-                          <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
-                            {card.title}
-                          </h4>
-
-                          {/* Description */}
-                          {card.description && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                              {card.description}
-                            </p>
-                          )}
-
-                          {/* Tags */}
-                          {card.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-3">
-                              {card.tags.map((tag, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-0.5 bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-300 rounded text-xs font-medium border border-gray-200 dark:border-slate-700"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Footer */}
-                          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                            {card.assignee && (
-                              <span className="truncate">{card.assignee.split(' ')[0]}</span>
-                            )}
-                            {card.dueDate && (
-                              <span className={isOverdue(card.dueDate) ? 'text-red-600 dark:text-red-400 font-semibold' : ''}>
-                                {new Date(card.dueDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                              </span>
-                            )}
-                          </div>
+                          <button
+                            onClick={() => setShowAddCard(column.id)}
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                          >
+                            <span className="text-gray-600 dark:text-gray-400 text-lg">+</span>
+                          </button>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                      </div>
+
+                      {/* Cards Container */}
+                      <DroppableColumn columnId={column.id}>
+                        {/* Add Card Form */}
+                        {showAddCard === column.id && (
+                          <div className="bg-gray-50 dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-700 rounded-xl p-3 md:p-4 space-y-3">
+                            <input
+                              type="text"
+                              value={newCard.title}
+                              onChange={(e) => setNewCard({ ...newCard, title: e.target.value })}
+                              placeholder="Título do card"
+                              autoFocus
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                            />
+                            <textarea
+                              value={newCard.description}
+                              onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
+                              placeholder="Descrição"
+                              rows={2}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => addCard(column.id)}
+                                disabled={!newCard.title.trim()}
+                                className="flex-1 px-3 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-slate-600 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Adicionar
+                              </button>
+                              <button
+                                onClick={() => setShowAddCard(null)}
+                                className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition text-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Cards */}
+                        {columnCards.length === 0 && showAddCard !== column.id ? (
+                          <div className="text-center py-8 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                            Arraste cards aqui
+                          </div>
+                        ) : (
+                          columnCards.map(card => (
+                            <SortableCard
+                              key={card.id}
+                              card={card}
+                              onClick={() => setSelectedCard(card)}
+                              isOverdue={isOverdue}
+                            />
+                          ))
+                        )}
+                      </DroppableColumn>
+                    </div>
+                  </SortableContext>
+                );
+              })}
+            </div>
           </div>
         </div>
+
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeCard ? (
+            <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-3 md:p-4 w-72 md:w-80 shadow-2xl rotate-3 cursor-grabbing">
+              <div className="flex items-start justify-between mb-3">
+                <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium border ${PRIORITY_CONFIG[activeCard.priority].color}`}>
+                  {PRIORITY_CONFIG[activeCard.priority].label}
+                </span>
+              </div>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                {activeCard.title}
+              </h4>
+            </div>
+          ) : null}
+        </DragOverlay>
       </div>
 
       {/* Card Detail Modal */}
@@ -519,6 +682,6 @@ export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateCompon
           </div>
         </div>
       )}
-    </div>
+    </DndContext>
   );
 }

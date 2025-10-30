@@ -41,13 +41,44 @@ public class WorkspaceController : ControllerBase
         }
     }
 
-    [HttpGet("full")]
-    public async Task<ActionResult<WorkspaceWithGroupsDto>> GetWorkspaceFull()
+    [HttpGet("all")]
+    public async Task<ActionResult<List<WorkspaceDto>>> GetAllWorkspaces()
     {
         try
         {
             var userId = GetUserId();
-            var workspace = await _workspaceService.GetWithGroupsAndPagesAsync(userId);
+            var workspaces = await _workspaceService.GetAllByUserIdAsync(userId);
+            return Ok(workspaces);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all workspaces");
+            return StatusCode(500, new { message = "Erro ao buscar workspaces" });
+        }
+    }
+
+    [HttpGet("{workspaceId}")]
+    public async Task<ActionResult<WorkspaceDto>> GetWorkspaceById(Guid workspaceId)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var workspace = await _workspaceService.GetByIdAsync(userId, workspaceId);
+            return Ok(workspace);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{workspaceId}/full")]
+    public async Task<ActionResult<WorkspaceWithGroupsDto>> GetWorkspaceFull(Guid workspaceId)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var workspace = await _workspaceService.GetWithGroupsAndPagesAsync(userId, workspaceId);
             return Ok(workspace);
         }
         catch (InvalidOperationException ex)
@@ -74,8 +105,8 @@ public class WorkspaceController : ControllerBase
         }
     }
 
-    [HttpPut]
-    public async Task<ActionResult<WorkspaceDto>> UpdateWorkspace([FromBody] UpdateWorkspaceRequestDto request)
+    [HttpPut("{workspaceId}")]
+    public async Task<ActionResult<WorkspaceDto>> UpdateWorkspace(Guid workspaceId, [FromBody] UpdateWorkspaceRequestDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -83,8 +114,23 @@ public class WorkspaceController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var workspace = await _workspaceService.UpdateAsync(userId, request);
+            var workspace = await _workspaceService.UpdateAsync(userId, workspaceId, request);
             return Ok(workspace);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{workspaceId}")]
+    public async Task<ActionResult> DeleteWorkspace(Guid workspaceId)
+    {
+        try
+        {
+            var userId = GetUserId();
+            await _workspaceService.DeleteAsync(userId, workspaceId);
+            return NoContent();
         }
         catch (InvalidOperationException ex)
         {

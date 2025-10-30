@@ -28,13 +28,22 @@ public class WorkspaceRepository : IWorkspaceRepository
             .FirstOrDefaultAsync(w => w.UserId == userId && w.Ativo);
     }
 
-    public async Task<Workspace?> GetWithGroupsAndPagesAsync(Guid userId)
+    public async Task<List<Workspace>> GetAllByUserIdAsync(Guid userId)
+    {
+        return await _context.Workspaces
+            .AsNoTracking()
+            .Where(w => w.UserId == userId && w.Ativo)
+            .OrderByDescending(w => w.AtualizadoEm)
+            .ToListAsync();
+    }
+
+    public async Task<Workspace?> GetWithGroupsAndPagesAsync(Guid userId, Guid workspaceId)
     {
         return await _context.Workspaces
             .AsNoTracking()
             .Include(w => w.Groups.OrderBy(g => g.Posicao))
                 .ThenInclude(g => g.Pages.OrderBy(p => p.Posicao))
-            .FirstOrDefaultAsync(w => w.UserId == userId && w.Ativo);
+            .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId && w.Ativo);
     }
 
     public async Task<Workspace> CreateAsync(Workspace workspace)

@@ -27,6 +27,8 @@ import TimelineTemplate from '@/app/(workspace)/templates/timeline';
 import WikiTemplate from '@/app/(workspace)/templates/wiki';
 import PersonalBudgetTemplate from '@/app/(workspace)/templates/personal-budget';
 import BusinessBudgetTemplate from '@/app/(workspace)/templates/business-budget';
+import WorkoutTemplate from '@/app/(workspace)/templates/workout';
+import NutritionTemplate from '@/app/(workspace)/templates/nutrition';
 
 
 export default function PageView() {
@@ -105,6 +107,10 @@ export default function PageView() {
         return <PersonalBudgetTemplate {...templateProps} />;
       case 'business-budget':
         return <BusinessBudgetTemplate {...templateProps} />;
+      case 'workout':
+        return <WorkoutTemplate {...templateProps} />;
+      case 'nutrition':
+        return <NutritionTemplate {...templateProps} />;
       default:
         return <BlankTemplate {...templateProps} />;
     }

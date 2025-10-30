@@ -22,6 +22,8 @@ import pageService from '../services/page.service';
 type WorkspaceStore = {
   // Estado
   workspace: Workspace | null;
+  workspaces: Workspace[];
+  currentWorkspaceId: string | null;
   currentGroupId: string | null;
   currentPageId: string | null;
   isLoading: boolean;
@@ -29,7 +31,12 @@ type WorkspaceStore = {
 
   // Ações - Workspace
   initializeWorkspace: () => Promise<void>;
-  loadWorkspace: () => Promise<void>;
+  loadWorkspace: (workspaceId?: string) => Promise<void>;
+  loadAllWorkspaces: () => Promise<void>;
+  switchWorkspace: (workspaceId: string) => Promise<void>;
+  createWorkspace: (name: string) => Promise<string | undefined>;
+  renameWorkspace: (workspaceId: string, newName: string) => Promise<void>;
+  deleteWorkspace: (workspaceId: string) => Promise<void>;
 
   // Ações - Grupos
   addGroup: (name: string) => Promise<void>;
@@ -67,6 +74,30 @@ type WorkspaceStore = {
 // ============================================
 // HELPERS
 // ============================================
+
+/**
+ * Converte WorkspaceDto simples (sem grupos) para o formato local
+ */
+const convertSimpleApiToLocal = (apiWorkspace: any): Workspace => {
+  return {
+    id: apiWorkspace.id,
+    name: apiWorkspace.nome,
+    ownerId: apiWorkspace.userId,
+    groups: [], // WorkspaceDto não inclui groups
+    settings: {
+      theme: apiWorkspace.settings.theme as 'light' | 'dark',
+      language: apiWorkspace.settings.language,
+      timezone: apiWorkspace.settings.timezone,
+      dateFormat: apiWorkspace.settings.dateFormat,
+    },
+    createdAt: new Date(apiWorkspace.criadoEm),
+    updatedAt: new Date(apiWorkspace.atualizadoEm),
+  };
+};
+
+/**
+ * Converte WorkspaceWithGroupsDto completo (com grupos e páginas) para o formato local
+ */
 const convertApiToLocal = (apiWorkspace: any): Workspace => {
   return {
     id: apiWorkspace.id,
@@ -114,6 +145,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   // ESTADO INICIAL
   // ============================================
   workspace: null,
+  workspaces: [],
+  currentWorkspaceId: null,
   currentGroupId: null,
   currentPageId: null,
   isLoading: false,
@@ -125,35 +158,139 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   initializeWorkspace: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Tenta carregar workspace existente
-      const apiWorkspace = await workspaceService.getWorkspaceFull();
-      const workspace = convertApiToLocal(apiWorkspace);
-      set({ workspace, isLoading: false });
-    } catch (error: any) {
-      // Se não existir, cria um novo
-      if (error.response?.status === 404) {
-        try {
-          const newWorkspace = await workspaceService.createWorkspace({
-            nome: 'Meu Workspace',
-          });
-          const apiWorkspace = await workspaceService.getWorkspaceFull();
-          const workspace = convertApiToLocal(apiWorkspace);
-          set({ workspace, isLoading: false });
-        } catch (createError: any) {
-          set({ error: createError.message, isLoading: false });
-        }
+      // Carrega todos os workspaces do usuário
+      const apiWorkspaces = await workspaceService.getAllWorkspaces();
+
+      if (apiWorkspaces.length === 0) {
+        // Se não tiver nenhum, cria o primeiro
+        const newWorkspace = await workspaceService.createWorkspace({
+          nome: 'Meu Workspace',
+        });
+        const apiWorkspaceFull = await workspaceService.getWorkspaceFull(newWorkspace.id);
+        const workspace = convertApiToLocal(apiWorkspaceFull);
+        set({
+          workspace,
+          workspaces: [workspace],
+          currentWorkspaceId: workspace.id,
+          isLoading: false
+        });
       } else {
-        set({ error: error.message, isLoading: false });
+        // Pega o último workspace acessado do localStorage ou o primeiro
+        const lastWorkspaceId = localStorage.getItem('lastWorkspaceId');
+        const workspaceId = lastWorkspaceId && apiWorkspaces.find(w => w.id === lastWorkspaceId)
+          ? lastWorkspaceId
+          : apiWorkspaces[0].id;
+
+        const apiWorkspaceFull = await workspaceService.getWorkspaceFull(workspaceId);
+        const workspace = convertApiToLocal(apiWorkspaceFull);
+        const workspaces = apiWorkspaces.map(convertSimpleApiToLocal); // Usa convertSimpleApiToLocal para lista
+
+        set({
+          workspace,
+          workspaces,
+          currentWorkspaceId: workspace.id,
+          isLoading: false
+        });
+
+        localStorage.setItem('lastWorkspaceId', workspace.id);
       }
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
     }
   },
 
-  loadWorkspace: async () => {
+  loadWorkspace: async (workspaceId?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const apiWorkspace = await workspaceService.getWorkspaceFull();
+      const id = workspaceId || get().currentWorkspaceId;
+      if (!id) {
+        throw new Error('Nenhum workspace selecionado');
+      }
+
+      const apiWorkspace = await workspaceService.getWorkspaceFull(id);
       const workspace = convertApiToLocal(apiWorkspace);
-      set({ workspace, isLoading: false });
+      set({ workspace, currentWorkspaceId: workspace.id, isLoading: false });
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
+  loadAllWorkspaces: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const apiWorkspaces = await workspaceService.getAllWorkspaces();
+      const workspaces = apiWorkspaces.map(convertSimpleApiToLocal); // Usa convertSimpleApiToLocal para WorkspaceDto
+      console.log('📋 Workspaces carregados:', workspaces); // Debug
+      set({ workspaces, isLoading: false });
+    } catch (error: any) {
+      console.error('❌ Erro ao carregar workspaces:', error); // Debug
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
+  switchWorkspace: async (workspaceId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const apiWorkspace = await workspaceService.getWorkspaceFull(workspaceId);
+      const workspace = convertApiToLocal(apiWorkspace);
+      set({
+        workspace,
+        currentWorkspaceId: workspace.id,
+        currentGroupId: null,
+        currentPageId: null,
+        isLoading: false
+      });
+
+      localStorage.setItem('lastWorkspaceId', workspace.id);
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
+  createWorkspace: async (name: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const newWorkspace = await workspaceService.createWorkspace({ nome: name });
+      await get().loadAllWorkspaces();
+      await get().switchWorkspace(newWorkspace.id);
+      return newWorkspace.id;
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+      return undefined;
+    }
+  },
+
+  renameWorkspace: async (workspaceId: string, newName: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await workspaceService.updateWorkspace(workspaceId, { nome: newName });
+      await get().loadAllWorkspaces();
+      if (get().currentWorkspaceId === workspaceId) {
+        await get().loadWorkspace(workspaceId);
+      }
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
+  deleteWorkspace: async (workspaceId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await workspaceService.deleteWorkspace(workspaceId);
+      const { workspaces, currentWorkspaceId } = get();
+
+      // Se deletou o workspace atual, muda para outro
+      if (currentWorkspaceId === workspaceId) {
+        const remainingWorkspaces = workspaces.filter(w => w.id !== workspaceId);
+        if (remainingWorkspaces.length > 0) {
+          await get().switchWorkspace(remainingWorkspaces[0].id);
+        } else {
+          // Se não tiver mais workspaces, cria um novo
+          await get().createWorkspace('Meu Workspace');
+        }
+      } else {
+        await get().loadAllWorkspaces();
+      }
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
     }

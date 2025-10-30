@@ -14,6 +14,7 @@ import Image from "@tiptap/extension-image"
 import Highlight from "@tiptap/extension-highlight"
 import { Extension } from "@tiptap/core"
 import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
 
 
 import {
@@ -80,8 +81,7 @@ type RichTextTemplateData = { content: string }
 const DEFAULT_DATA: RichTextTemplateData = { content: "" }
 
 export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
-  const data = DEFAULT_DATA
-  const setData = (fn: any) => {}
+  const { data, setData } = usePageTemplateData<RichTextTemplateData>(groupId, pageId, DEFAULT_DATA)
 
 
   const [isClient, setIsClient] = useState(false)

@@ -25,9 +25,25 @@ public class WorkspaceService : IWorkspaceService
         return MapToDto(workspace);
     }
 
-    public async Task<WorkspaceWithGroupsDto> GetWithGroupsAndPagesAsync(Guid userId)
+    public async Task<List<WorkspaceDto>> GetAllByUserIdAsync(Guid userId)
     {
-        var workspace = await _workspaceRepository.GetWithGroupsAndPagesAsync(userId);
+        var workspaces = await _workspaceRepository.GetAllByUserIdAsync(userId);
+        return workspaces.Select(MapToDto).ToList();
+    }
+
+    public async Task<WorkspaceDto> GetByIdAsync(Guid userId, Guid workspaceId)
+    {
+        var workspace = await _workspaceRepository.GetByIdAsync(workspaceId);
+
+        if (workspace == null || workspace.UserId != userId)
+            throw new InvalidOperationException("Workspace não encontrado");
+
+        return MapToDto(workspace);
+    }
+
+    public async Task<WorkspaceWithGroupsDto> GetWithGroupsAndPagesAsync(Guid userId, Guid workspaceId)
+    {
+        var workspace = await _workspaceRepository.GetWithGroupsAndPagesAsync(userId, workspaceId);
 
         if (workspace == null)
             throw new InvalidOperationException("Workspace não encontrado");
@@ -37,10 +53,6 @@ public class WorkspaceService : IWorkspaceService
 
     public async Task<WorkspaceDto> CreateAsync(Guid userId, CreateWorkspaceRequestDto request)
     {
-        var existing = await _workspaceRepository.GetByUserIdAsync(userId);
-        if (existing != null)
-            throw new InvalidOperationException("Usuário já possui um workspace");
-
         var workspace = new Workspace
         {
             Nome = request.Nome,
@@ -51,11 +63,11 @@ public class WorkspaceService : IWorkspaceService
         return MapToDto(created);
     }
 
-    public async Task<WorkspaceDto> UpdateAsync(Guid userId, UpdateWorkspaceRequestDto request)
+    public async Task<WorkspaceDto> UpdateAsync(Guid userId, Guid workspaceId, UpdateWorkspaceRequestDto request)
     {
-        var workspace = await _workspaceRepository.GetByUserIdAsync(userId);
+        var workspace = await _workspaceRepository.GetByIdAsync(workspaceId);
 
-        if (workspace == null)
+        if (workspace == null || workspace.UserId != userId)
             throw new InvalidOperationException("Workspace não encontrado");
 
         if (!string.IsNullOrEmpty(request.Nome))
@@ -98,6 +110,16 @@ public class WorkspaceService : IWorkspaceService
             Timezone = workspace.Timezone,
             DateFormat = workspace.DateFormat
         };
+    }
+
+    public async Task DeleteAsync(Guid userId, Guid workspaceId)
+    {
+        var workspace = await _workspaceRepository.GetByIdAsync(workspaceId);
+
+        if (workspace == null || workspace.UserId != userId)
+            throw new InvalidOperationException("Workspace não encontrado");
+
+        await _workspaceRepository.DeleteAsync(workspaceId);
     }
 
     private WorkspaceDto MapToDto(Workspace workspace)
