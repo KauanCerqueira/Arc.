@@ -114,11 +114,45 @@ Projectly/
 
 ## 🚢 Deployment
 
-O projeto está configurado para deploy em:
-- **Backend**: Railway (API .NET)
-- **Frontend**: Vercel (Next.js)
-- **Banco de Dados**: PostgreSQL (cloud-hosted)
-- **Monitoramento**: AWS CloudWatch
+### Docker & CI/CD
+- **Docker**: Multi-stage builds para backend e frontend
+- **Docker Compose**: Orquestração local completa (backend + frontend + PostgreSQL)
+- **GitHub Actions**:
+  - Build e push automático para Docker Hub
+  - Deploy automático no Railway
+- **Multi-arch**: Suporte para linux/amd64 e linux/arm64
+
+### Opção 1: Docker Compose (Desenvolvimento Local)
+```bash
+# Clone e configure
+git clone https://github.com/KauanCerqueira/Projectly.git
+cd Projectly
+cp .env.example .env
+
+# Inicie todos os serviços
+docker-compose up -d
+
+# Acesse
+# Frontend: http://localhost:3000
+# Backend: http://localhost:5001
+# Swagger: http://localhost:5001/swagger
+```
+
+### Opção 2: Docker Hub (Produção)
+```bash
+# Pull das imagens
+docker pull seu-username/projectly-backend:latest
+docker pull seu-username/projectly-frontend:latest
+
+# Execute com docker-compose ou kubernetes
+```
+
+### Opção 3: Railway (Cloud)
+- Backend: Railway (API .NET + PostgreSQL)
+- Frontend: Railway ou Vercel (Next.js)
+- Deploy automático via GitHub Actions
+
+**Documentação completa**: [DOCKER_SETUP.md](./DOCKER_SETUP.md)
 
 ## 🔧 Configuração
 
@@ -263,7 +297,8 @@ Frontend (Next.js 15)
 
 ## 🔒 Segurança
 
-- Autenticação JWT com tokens de 60 minutos
+- Autenticação JWT com tokens de **30 dias** + Refresh Token de **90 dias**
+- Renovação automática de tokens (interceptor no frontend)
 - Rate limiting configurado (5 req/min login, 3 req/min registro, 100 req/min geral)
 - CORS configurado para origens específicas
 - Validação de dados em todos os endpoints
@@ -271,6 +306,7 @@ Frontend (Next.js 15)
 - Health checks para monitoramento (`/health`, `/health/ready`)
 - Controle de acesso baseado em roles (Admin, Editor, Viewer)
 - Validação de tokens em convites de workspace
+- Persistência de sessão com "Remember Me"
 
 ## 💡 Filosofia do Projeto
 

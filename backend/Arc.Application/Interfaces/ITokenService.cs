@@ -6,4 +6,6 @@ public interface ITokenService
 {
     string GenerateToken(User user);
     DateTime GetTokenExpiration();
+    string GenerateRefreshToken();
+    DateTime GetRefreshTokenExpiration();
 }

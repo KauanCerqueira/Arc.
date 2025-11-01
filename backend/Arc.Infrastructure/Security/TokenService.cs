@@ -52,4 +52,18 @@ public class TokenService : ITokenService
         var expirationMinutes = int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "60");
         return DateTime.UtcNow.AddMinutes(expirationMinutes);
     }
+
+    public string GenerateRefreshToken()
+    {
+        var bytes = new byte[32];
+        Array.Copy(Guid.NewGuid().ToByteArray(), 0, bytes, 0, 16);
+        Array.Copy(Guid.NewGuid().ToByteArray(), 0, bytes, 16, 16);
+        return Convert.ToBase64String(bytes);
+    }
+
+    public DateTime GetRefreshTokenExpiration()
+    {
+        // Refresh token válido por 90 dias
+        return DateTime.UtcNow.AddDays(90);
+    }
 }

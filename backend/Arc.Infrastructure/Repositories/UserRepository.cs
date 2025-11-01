@@ -28,6 +28,13 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
+    public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         await _context.Users.AddAsync(user);

@@ -14,6 +14,7 @@ export interface RegisterRequestDto {
 export interface LoginRequestDto {
   email: string;
   senha: string;
+  rememberMe?: boolean;
 }
 
 export interface AuthResponseDto {
@@ -28,6 +29,11 @@ export interface AuthResponseDto {
   isMaster: boolean;
   token: string;
   expiresAt: string;
+  refreshToken?: string;
+}
+
+export interface RefreshTokenRequestDto {
+  refreshToken: string;
 }
 
 export interface User {

@@ -78,6 +78,33 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   logout(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_refresh_token');
+  }
+
+  /**
+   * Refresh token
+   * POST /api/auth/refresh
+   */
+  async refreshToken(): Promise<AuthResponseDto> {
+    try {
+      const refreshToken = this.getRefreshToken();
+      if (!refreshToken) {
+        throw new Error('Refresh token não encontrado');
+      }
+
+      const response = await apiClient.post<AuthResponseDto>('/auth/refresh', {
+        refreshToken
+      });
+
+      // Atualizar tokens salvos
+      this.saveAuthData(response.data);
+
+      return response.data;
+    } catch (error: any) {
+      // Se refresh falhar, fazer logout
+      this.logout();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
   }
 
   /**
@@ -93,6 +120,11 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
       bio: authResponse.bio,
       icone: authResponse.icone,
     }));
+
+    // Salvar refresh token se existir
+    if (authResponse.refreshToken) {
+      localStorage.setItem('auth_refresh_token', authResponse.refreshToken);
+    }
   }
 
   /**
@@ -101,6 +133,14 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   getToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('auth_token');
+  }
+
+  /**
+   * Get saved refresh token from local storage
+   */
+  getRefreshToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('auth_refresh_token');
   }
 
   /**

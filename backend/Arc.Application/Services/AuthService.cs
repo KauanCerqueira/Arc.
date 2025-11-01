@@ -69,6 +69,16 @@ public class AuthService : IAuthService
         var token = _tokenService.GenerateToken(user);
         var expiration = _tokenService.GetTokenExpiration();
 
+        // Gerar refresh token para manter login persistente
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        var refreshTokenExpiry = _tokenService.GetRefreshTokenExpiration();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = refreshTokenExpiry;
+        user.AtualizadoEm = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+
         return new AuthResponseDto
         {
             UserId = user.Id,
@@ -81,7 +91,8 @@ public class AuthService : IAuthService
             ComoConheceu = user.ComoConheceu,
             IsMaster = user.IsMaster,
             Token = token,
-            ExpiresAt = expiration
+            ExpiresAt = expiration,
+            RefreshToken = refreshToken
         };
     }
 
@@ -145,5 +156,45 @@ public class AuthService : IAuthService
         user.AtualizadoEm = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+    {
+        var user = await _userRepository.GetByRefreshTokenAsync(refreshToken)
+            ?? throw new UnauthorizedAccessException("Refresh token inválido");
+
+        if (!user.Ativo)
+            throw new UnauthorizedAccessException("Usuário inativo");
+
+        if (user.RefreshTokenExpiry == null || user.RefreshTokenExpiry < DateTime.UtcNow)
+            throw new UnauthorizedAccessException("Refresh token expirado");
+
+        // Gerar novos tokens
+        var token = _tokenService.GenerateToken(user);
+        var expiration = _tokenService.GetTokenExpiration();
+        var newRefreshToken = _tokenService.GenerateRefreshToken();
+        var refreshTokenExpiry = _tokenService.GetRefreshTokenExpiration();
+
+        user.RefreshToken = newRefreshToken;
+        user.RefreshTokenExpiry = refreshTokenExpiry;
+        user.AtualizadoEm = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+
+        return new AuthResponseDto
+        {
+            UserId = user.Id,
+            Nome = user.Nome,
+            Sobrenome = user.Sobrenome,
+            Email = user.Email,
+            Bio = user.Bio,
+            Icone = user.Icone,
+            Profissao = user.Profissao,
+            ComoConheceu = user.ComoConheceu,
+            IsMaster = user.IsMaster,
+            Token = token,
+            ExpiresAt = expiration,
+            RefreshToken = newRefreshToken
+        };
     }
 }

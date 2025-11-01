@@ -69,6 +69,31 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Renova o token de autenticação usando refresh token
+    /// </summary>
+    /// <param name="request">Refresh token</param>
+    /// <returns>Novos tokens de autenticação</returns>
+    /// <response code="200">Token renovado com sucesso</response>
+    /// <response code="401">Refresh token inválido ou expirado</response>
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Tentativa de refresh com dados inválidos");
+            return BadRequest(ModelState);
+        }
+
+        _logger.LogInformation("Tentativa de refresh token");
+        var response = await _authService.RefreshTokenAsync(request.RefreshToken);
+        _logger.LogInformation("Token renovado com sucesso para usuário: {UserId}", response.UserId);
+
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Verifica se o token de autenticação é válido
     /// </summary>
     /// <returns>Status de autenticação</returns>

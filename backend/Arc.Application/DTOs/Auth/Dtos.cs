@@ -40,6 +40,14 @@ public class LoginRequestDto
 
     [Required]
     public string Senha { get; set; } = string.Empty;
+
+    public bool RememberMe { get; set; } = false;
+}
+
+public class RefreshTokenRequestDto
+{
+    [Required]
+    public string RefreshToken { get; set; } = string.Empty;
 }
 
 public class AuthResponseDto
@@ -55,6 +63,7 @@ public class AuthResponseDto
     public bool IsMaster { get; set; }
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
+    public string? RefreshToken { get; set; }
 }
 
 public class UpdateProfileRequestDto

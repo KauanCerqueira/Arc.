@@ -12,6 +12,8 @@ public class User
     public string? Profissao { get; set; }
     public string? ComoConheceu { get; set; } // Como conheceu a ferramenta
     public bool IsMaster { get; set; } // Flag para usuário master/admin
+    public string? RefreshToken { get; set; } // Token de refresh para manter login
+    public DateTime? RefreshTokenExpiry { get; set; } // Data de expiração do refresh token
     public DateTime CriadoEm { get; set; }
     public DateTime AtualizadoEm { get; set; }
     public bool Ativo { get; set; }

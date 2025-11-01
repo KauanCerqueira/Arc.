@@ -37,6 +37,7 @@ export default function LoginPage() {
       await login({
         email: formData.email,
         senha: formData.senha,
+        rememberMe: rememberMe,
       });
 
       // Salvar ou remover email do localStorage baseado no checkbox
