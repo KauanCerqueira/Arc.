@@ -8,6 +8,8 @@ import {
   Calendar, BarChart3, PieChart, Activity
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 interface Analytics {
   totalUsers: number;
   activeUsers: number;

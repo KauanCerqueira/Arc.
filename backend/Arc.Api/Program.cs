@@ -6,6 +6,7 @@ using Arc.Domain.Interfaces;
 using Arc.Infrastructure.Data;
 using Arc.Infrastructure.Repositories;
 using Arc.Infrastructure.Security;
+using Arc.Infrastructure.Services;
 using AspNetCoreRateLimit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -40,6 +41,7 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IPageService, PageService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
 // Template Services
 builder.Services.AddScoped<IFlowchartService, FlowchartService>();

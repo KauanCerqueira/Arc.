@@ -10,7 +10,7 @@ const TemplateLoadingFallback = () => {
     'div',
     { className: 'flex items-center justify-center p-8' },
     React.createElement('div', {
-      className: 'w-8 h-8 border-3 border-gray-200 border-t-gray-900 rounded-full animate-spin'
+      className: 'w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin'
     })
   );
 };

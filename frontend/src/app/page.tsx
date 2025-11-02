@@ -56,45 +56,48 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar clean e funcional */}
-       <nav className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo e título */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/icon/arclogo.svg"
-              alt="Arc Logo"
-              width={32}
-              height={32}
-              priority
-            />
-            <span className="text-xl font-semibold text-gray-900">Arc.</span>
-          </Link>
-        </div>
-          
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <a href="#features" className="text-gray-600 hover:text-gray-900 transition">Recursos</a>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition">Preços</Link>
-            <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">Como Funciona</a>
-            <Link href="/build-in-public" className="text-gray-600 hover:text-gray-900 transition">
-              Build in Public
+      <nav className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo e título */}
+            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+              <Image
+                src="/icon/arclogo.svg"
+                alt="Arc Logo"
+                width={32}
+                height={32}
+                priority
+              />
+              <span className="text-xl font-semibold text-gray-900">Arc.</span>
             </Link>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/login" 
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition"
-            >
-              Entrar
-            </Link>
-            <Link 
-              href="/register" 
-              className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition flex items-center gap-2"
-            >
-              Começar grátis
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            {/* Menu desktop */}
+            <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium">
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Recursos</a>
+              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Preços</Link>
+              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">Como Funciona</a>
+              <Link href="/build-in-public" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Build in Public
+              </Link>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors px-3 py-2"
+              >
+                Entrar
+              </Link>
+              <Link
+                href="/register"
+                className="bg-gray-900 text-white px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all flex items-center gap-2"
+              >
+                <span className="hidden sm:inline">Começar grátis</span>
+                <span className="sm:hidden">Começar</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </nav>

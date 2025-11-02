@@ -14,6 +14,11 @@ public class User
     public bool IsMaster { get; set; } // Flag para usuário master/admin
     public string? RefreshToken { get; set; } // Token de refresh para manter login
     public DateTime? RefreshTokenExpiry { get; set; } // Data de expiração do refresh token
+
+    // Subscription
+    public Guid? SubscriptionId { get; set; }
+    public Subscription? Subscription { get; set; }
+
     public DateTime CriadoEm { get; set; }
     public DateTime AtualizadoEm { get; set; }
     public bool Ativo { get; set; }

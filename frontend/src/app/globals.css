@@ -184,12 +184,7 @@ select:focus-visible {
   outline-color: #3B82F6;
 }
 
-/* Transições suaves */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-}
+/* Transições suaves - removido global para não conflitar com animações */
 
 /* ==================================
    OTIMIZAÇÕES MOBILE
@@ -338,4 +333,102 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Theme Toggle Switch */
+.theme-toggle-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.theme-toggle-svg {
+  width: 70px;
+  height: 44px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Container - dia azul claro, noite azul escuro */
+.theme-container {
+  fill: #83cbd8;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-container {
+  fill: #2b4360;
+}
+
+/* Botão - move para a direita quando marcado */
+.theme-button {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-button {
+  transform: translate(30.333px, 2.333px);
+}
+
+/* Sol - visível de dia, escondido à noite */
+.theme-sun {
+  opacity: 1;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-sun {
+  opacity: 0;
+}
+
+/* Lua - escondida de dia, visível à noite */
+.theme-moon {
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-moon {
+  opacity: 1;
+}
+
+/* Nuvem - visível de dia, escondida à noite */
+.theme-cloud {
+  opacity: 1;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-cloud {
+  opacity: 0;
+}
+
+/* Estrelas - escondidas de dia, visíveis à noite */
+.theme-stars {
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-checkbox:checked ~ svg .theme-stars {
+  opacity: 1;
+}
+
+/* Hover effect */
+.theme-toggle-button:hover .theme-toggle-svg {
+  transform: scale(1.05);
+}
+
+.theme-toggle-button:active .theme-toggle-svg {
+  transform: scale(0.95);
+}
+
+/* Hide scrollbar for breadcrumbs */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }

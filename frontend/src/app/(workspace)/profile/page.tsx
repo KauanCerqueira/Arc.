@@ -2,20 +2,31 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/core/store/authStore";
-import { User, Mail, Calendar, Edit, Settings } from "lucide-react";
 import Link from "next/link";
+import { useAuthStore } from "@/core/store/authStore";
+import { useWorkspaceStore } from "@/core/store/workspaceStore";
+import {
+  User,
+  Mail,
+  Calendar,
+  Edit,
+  Settings,
+  Star,
+  FolderTree,
+  FileText,
+  LogOut,
+  Copy as CopyIcon,
+} from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, refreshProfile } = useAuthStore();
+  const { user, refreshProfile, logout } = useAuthStore();
+  const { workspace, workspaces, getFavoritePages } = useWorkspaceStore();
 
   useEffect(() => {
-    // Refresh profile data when page loads
     refreshProfile();
   }, [refreshProfile]);
 
-  // Gera iniciais do usu�rio
   const getUserInitials = () => {
     if (!user) return "U";
     const firstInitial = user.nome?.charAt(0).toUpperCase() || "";
@@ -24,16 +35,15 @@ export default function ProfilePage() {
   };
 
   const getUserFullName = () => {
-    if (!user) return "Usu�rio";
-    return `${user.nome} ${user.sobrenome}`.trim() || "Usu�rio";
+    if (!user) return "Usuário";
+    return `${user.nome ?? ""} ${user.sobrenome ?? ""}`.trim() || "Usuário";
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Copiado para a área de transferência");
+    } catch {}
   };
 
   if (!user) {
@@ -47,120 +57,171 @@ export default function ProfilePage() {
     );
   }
 
+  const groupsCount = workspace?.groups.length ?? 0;
+  const pagesCount = workspace?.groups.reduce((acc, g) => acc + g.pages.length, 0) ?? 0;
+  const favoritesCount = getFavoritePages().length;
+  const workspacesCount = workspaces.length;
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header com a��es */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="bg-gray-50 dark:bg-slate-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Meu Perfil
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Visualize e gerencie suas informa��es pessoais
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Meu Perfil</h1>
+            <p className="text-gray-600 dark:text-gray-400">Seus dados e preferências</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Link
               href="/settings"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition"
+              title="Configurações"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Configura��es</span>
+              <span className="hidden sm:inline">Configurações</span>
             </Link>
+            <button
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
+              className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
           </div>
         </div>
 
-        {/* Card de Perfil */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-2 border-gray-900 dark:border-slate-700 overflow-hidden">
-          {/* Banner */}
-          <div className="h-32 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600"></div>
-
-          {/* Informa��es do Perfil */}
-          <div className="px-8 pb-8">
-            {/* Avatar */}
-            <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-16 mb-6">
+        {/* Profile Card */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden">
+          <div className="h-24 sm:h-28 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-700 dark:to-slate-600"></div>
+          <div className="px-5 sm:px-8 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-5 -mt-12 sm:-mt-14 mb-4">
               {user.icone ? (
                 <img
                   src={user.icone}
                   alt={getUserFullName()}
-                  className="w-32 h-32 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-2xl"
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-xl"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-4xl border-4 border-white dark:border-slate-900 shadow-2xl">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white dark:border-slate-900 shadow-xl">
                   {getUserInitials()}
                 </div>
               )}
-
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                  {getUserFullName()}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{getUserFullName()}</h2>
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mt-1">
+                  <Mail className="w-4 h-4" />
+                  <button
+                    onClick={() => copyToClipboard(user.email)}
+                    className="inline-flex items-center gap-1 hover:underline"
+                    title="Copiar e-mail"
+                  >
+                    {user.email}
+                    <CopyIcon className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-
               <Link
                 href="/settings"
-                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-900 dark:border-slate-700 text-gray-900 dark:text-gray-100 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-gray-100"
               >
-                <Edit className="w-4 h-4" />
-                <span>Editar Perfil</span>
+                <Edit className="w-4 h-4" /> Editar Perfil
               </Link>
             </div>
 
-            {/* Informa��es Detalhadas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              {/* Nome Completo */}
-              <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Nome Completo
-                  </span>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Workspaces</span>
+                  <FolderTree className="w-4 h-4 text-gray-400" />
                 </div>
-                <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  {getUserFullName()}
-                </p>
+                <div className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{workspacesCount}</div>
               </div>
-
-              {/* Email */}
-              <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Email
-                  </span>
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Grupos</span>
+                  <User className="w-4 h-4 text-gray-400" />
                 </div>
-                <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  {user.email}
-                </p>
+                <div className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{groupsCount}</div>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Páginas</span>
+                  <FileText className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{pagesCount}</div>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Favoritos</span>
+                  <Star className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{favoritesCount}</div>
               </div>
             </div>
 
-            {/* Bio */}
-            {user.bio && (
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Bio
-                  </span>
+            {/* Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="p-5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Informações pessoais</span>
                 </div>
-                <p className="text-gray-900 dark:text-gray-100 leading-relaxed">
-                  {user.bio}
-                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Nome</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{getUserFullName()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">E-mail</span>
+                    <button onClick={() => copyToClipboard(user.email)} className="font-medium text-gray-900 dark:text-gray-100 hover:underline flex items-center gap-1">
+                      {user.email}
+                      <CopyIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                {user.bio && (
+                  <div className="mt-4">
+                    <span className="block text-sm text-gray-500 mb-1">Bio</span>
+                    <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">{user.bio}</p>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Informa��es Adicionais */}
-            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800">
-              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Informa��es da Conta
-              </h3>
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                <Calendar className="w-4 h-4" />
-                <span className="text-sm">
-                  Membro desde {new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-                </span>
+              <div className="p-5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Informações da conta</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Membro desde</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span>
+                  </div>
+                  {workspace?.settings && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Tema</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{workspace.settings.theme === 'dark' ? 'Escuro' : 'Claro'}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Idioma</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{workspace.settings.language}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Fuso horário</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{workspace.settings.timezone}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <Link href="/settings" className="inline-flex items-center gap-2 mt-4 text-sm text-gray-700 dark:text-gray-300 hover:underline">
+                  <Edit className="w-4 h-4" /> Ajustar preferências
+                </Link>
               </div>
             </div>
           </div>
@@ -169,3 +230,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

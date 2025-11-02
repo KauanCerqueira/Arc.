@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<WorkspaceMember> WorkspaceMembers { get; set; }
     public DbSet<WorkspaceInvitation> WorkspaceInvitations { get; set; }
     public DbSet<GroupPermission> GroupPermissions { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<TeamMember> TeamMembers { get; set; }
 
     public override int SaveChanges()
     {
@@ -78,6 +80,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CriadoEm).HasColumnName("criado_em").IsRequired();
             entity.Property(e => e.AtualizadoEm).HasColumnName("atualizado_em").IsRequired();
             entity.Property(e => e.Ativo).HasColumnName("ativo").IsRequired();
+            entity.Property(e => e.SubscriptionId).HasColumnName("subscription_id");
+
+            entity.HasIndex(e => e.SubscriptionId);
         });
 
         modelBuilder.Entity<Workspace>(entity =>
@@ -256,6 +261,70 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.GroupId);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => new { e.GroupId, e.UserId }).IsUnique();
+        });
+
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.ToTable("subscriptions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(e => e.PlanType).HasColumnName("plan_type").IsRequired();
+            entity.Property(e => e.Status).HasColumnName("status").IsRequired();
+            entity.Property(e => e.BillingInterval).HasColumnName("billing_interval").IsRequired();
+            entity.Property(e => e.CurrentPeriodStart).HasColumnName("current_period_start").IsRequired();
+            entity.Property(e => e.CurrentPeriodEnd).HasColumnName("current_period_end").IsRequired();
+            entity.Property(e => e.CancelAtPeriodEnd).HasColumnName("cancel_at_period_end").IsRequired();
+            entity.Property(e => e.StripeCustomerId).HasColumnName("stripe_customer_id").HasMaxLength(100);
+            entity.Property(e => e.StripeSubscriptionId).HasColumnName("stripe_subscription_id").HasMaxLength(100);
+            entity.Property(e => e.StripePaymentMethodId).HasColumnName("stripe_payment_method_id").HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+            entity.HasOne(e => e.User)
+                .WithOne(u => u.Subscription)
+                .HasForeignKey<Subscription>(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.UserId).IsUnique();
+            entity.HasIndex(e => e.StripeCustomerId);
+            entity.HasIndex(e => e.StripeSubscriptionId);
+        });
+
+        modelBuilder.Entity<TeamMember>(entity =>
+        {
+            entity.ToTable("team_members");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.WorkspaceId).HasColumnName("workspace_id").IsRequired();
+            entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(e => e.Role).HasColumnName("role").IsRequired();
+            entity.Property(e => e.CustomTitle).HasColumnName("custom_title").HasMaxLength(100);
+            entity.Property(e => e.CanInviteMembers).HasColumnName("can_invite_members").IsRequired();
+            entity.Property(e => e.CanRemoveMembers).HasColumnName("can_remove_members").IsRequired();
+            entity.Property(e => e.CanManageProjects).HasColumnName("can_manage_projects").IsRequired();
+            entity.Property(e => e.CanDeleteProjects).HasColumnName("can_delete_projects").IsRequired();
+            entity.Property(e => e.CanManageIntegrations).HasColumnName("can_manage_integrations").IsRequired();
+            entity.Property(e => e.CanExportData).HasColumnName("can_export_data").IsRequired();
+            entity.Property(e => e.InvitedAt).HasColumnName("invited_at").IsRequired();
+            entity.Property(e => e.JoinedAt).HasColumnName("joined_at");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+            entity.HasOne(e => e.Workspace)
+                .WithMany()
+                .HasForeignKey(e => e.WorkspaceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.WorkspaceId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.WorkspaceId, e.UserId }).IsUnique();
         });
     }
 }

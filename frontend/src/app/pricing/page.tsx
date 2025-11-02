@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { CheckCircle, ArrowRight, Heart, Zap, Crown } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function PricingPage() {
   const plans = [
     {

@@ -661,7 +661,7 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
                 <div
                   className={`
                     bg-white dark:bg-slate-900 rounded-xl shadow-lg
-                    border-3 transition-all
+                    border-4 transition-all
                     ${isRoot ? 'min-w-[180px] p-4' : 'min-w-[140px] p-3'}
                     ${isSelected ? 'shadow-2xl ring-4 ring-opacity-30' : 'hover:shadow-xl'}
                   `}
