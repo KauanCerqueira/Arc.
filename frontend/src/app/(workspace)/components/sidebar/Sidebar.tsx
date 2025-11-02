@@ -65,6 +65,26 @@ export function Sidebar({
     toggleGroupExpanded(groupId)
   }
 
+  // Adapt workspace search results to SearchBar expected shape
+  const handleSearch = (query: string) => {
+    const results = searchPages(query)
+    return results.map(({ group, page }: any) => ({
+      group: {
+        id: group.id,
+        name: group.name,
+        icon: group.icon ?? (group.name?.charAt(0)?.toUpperCase() || "W"),
+        pages: [],
+      },
+      page: {
+        id: page.id,
+        name: page.name,
+        icon: "", // não usado pelo SearchBar (usa template para o ícone)
+        template: page.template,
+        favorite: page.favorite,
+      },
+    }))
+  }
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <aside
@@ -113,7 +133,7 @@ export function Sidebar({
           {!sidebarCollapsed && (
             <div className="px-3 pb-2">
               <SearchBar
-                onSearch={searchPages}
+                onSearch={handleSearch}
                 onResultClick={onClose}
                 collapsed={sidebarCollapsed}
               />
@@ -220,18 +240,33 @@ export function Sidebar({
 
             {/* Lista de Grupos */}
             <div className="space-y-1">
-              {workspace?.groups.map((group) => (
-                <GroupItem
-                  key={group.id}
-                  group={group}
-                  pathname={pathname}
-                  collapsed={sidebarCollapsed}
-                  onAddPage={onAddPage}
-                  onRenameGroup={handleRenameGroup}
-                  onDeleteGroup={handleDeleteGroup}
-                  onToggleExpanded={handleToggleExpanded}
-                />
-              ))}
+              {workspace?.groups.map((group) => {
+                const uiGroup = {
+                  id: group.id,
+                  name: group.name,
+                  icon: group.icon ?? (group.name?.charAt(0)?.toUpperCase() || "W"),
+                  pages: group.pages.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    icon: "",
+                    template: p.template,
+                    favorite: p.favorite,
+                  })),
+                  expanded: group.expanded,
+                }
+                return (
+                  <GroupItem
+                    key={group.id}
+                    group={uiGroup as any}
+                    pathname={pathname}
+                    collapsed={sidebarCollapsed}
+                    onAddPage={onAddPage}
+                    onRenameGroup={handleRenameGroup}
+                    onDeleteGroup={handleDeleteGroup}
+                    onToggleExpanded={handleToggleExpanded}
+                  />
+                )
+              })}
 
               {/* Placeholder quando não há grupos */}
               {workspace?.groups.length === 0 && !sidebarCollapsed && (

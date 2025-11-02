@@ -454,7 +454,7 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
                         {dayEvents.length > 0 && (
                           <div className="space-y-1">
                             {dayEvents.slice(0, 3).map((event) => {
-                              const cat = event.category && CATEGORY_STYLES[event.category];
+                              const cat = event.category ? CATEGORY_STYLES[event.category] : undefined;
                               return (
                                 <div
                                   key={event.id}
@@ -513,7 +513,7 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
                   <div className="space-y-3">
                     {upcomingEvents.map((event) => {
                       const d = new Date(`${event.date}T${event.time}`);
-                      const cat = event.category && CATEGORY_STYLES[event.category];
+                      const cat = event.category ? CATEGORY_STYLES[event.category] : undefined;
                       return (
                         <div key={event.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/40">
                           <div className={`mt-1 w-2 h-2 rounded-full ${cat?.dot || 'bg-gray-400'}`} />
@@ -568,7 +568,7 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
                   </div>
                 ) : (
                   selectedDayEvents.map((event) => {
-                    const cat = event.category && CATEGORY_STYLES[event.category];
+                    const cat = event.category ? CATEGORY_STYLES[event.category] : undefined;
                     return (
                       <div
                         key={event.id}
@@ -623,7 +623,7 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
                   </div>
                 ) : (
                   upcomingEvents.map((event) => {
-                    const cat = event.category && CATEGORY_STYLES[event.category];
+                    const cat = event.category ? CATEGORY_STYLES[event.category] : undefined;
                     return (
                       <div
                         key={event.id}

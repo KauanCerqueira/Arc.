@@ -1,4 +1,5 @@
 // Auth Types - Matching Backend DTOs
+import type { PlanType } from '@/core/types/subscription.types';
 
 export interface RegisterRequestDto {
   nome: string;
@@ -9,6 +10,10 @@ export interface RegisterRequestDto {
   icone?: string;
   profissao?: string;
   comoConheceu?: string;
+  // Extras (frontend) usados no fluxo de registro
+  selectedPlan?: PlanType;
+  workspaceName?: string;
+  workspaceType?: 'personal' | 'team';
 }
 
 export interface LoginRequestDto {
