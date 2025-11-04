@@ -937,7 +937,7 @@ function TaskModal({
   )
 }
 
-export default function KanbanBoard() {
+export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pageId?: string }) {
   const [tasks, setTasks] = useState<Task[]>(tasksSeed)
   const [viewMode, setViewMode] = useState<"board" | "list">("board")
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
