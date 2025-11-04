@@ -22,6 +22,8 @@ import {
 } from "lucide-react"
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar"
 import "react-circular-progressbar/dist/styles.css"
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 const cn = (...classes: (string | undefined | boolean)[]) => {
   return classes.filter(Boolean).join(' ');
 };
@@ -410,6 +412,18 @@ const tasksSeed: Task[] = [
     priority: "low",
   },
 ]
+
+type KanbanTemplateData = {
+  tasks: Task[];
+  viewMode?: "board" | "list";
+  darkMode?: boolean;
+};
+
+const DEFAULT_DATA: KanbanTemplateData = {
+  tasks: tasksSeed,
+  viewMode: "board",
+  darkMode: false,
+};
 
 function Avatar({ user }: { user: User }) {
   const initials = user.name
@@ -937,13 +951,15 @@ function TaskModal({
   )
 }
 
-export default function KanbanBoard() {
-  const [tasks, setTasks] = useState<Task[]>(tasksSeed)
-  const [viewMode, setViewMode] = useState<"board" | "list">("board")
+export default function KanbanBoard({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const { data, setData } = usePageTemplateData<KanbanTemplateData>(groupId, pageId, DEFAULT_DATA)
+
+  const tasks = data.tasks ?? DEFAULT_DATA.tasks
+  const [viewMode, setViewMode] = useState<"board" | "list">(data.viewMode ?? "board")
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(data.darkMode ?? false)
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [defaultStatus, setDefaultStatus] = useState<Status | undefined>()
 
@@ -969,7 +985,8 @@ export default function KanbanBoard() {
 
   const handleSaveTask = (taskData: Partial<Task>) => {
     if (editingTask) {
-      setTasks(tasks.map((t) => (t.id === editingTask.id ? { ...t, ...taskData } : t)))
+      const updatedTasks = tasks.map((t) => (t.id === editingTask.id ? { ...t, ...taskData } : t))
+      setData({ ...data, tasks: updatedTasks })
     } else {
       const newTask: Task = {
         id: `t${Date.now()}`,
@@ -985,18 +1002,20 @@ export default function KanbanBoard() {
         links: 0,
         date: taskData.date,
       }
-      setTasks([...tasks, newTask])
+      setData({ ...data, tasks: [...tasks, newTask] })
     }
     setEditingTask(undefined)
     setDefaultStatus(undefined)
   }
 
   const handleArchiveTask = (id: string) => {
-    setTasks(tasks.map((t) => (t.id === id ? { ...t, archived: true } : t)))
+    const updatedTasks = tasks.map((t) => (t.id === id ? { ...t, archived: true } : t))
+    setData({ ...data, tasks: updatedTasks })
   }
 
   const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter((t) => t.id !== id))
+    const updatedTasks = tasks.filter((t) => t.id !== id)
+    setData({ ...data, tasks: updatedTasks })
   }
 
   const handleSelectTask = (id: string) => {
@@ -1010,12 +1029,14 @@ export default function KanbanBoard() {
   }
 
   const handleBulkArchive = () => {
-    setTasks(tasks.map((t) => (selectedTasks.has(t.id) ? { ...t, archived: true } : t)))
+    const updatedTasks = tasks.map((t) => (selectedTasks.has(t.id) ? { ...t, archived: true } : t))
+    setData({ ...data, tasks: updatedTasks })
     setSelectedTasks(new Set())
   }
 
   const handleBulkDelete = () => {
-    setTasks(tasks.filter((t) => !selectedTasks.has(t.id)))
+    const updatedTasks = tasks.filter((t) => !selectedTasks.has(t.id))
+    setData({ ...data, tasks: updatedTasks })
     setSelectedTasks(new Set())
   }
 
@@ -1029,7 +1050,8 @@ export default function KanbanBoard() {
     const newStatus = STATUSES.find((s) => s.id === statusId)
     if (!newStatus) return
 
-    setTasks(tasks.map((t) => (t.id === draggedTask.id ? { ...t, status: newStatus } : t)))
+    const updatedTasks = tasks.map((t) => (t.id === draggedTask.id ? { ...t, status: newStatus } : t))
+    setData({ ...data, tasks: updatedTasks })
     setDraggedTask(null)
   }
 
@@ -1053,7 +1075,10 @@ export default function KanbanBoard() {
                   variant={viewMode === "board" ? "secondary" : "ghost"}
                   size="sm"
                   className="h-7 px-3"
-                  onClick={() => setViewMode("board")}
+                  onClick={() => {
+                    setViewMode("board")
+                    setData({ ...data, viewMode: "board" })
+                  }}
                 >
                   <Grid3x3 className="size-4" />
                 </Button>
@@ -1061,13 +1086,20 @@ export default function KanbanBoard() {
                   variant={viewMode === "list" ? "secondary" : "ghost"}
                   size="sm"
                   className="h-7 px-3"
-                  onClick={() => setViewMode("list")}
+                  onClick={() => {
+                    setViewMode("list")
+                    setData({ ...data, viewMode: "list" })
+                  }}
                 >
                   <List className="size-4" />
                 </Button>
               </div>
 
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => setDarkMode(!darkMode)}>
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => {
+                const newDarkMode = !darkMode
+                setDarkMode(newDarkMode)
+                setData({ ...data, darkMode: newDarkMode })
+              }}>
                 {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </Button>
 
