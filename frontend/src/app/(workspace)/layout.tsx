@@ -11,8 +11,8 @@ import { useAuthStore } from "@/core/store/authStore"
 import { WorkspaceCreationModal } from "./components/modals/WorkspaceCreationModal"
 import { GroupCreationModal } from "./components/modals/GroupCreationModal"
 import { PageCreationModal } from "./components/modals/PageCreationModal"
-import { Sidebar } from "./components/sidebar/Sidebar"
-import Header from "./components/header/Header"
+import SquareSidebar from "./components/square/SquareSidebar"
+import ThemeToggle from "@/shared/components/ui/ThemeToggle"
 import { useTheme } from "@/core/context/ThemeContext"
 import {
   DndContext,
@@ -240,31 +240,19 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             />
           )}
 
-          <Sidebar
+          <SquareSidebar
             sidebarOpen={sidebarOpen}
             sidebarCollapsed={sidebarCollapsed}
-            pathname={pathname}
             onClose={() => setSidebarOpen(false)}
             onToggleCollapse={toggleSidebarCollapsed}
             onAddGroup={() => setShowGroupModal(true)}
             onAddPage={(groupId) => setShowPageModal(groupId)}
-            activeId={activeId}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            workspaces={workspaces}
-            onSwitchWorkspace={handleSwitchWorkspace}
             onCreateWorkspace={() => setShowCreateWorkspace(true)}
           />
 
           {/* Main Content */}
-          <div className={`flex-1 flex flex-col min-w-0 w-full transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
-            <Header
-              sidebarCollapsed={sidebarCollapsed}
-              setSidebarOpen={setSidebarOpen}
-            />
-
-            <main className="h-screen overflow-auto bg-arc-primary pt-16">{children}</main>
+          <div className={`flex-1 flex flex-col min-w-0 w-full transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'} relative`}>
+            <main className="h-screen overflow-auto bg-arc-primary">{children}</main>
           </div>
         </div>
 

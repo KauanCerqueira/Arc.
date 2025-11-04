@@ -8,7 +8,7 @@ import { useWorkspaceStore } from '@/core/store/workspaceStore';
 // Importar todos os templates
 import BlankTemplate from '@/app/(workspace)/templates/blank';
 import TasksTemplate from '@/app/(workspace)/templates/tasks';
-import KanbanTemplate from '@/app/(workspace)/templates/kanban';
+import KanbanTemplate from '@/app/(workspace)/templates/kanban-square';
 import TableTemplate from '@/app/(workspace)/templates/table';
 import CalendarTemplate from '@/app/(workspace)/templates/calendar';
 import ProjectsTemplate from '@/app/(workspace)/templates/projects';

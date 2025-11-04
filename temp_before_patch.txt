@@ -1,0 +1,148 @@
+"use client";
+
+import React from "react";
+import { Github, Link as LinkIcon, Menu, Calendar as CalendarIcon, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import ThemeToggle from "@/shared/components/ui/ThemeToggle";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/Popover";
+import { Calendar } from "@/shared/components/ui/Calendar";
+import { usePathname } from "next/navigation";
+import { useWorkspaceStore } from "@/core/store/workspaceStore";
+
+interface HeaderProps {
+  sidebarCollapsed: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: HeaderProps) {
+  const [open, setOpen] = React.useState(false);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const pathname = usePathname();
+  const { workspace } = useWorkspaceStore();
+  const totalPages = workspace?.groups.reduce((sum, g) => sum + g.pages.length, 0) || 0;
+
+  const breadcrumbs = React.useMemo(() => {
+    if (pathname === "/workspace") {
+      return [{ label: "Dashboard", href: "/workspace" }];
+    }
+    const parts = pathname.split("/").filter(Boolean);
+    const crumbs: { label: string; href: string }[] = [
+      { label: "Dashboard", href: "/workspace" },
+    ];
+    if (parts.includes("page") && workspace) {
+      const groupId = parts[parts.indexOf("group") + 1];
+      const pageId = parts[parts.indexOf("page") + 1];
+      const group = workspace.groups.find(g => g.id === groupId);
+      if (group) {
+        const page = group.pages.find(p => p.id === pageId);
+        if (page) {
+          crumbs.push({ label: group.name, href: "/workspace" });
+          crumbs.push({ label: page.name, href: pathname });
+        }
+      }
+    }
+    return crumbs;
+  }, [pathname, workspace]);
+  return (
+    <header
+      className={[
+        "h-16 border-b border-arc flex items-center justify-between px-4 md:px-6 bg-arc-secondary backdrop-blur-xl fixed top-0 right-0 z-30 transition-all duration-300",
+        sidebarCollapsed ? "md:left-20" : "md:left-64",
+        "left-0",
+      ].join(" ")}
+    >
+      {/* Left - Mobile menu + Title */}
+      <div className="flex items-center gap-3 flex-1 overflow-hidden">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="p-2 hover:bg-arc-secondary rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
+          aria-label="Abrir menu"
+        >
+          <Menu className="w-5 h-5 text-arc-muted" />
+        </button>
+        {/* Breadcrumbs */}
+        <nav className="hidden md:flex flex-row items-center gap-2 overflow-x-auto scrollbar-hide" style={{ flexWrap: 'nowrap' }}>
+          {breadcrumbs.map((crumb, index) => (
+            <React.Fragment key={crumb.href}>
+              {index > 0 && (
+                <ChevronRight className="w-4 h-4 text-arc-muted flex-shrink-0" />
+              )}
+              {index === breadcrumbs.length - 1 ? (
+                <span className="text-sm font-semibold text-arc whitespace-nowrap flex-shrink-0">
+                  {crumb.label}
+                </span>
+              ) : (
+                <Link
+                  href={crumb.href}
+                  className="text-sm text-arc-muted hover:text-arc transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                  {crumb.label}
+                </Link>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
+        {/* Mobile title */}
+        <div className="md:hidden min-w-0">
+          <h1 className="text-sm font-semibold text-arc truncate">
+            {breadcrumbs[breadcrumbs.length - 1]?.label || 'Dashboard'}
+          </h1>
+        </div>
+      </div>
+
+      {/* Right - Actions */}
+      <div className="hidden lg:flex items-center gap-4 px-4">
+        <div className="flex items-center gap-3 px-3 py-1.5 bg-arc-secondary border border-arc rounded-lg">
+          <div className="text-xs">
+            <span className="font-bold text-arc">{workspace?.groups.length || 0}</span>
+            <span className="text-arc-muted ml-1">grupos</span>
+          </div>
+          <div className="w-px h-4 bg-arc-border"></div>
+          <div className="text-xs">
+            <span className="font-bold text-arc">{totalPages}</span>
+            <span className="text-arc-muted ml-1">páginas</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 lg:gap-4">
+        <Link
+          href="https://github.com/ln-dev7/square-ui/tree/master/templates/task-management"
+          target="_blank"
+          className="hidden sm:inline-flex items-center gap-2 border border-arc rounded-md px-3 py-1.5 text-sm hover:bg-arc-secondary"
+        >
+          <Github className="w-4 h-4" /> GitHub
+        </Link>
+        <ThemeToggle />
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button className="hidden lg:inline-flex items-center gap-2 border border-arc rounded-md px-3 py-1.5 text-sm">
+              <CalendarIcon className="w-4 h-4" />
+              {date
+                ? date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "Select date"}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d: Date | undefined) => {
+                setDate(d);
+                setOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        <button className="hidden lg:inline-flex items-center gap-2 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-md px-3 py-1.5 text-sm">
+          <LinkIcon className="w-4 h-4" />
+          Share
+        </button>
+      </div>
+    </header>
+  );
+}
+

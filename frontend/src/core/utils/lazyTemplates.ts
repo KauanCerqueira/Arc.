@@ -25,7 +25,7 @@ export const LazyBlankTemplate = dynamic(
 );
 
 export const LazyKanbanTemplate = dynamic(
-  () => import('@/app/(workspace)/templates/kanban'),
+  () => import('@/app/(workspace)/templates/kanban-square'),
   {
     loading: TemplateLoadingFallback,
     ssr: false,
