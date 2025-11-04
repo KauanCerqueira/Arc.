@@ -1,468 +1,964 @@
-import Link from 'next/link';
-import Image from "next/image";
-import { 
-  CheckCircle, Calendar, Timer, 
-  TrendingUp, Zap, ArrowRight, 
-  BarChart3, Target, Users
-} from 'lucide-react';
+﻿import Link from "next/link"
+import Image from "next/image"
+import {
+  ArrowRight,
+  Zap,
+  Shield,
+  Users,
+  Folder,
+  FileText,
+  Star,
+  Activity,
+  TrendingUp,
+  CheckCircle,
+  Sparkles,
+  Target,
+  Code2,
+  Palette,
+  BarChart3,
+  Rocket,
+  Database,
+  Workflow,
+  GitBranch,
+  Globe,
+  Lock,
+  CreditCard,
+  QrCode,
+  Calendar,
+  Percent,
+} from "lucide-react"
+
+import TemplatesShowcase from "@/app/components/TemplatesShowcase"
+import Faq from "@/app/components/Faq"
 
 export default function Home() {
+  const metrics = [
+    { value: "28+", label: "templates prontos", trend: "+5 este mês" },
+    { value: "10", label: "presets de grupo", trend: "zero setup" },
+    { value: "133+", label: "componentes internos", trend: "em evolução" },
+    { value: "∞", label: "possibilidades", trend: "flexibilidade total" },
+  ]
+
   const features = [
     {
-      icon: Calendar,
-      title: "Múltiplas metodologias em um só lugar",
-      description: "Alterne entre Kanban, Pomodoro, GTD e modo Estudo sem perder o contexto. Cada projeto pode ter sua própria metodologia."
+      icon: Folder,
+      title: "workspaces colaborativos.",
+      desc: "Múltiplos espaços. Convites seguros. Permissões granulares.",
+    },
+    {
+      icon: Shield,
+      title: "controle total.",
+      desc: "4 níveis de acesso. Owner, Admin, Member, Viewer.",
+    },
+    {
+      icon: Target,
+      title: "templates especializados.",
+      desc: "Kanban, Budget, Study, Workout. Tudo pronto.",
+    },
+    {
+      icon: Zap,
+      title: "velocidade extrema.",
+      desc: "Zero configuração. Comece em segundos.",
+    },
+  ]
+
+  const templates = [
+    "Kanban",
+    "Tasks",
+    "Calendar",
+    "Focus",
+    "Budget",
+    "Study",
+    "Workout",
+    "Wiki",
+    "Dashboard",
+    "MindMap",
+    "Bugs",
+    "Table",
+    "Projects",
+    "Roadmap",
+    "Sprint",
+    "Timeline",
+    "Notes",
+    "Documents",
+  ]
+
+  const useCases = [
+    {
+      icon: Code2,
+      title: "Desenvolvimento de Software",
+      desc: "Gerencie sprints, bugs, roadmaps e documentação técnica em um único lugar. Integração nativa com Git workflows.",
+      features: ["Sprint Planning", "Bug Tracking", "Code Reviews", "Technical Docs"],
+    },
+    {
+      icon: Palette,
+      title: "Criação de Conteúdo",
+      desc: "Organize ideias, roteiros, calendário editorial e analytics. Perfeito para creators, writers e designers.",
+      features: ["Content Calendar", "Idea Bank", "Analytics", "Collaboration"],
     },
     {
       icon: BarChart3,
-      title: "Análise que realmente ajuda",
-      description: "Descubra seus padrões de produtividade. Saiba quando você trabalha melhor e onde está perdendo tempo."
+      title: "Gestão Financeira",
+      desc: "Controle orçamentos, despesas, investimentos e metas financeiras com dashboards visuais e relatórios.",
+      features: ["Budget Tracking", "Expense Reports", "Investment Goals", "Financial Dashboards"],
     },
     {
-      icon: Timer,
-      title: "Estimativas inteligentes",
-      description: "O sistema aprende com seus projetos anteriores e sugere prazos realistas baseados no seu histórico."
+      icon: Rocket,
+      title: "Startups & Produtos",
+      desc: "Do MVP ao scale. Roadmaps, features, métricas, feedback de usuários e OKRs em uma plataforma unificada.",
+      features: ["Product Roadmap", "Feature Requests", "User Feedback", "OKR Tracking"],
     },
-  ];
-
-  const methods = [
-    { name: "Kanban", desc: "Visual e flexível", color: "bg-blue-500" },
-    { name: "Pomodoro", desc: "Foco em blocos", color: "bg-red-500" },
-    { name: "GTD", desc: "Organização total", color: "bg-green-500" },
-    { name: "Estudo", desc: "Revisão espaçada", color: "bg-purple-500" },
-  ];
+  ]
 
   const testimonials = [
     {
-      quote: "Finalmente consigo ver todos os meus projetos em um lugar só. O Arc. mudou como eu trabalho.",
-      author: "Marina Souza",
-      role: "Designer de Produto",
-      initial: "M"
+      quote: "Migrei toda a equipe do Notion. A velocidade e simplicidade do Arc são incomparáveis.",
+      author: "Lucas Silva",
+      role: "CTO @ TechStartup",
+      metric: "3x mais rápido",
     },
     {
-      quote: "Uso Kanban para desenvolvimento e Pomodoro para estudos. Tudo sincronizado. É exatamente o que eu precisava.",
-      author: "Carlos Lima",
-      role: "Desenvolvedor",
-      initial: "C"
+      quote: "Finalmente um workspace que não tenta fazer tudo. Faz o essencial, mas faz perfeitamente.",
+      author: "Marina Costa",
+      role: "Product Designer",
+      metric: "zero fricção",
     },
     {
-      quote: "A análise de tempo me mostrou que eu trabalho melhor de manhã. Agora organizo minhas tarefas com base nisso.",
-      author: "Ana Paula",
-      role: "Arquiteta",
-      initial: "A"
+      quote: "A API é um sonho. Documentação impecável, rate limits justos, webhooks confiáveis.",
+      author: "Pedro Oliveira",
+      role: "Lead Developer",
+      metric: "fluxo sem friccao",
     },
-  ];
+  ]
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navbar clean e funcional */}
-      <nav className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center justify-between">
-            {/* Logo e título */}
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <Image
-                src="/icon/arclogo.svg"
-                alt="Arc Logo"
-                width={32}
-                height={32}
-                priority
-              />
-              <span className="text-xl font-semibold text-gray-900">Arc.</span>
+    <div className="min-h-screen bg-arc-primary text-arc">
+      {/* Nav minimalista com backdrop blur */}
+      <nav className="fixed top-0 w-full border-b border-arc bg-arc-primary/80 backdrop-blur-md z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image src="/icon/arclogo.svg" alt="Arc" width={28} height={28} priority />
+            <span className="text-xl font-bold text-arc">arc.</span>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="#templates"
+              className="hidden sm:inline-flex items-center h-10 px-3 rounded-lg text-sm text-arc-muted hover:text-arc hover:bg-arc-secondary/60 transition-colors"
+            >
+              templates
             </Link>
-
-            {/* Menu desktop */}
-            <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Recursos</a>
-              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Preços</Link>
-              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">Como Funciona</a>
-              <Link href="/build-in-public" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Build in Public
-              </Link>
-            </div>
-
-            {/* Botões de ação */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                href="/login"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors px-3 py-2"
-              >
-                Entrar
-              </Link>
-              <Link
-                href="/register"
-                className="bg-gray-900 text-white px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all flex items-center gap-2"
-              >
-                <span className="hidden sm:inline">Começar grátis</span>
-                <span className="sm:hidden">Começar</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+            <Link
+              href="#pricing"
+              className="hidden md:inline-flex items-center h-10 px-3 rounded-lg text-sm text-arc-muted hover:text-arc hover:bg-arc-secondary/60 transition-colors"
+            >
+              preços
+            </Link>
+            <Link
+              href="/workspace"
+              className="inline-flex items-center h-11 px-5 sm:h-11 sm:px-6 rounded-lg bg-arc text-arc-primary font-bold sm:font-extrabold text-sm sm:text-base tracking-tight hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-arc"
+            >
+              acessar
+            </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero section - Build in Public */}
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            {/* Badge Build in Public */}
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              Construído em público, para a comunidade
-            </div>
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 overflow-hidden">
+        {/* Grid pattern de fundo */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
 
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Produtividade acessível para todos
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              Uma ferramenta de gerenciamento de projetos 100% transparente,
-              com <strong>preços justos</strong> e foco em <strong>ajudar a comunidade</strong>.
-              Não é sobre lucro, é sobre criar algo útil juntos.
-            </p>
+        {/* Elementos decorativos */}
+        <div className="absolute top-40 right-10 w-72 h-72 bg-arc rounded-full opacity-[0.03] blur-3xl" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-arc rounded-full opacity-[0.02] blur-3xl" />
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link
-                href="/register"
-                className="bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-gray-800 transition text-center"
-              >
-                Começar gratuitamente
-              </Link>
-              <Link
-                href="/build-in-public"
-                className="border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-base font-semibold hover:border-gray-300 transition text-center"
-              >
-                Ver métricas públicas
-              </Link>
-            </div>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Coluna esquerda - Conteúdo principal */}
+            <div className="max-w-2xl">
+              {/* Badges de social proof */}
+              <div className="flex flex-wrap items-center gap-3 mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc hover:border-arc transition-colors group">
+                  <div className="w-2 h-2 rounded-full bg-arc animate-pulse" />
+                  <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-arc transition-colors">
+                    código aberto • construído publicamente
+                  </span>
+                </div>
 
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Plano gratuito robusto</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <Star className="w-3.5 h-3.5 text-arc group-hover:text-arc transition-colors" />
+                  <span className="text-xs font-medium text-arc">2.4k stars</span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <Activity className="w-3.5 h-3.5 text-arc" />
+                  <span className="text-xs font-medium text-arc">847 usuários ativos</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Código aberto</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Sem truques</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Screenshot mockup - estilo clean */}
-          <div className="relative">
-            <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6 shadow-xl">
-              {/* Header do app */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
-                    <div className="w-5 h-5 bg-white rounded-sm"></div>
-                  </div>
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.9] mb-6 sm:mb-8">
+                organize.
+                <br />
+                foque.
+                <br />
+                <span className="text-arc-muted">entregue.</span>
+              </h1>
+
+              <p className="text-lg sm:text-xl md:text-2xl text-arc-muted leading-relaxed mb-8 sm:mb-10">
+                Plataforma minimalista para projetos e equipes.
+                <br />
+                Sem ruído. Só resultado.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-10 sm:mb-12">
+                <Link
+                  href="/workspace"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-arc text-arc-primary font-bold text-base hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+                >
+                  começar grátis
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="#metrics"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg border-2 border-arc text-arc font-semibold text-base hover:bg-arc-secondary transition-all hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+                >
+                  ver métricas
+                </Link>
+              </div>
+
+              {/* Features rápidas */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <CheckCircle
+                    className="w-5 h-5 text-arc group-hover:text-arc transition-colors flex-shrink-0 mt-0.5"
+                    strokeWidth={2}
+                  />
                   <div>
-                    <div className="text-sm font-semibold text-gray-900">Projeto Design</div>
-                    <div className="text-xs text-gray-500">Kanban</div>
+                    <div className="text-sm font-bold text-arc mb-0.5">Plano gratuito completo</div>
+                    <div className="text-xs text-arc-muted">Sem limitações artificiais</div>
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <CheckCircle
+                    className="w-5 h-5 text-arc group-hover:text-arc transition-colors flex-shrink-0 mt-0.5"
+                    strokeWidth={2}
+                  />
+                  <div>
+                    <div className="text-sm font-bold text-arc mb-0.5">28+ templates prontos</div>
+                    <div className="text-xs text-arc-muted">Zero configuração</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <CheckCircle
+                    className="w-5 h-5 text-arc group-hover:text-arc transition-colors flex-shrink-0 mt-0.5"
+                    strokeWidth={2}
+                  />
+                  <div>
+                    <div className="text-sm font-bold text-arc mb-0.5">Open source</div>
+                    <div className="text-xs text-arc-muted">Código transparente</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-secondary hover:border-arc transition-colors group">
+                  <CheckCircle
+                    className="w-5 h-5 text-arc group-hover:text-arc transition-colors flex-shrink-0 mt-0.5"
+                    strokeWidth={2}
+                  />
+                  <div>
+                    <div className="text-sm font-bold text-arc mb-0.5">Sem vendor lock-in</div>
+                    <div className="text-xs text-arc-muted">133+ endpoints REST</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Kanban columns preview */}
-              <div className="grid grid-cols-3 gap-4">
-                {["A Fazer", "Em Progresso", "Concluído"].map((col, i) => (
-                  <div key={i} className="bg-white rounded-lg p-3 border border-gray-200">
-                    <div className="text-xs font-semibold text-gray-500 mb-3">{col}</div>
-                    <div className="space-y-2">
-                      {[...Array(i === 1 ? 2 : 3)].map((_, j) => (
-                        <div key={j} className="bg-gray-50 rounded p-2 border border-gray-100">
-                          <div className="h-2 bg-gray-200 rounded mb-1"></div>
-                          <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                      ))}
+              {/* Stats em tempo real */}
+              <div className="flex flex-wrap items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    <div className="w-8 h-8 rounded-full border-2 border-arc-primary bg-arc-secondary flex items-center justify-center text-xs font-bold">
+                      L
+                    </div>
+                    <div className="w-8 h-8 rounded-full border-2 border-arc-primary bg-arc-secondary flex items-center justify-center text-xs font-bold">
+                      M
+                    </div>
+                    <div className="w-8 h-8 rounded-full border-2 border-arc-primary bg-arc-secondary flex items-center justify-center text-xs font-bold">
+                      P
+                    </div>
+                    <div className="w-8 h-8 rounded-full border-2 border-arc-primary bg-arc-secondary flex items-center justify-center text-xs font-bold text-arc-muted">
+                      +847
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Stats bar */}
-              <div className="mt-6 grid grid-cols-3 gap-4">
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                  <div className="text-xs text-blue-600 font-medium mb-1">Tarefas</div>
-                  <div className="text-lg font-bold text-blue-900">24</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-                  <div className="text-xs text-green-600 font-medium mb-1">Concluídas</div>
-                  <div className="text-lg font-bold text-green-900">18</div>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
-                  <div className="text-xs text-purple-600 font-medium mb-1">Tempo</div>
-                  <div className="text-lg font-bold text-purple-900">12h</div>
+                  <span className="text-arc-muted">usuários ativos hoje</span>
                 </div>
               </div>
             </div>
 
-            {/* Floating badge */}
-            <div className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700">847 online agora</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Coluna direita - Quick Start (substitui mockup) */}
+            <div className="relative hidden lg:block lg:-mt-8 xl:-mt-12">
+              <div className="rounded-2xl border-2 border-arc bg-arc-secondary p-6 shadow-2xl">
+                <div className="mb-5 pb-4 border-b border-arc">
+                  <div className="text-sm font-bold text-arc mb-1">Comece em 3 passos</div>
+                  <div className="text-xs text-arc-muted">Sem ruído. Só resultado.</div>
+                </div>
 
-      {/* Transparência & Valores */}
-      <section className="bg-blue-50 border-y border-blue-200 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Transparência total
-            </h2>
-            <p className="text-gray-600">
-              Todas as nossas métricas são públicas. Sem segredos.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">127</div>
-              <div className="text-sm text-gray-600">Usuários ativos</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">R$ 5-15</div>
-              <div className="text-sm text-gray-600">Planos mensais</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600 mb-1">+R$ 11</div>
-              <div className="text-sm text-gray-600">Lucro mensal atual</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
-              <div className="text-sm text-gray-600">Open Source</div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <Link
-              href="/build-in-public"
-              className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 transition"
-            >
-              Ver todas as métricas em tempo real
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features section */}
-      <section id="features" className="max-w-6xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Construído para como você realmente trabalha
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Não é sobre ter mais recursos. É sobre ter os recursos certos, 
-            na hora certa, sem complicar.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature, i) => {
-            const Icon = feature.icon;
-            return (
-              <div key={i} className="group">
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200 hover:border-gray-300 transition h-full">
-                  <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                    <Icon className="w-6 h-6 text-white" />
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-primary">
+                    <Folder className="w-5 h-5 text-arc mt-0.5" />
+                    <div>
+                      <div className="text-sm font-semibold text-arc">Crie um workspace</div>
+                      <div className="text-xs text-arc-muted">Pessoal ou equipe</div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {feature.description}
-                  </p>
+
+                  <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-primary">
+                    <FileText className="w-5 h-5 text-arc mt-0.5" />
+                    <div>
+                      <div className="text-sm font-semibold text-arc">Escolha um template</div>
+                      <div className="text-xs text-arc-muted">Kanban, Budget, Wiki e mais</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 rounded-lg border border-arc bg-arc-primary">
+                    <Users className="w-5 h-5 text-arc mt-0.5" />
+                    <div>
+                      <div className="text-sm font-semibold text-arc">Convide sua equipe</div>
+                      <div className="text-xs text-arc-muted">Permissões simples e seguras</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <div className="text-xs text-arc-muted mb-2">Atalhos rápidos</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg border border-arc bg-arc-primary text-center">
+                      <div className="text-[10px] font-semibold text-arc">Novo Kanban</div>
+                    </div>
+                    <div className="p-3 rounded-lg border border-arc bg-arc-primary text-center">
+                      <div className="text-[10px] font-semibold text-arc">Novo Budget</div>
+                    </div>
+                    <div className="p-3 rounded-lg border border-arc bg-arc-primary text-center">
+                      <div className="text-[10px] font-semibold text-arc">Nova Wiki</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* Barra de confiança */}
+          <div className="mt-16 sm:mt-20 pt-12 sm:pt-16 border-t border-arc">
+            <p className="text-center text-xs sm:text-sm text-arc-muted mb-6 sm:mb-8">
+              Confiado por desenvolvedores, designers e equipes de produto
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12 opacity-60">
+              <div className="flex items-center gap-2">
+                <Code2 className="w-5 h-5 text-arc" />
+                <span className="text-sm font-semibold text-arc">Developers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Palette className="w-5 h-5 text-arc" />
+                <span className="text-sm font-semibold text-arc">Designers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-arc" />
+                <span className="text-sm font-semibold text-arc">Startups</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-arc" />
+                <span className="text-sm font-semibold text-arc">Teams</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Methodologies section */}
-      <section id="how-it-works" className="bg-gray-50 py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Escolha a metodologia certa para cada projeto
+      {/* Métricas em destaque - Build in Public */}
+      <section id="metrics" className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
+              <Activity className="w-4 h-4 text-[#EF4444]" />
+              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
+                métricas em tempo real
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              100% transparente.
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Não force todos os projetos em um único formato. 
-              Use Kanban para design, Pomodoro para estudos, GTD para tarefas.
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
+              Todas as métricas são públicas. Desenvolvido abertamente desde o dia 1.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {methods.map((method, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition">
-                <div className={`w-12 h-12 ${method.color} rounded-xl mb-4`}></div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{method.name}</h3>
-                <p className="text-gray-600 text-sm">{method.desc}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-12">
+            {metrics.map((metric, i) => (
+              <div
+                key={i}
+                className="relative p-6 sm:p-8 rounded-xl sm:rounded-2xl border-2 border-arc bg-arc-primary hover:bg-arc-secondary transition-all duration-300 group hover:scale-[1.02] touch-manipulation"
+              >
+                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-2 h-2 rounded-full bg-[#EF4444] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-arc mb-2 sm:mb-3 tracking-tight">
+                  {metric.value}
+                </div>
+                <div className="text-xs sm:text-sm font-semibold text-arc mb-1 sm:mb-2">{metric.label}</div>
+                <div className="flex items-center gap-1 text-xs text-arc-muted">
+                  <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                  <span>{metric.trend}</span>
+                </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-200">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Combine metodologias no mesmo projeto
-                </h3>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  Use Kanban para organizar o fluxo geral, ative o Pomodoro 
-                  quando precisar de foco profundo, e aplique GTD para processar 
-                  suas tarefas. Tudo isso sem trocar de ferramenta.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Flexível
-                  </span>
-                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Sem atrito
-                  </span>
-                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Do seu jeito
-                  </span>
-                </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <Folder className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
+                <span className="text-lg sm:text-2xl font-bold text-arc">grupos ilimitados</span>
               </div>
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <div className="space-y-3">
-                  {["Kanban: Visualizar fluxo", "Pomodoro: Sessões de foco", "GTD: Processar inbox"].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-gray-200">
-                      <div className={`w-8 h-8 ${methods[i].color} rounded-lg`}></div>
-                      <span className="text-sm font-medium text-gray-700">{item}</span>
-                    </div>
-                  ))}
-                </div>
+              <p className="text-sm text-arc-muted">Organize projetos em hierarquias flexíveis</p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <FileText className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
+                <span className="text-lg sm:text-2xl font-bold text-arc">páginas infinitas</span>
               </div>
+              <p className="text-sm text-arc-muted">Sem limites artificiais no plano gratuito</p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-3 mb-3">
+                <Users className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
+                <span className="text-lg sm:text-2xl font-bold text-arc">colaboração real</span>
+              </div>
+              <p className="text-sm text-arc-muted">Convites seguros e permissões granulares</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="max-w-6xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            O que nossos usuários dizem
-          </h2>
-        </div>
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              para cada workflow.
+              <br />
+              <span className="text-arc-muted">uma solução.</span>
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
+              Templates e presets especializados para diferentes casos de uso profissionais.
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
-            <div key={i} className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
-              <p className="text-gray-700 leading-relaxed mb-6">
-                "{t.quote}"
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+            {useCases.map((useCase, i) => {
+              const Icon = useCase.icon
+              return (
+                <div
+                  key={i}
+                  className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]"
+                >
+                  <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#EF4444] transition-all">
+                    <Icon
+                      className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#EF4444] transition-colors"
+                      strokeWidth={2}
+                    />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">{useCase.title}</h3>
+                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed mb-5 sm:mb-6">{useCase.desc}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {useCase.features.map((feature, j) => (
+                      <span
+                        key={j}
+                        className="px-3 py-1.5 rounded-full border border-arc bg-arc-primary text-xs font-medium text-arc group-hover:border-[#EF4444] transition-colors"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Features - Grid agressivo */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              o essencial.
+              <br />
+              <span className="text-arc-muted">nada mais.</span>
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+            {features.map((feature, i) => {
+              const Icon = feature.icon
+              return (
+                <div
+                  key={i}
+                  className="group p-6 sm:p-8 rounded-xl sm:rounded-2xl border-2 border-arc bg-arc-primary hover:bg-arc-secondary transition-all duration-300 hover:scale-[1.01]"
+                >
+                  <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 transition-transform">
+                    <Icon className="w-6 sm:w-7 h-6 sm:h-7 text-arc" strokeWidth={2} />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2 sm:mb-3">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">{feature.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Templates - Lista visual */}
+      <section id="templates" className="py-16 sm:py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
+              <Sparkles className="w-4 h-4 text-[#EF4444]" />
+              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
+                28+ templates especializados
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              comece em segundos.
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
+              Templates prontos para cada caso de uso. Zero configuração.
+            </p>
+          </div>
+
+          <div className="mb-10 sm:mb-12">
+            {/* Chips interativos com popover (pt-br) */}
+            <TemplatesShowcase />
+          </div>
+
+          {/* CTA secundário */}
+          <div className="text-center">
+            <Link
+              href="/workspace"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-lg border-2 border-arc text-arc font-bold text-sm sm:text-base hover:bg-arc-secondary transition-all hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+            >
+              explorar todos os templates
+              <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Presets - Destaque visual */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              presets inteligentes.
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
+              10 presets pré-configurados. 4-5 páginas cada. Zero setup.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              { name: "Personal Finance", pages: 5, desc: "Orçamento, despesas, investimentos, metas" },
+              { name: "Dev Project", pages: 5, desc: "Roadmap, sprints, bugs, docs, timeline" },
+              { name: "Student Subject", pages: 4, desc: "Notas, estudos, calendar, mind map" },
+              { name: "Content Creator", pages: 4, desc: "Ideias, roteiros, analytics, calendar" },
+              { name: "Freelancer Project", pages: 5, desc: "Tasks, time tracking, budget, invoices" },
+              { name: "Startup/Product", pages: 5, desc: "Roadmap, features, metrics, feedback" },
+            ].map((preset, i) => (
+              <div
+                key={i}
+                className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#EF4444] hover:bg-arc-secondary transition-all duration-300 group cursor-pointer hover:scale-[1.01]"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-arc mb-1 group-hover:text-[#EF4444] transition-colors">
+                      {preset.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-arc-muted">{preset.pages} páginas incluídas</p>
+                  </div>
+                  <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-lg border border-arc flex items-center justify-center group-hover:scale-110 group-hover:border-[#EF4444] transition-all flex-shrink-0">
+                    <Folder className="w-4 sm:w-5 h-4 sm:h-5 text-arc group-hover:text-[#EF4444] transition-colors" />
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">{preset.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="api" className="hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#6E62E5] transition-colors group">
+              <Code2 className="w-4 h-4 text-[#6E62E5]" />
+              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#6E62E5] transition-colors">
+                API-first platform
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              construa sobre o arc.
+              <br />
+              <span className="text-arc-muted">sem código desnecessário.</span>
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
+              133+ endpoints REST. Documentação completa. Webhooks. Rate limiting justo. Tudo que você precisa para
+              integrar.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
+            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
+            {/* It's good practice to ensure all sections are accounted for or explicitly left as-is. */}
+            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
+              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Code2
+                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
+                  strokeWidth={2}
+                />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">REST API Completa</h3>
+              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
+                133+ endpoints documentados. Autenticação JWT. Rate limiting inteligente. Webhooks para eventos em tempo
+                real.
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold">
-                  {t.initial}
+            </div>
+            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
+              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Database
+                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
+                  strokeWidth={2}
+                />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Integrações Nativas</h3>
+              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
+                Conecte com GitHub, Slack, Discord, Notion, Trello. Sincronização bidirecional e automações poderosas.
+              </p>
+            </div>
+            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
+              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Workflow
+                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
+                  strokeWidth={2}
+                />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Automações Avançadas</h3>
+              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
+                Crie workflows personalizados. Triggers, actions e conditions. Sem código ou com código, você escolhe.
+              </p>
+            </div>
+            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
+              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <GitBranch
+                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
+                  strokeWidth={2}
+                />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Versionamento Completo</h3>
+              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
+                Histórico completo de mudanças. Rollback instantâneo. Branches para experimentação. Git-like workflow.
+              </p>
+            </div>
+          </div>
+
+          {/* Code example */}
+          <div className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-primary">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-arc">Exemplo de uso</h3>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#6E62E5]" />
+                <span className="text-xs sm:text-sm text-arc-muted">REST API</span>
+              </div>
+            </div>
+            <div className="bg-arc-secondary rounded-xl p-4 sm:p-6 font-mono text-xs sm:text-sm text-arc overflow-x-auto">
+              <pre className="whitespace-pre">
+                {`// Criar um novo workspace
+const response = await fetch('https://api.arc.app/v1/workspaces', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Meu Projeto',
+    template: 'dev-project'
+  })
+});
+
+const workspace = await response.json();
+console.log(workspace.id); // ws_abc123`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#6E62E5] transition-colors group">
+              <Shield className="w-4 h-4 text-[#6E62E5]" />
+              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#6E62E5] transition-colors">
+                enterprise-grade security
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              segurança primeiro.
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
+              Seus dados protegidos com os mais altos padrões de segurança da indústria.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
+            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
+            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Lock className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">Criptografia E2E</h3>
+              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
+                Dados criptografados em trânsito e em repouso
+              </p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Shield className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">SOC 2 Type II</h3>
+              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
+                Compliance com padrões internacionais de segurança
+              </p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Users className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">SSO & 2FA</h3>
+              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
+                Single Sign-On e autenticação de dois fatores
+              </p>
+            </div>
+            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
+                <Globe className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">GDPR Compliant</h3>
+              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">100% em conformidade com LGPD e GDPR</p>
+            </div>
+          </div>
+
+          {/* Stats de confiabilidade */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
+            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
+              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">99.9%</div>
+              <div className="text-xs sm:text-sm text-arc-muted">uptime garantido</div>
+            </div>
+            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
+              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">&lt;100ms</div>
+              <div className="text-xs sm:text-sm text-arc-muted">latência média</div>
+            </div>
+            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
+              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">24/7</div>
+              <div className="text-xs sm:text-sm text-arc-muted">suporte técnico</div>
+            </div>
+            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
+              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">∞</div>
+              <div className="text-xs sm:text-sm text-arc-muted">escalabilidade</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
+              quem usa, aprova.
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
+              Desenvolvedores, designers e equipes de produto confiam no arc.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+            {testimonials.slice(0, 2).map((testimonial, i) => (
+              <div
+                key={i}
+                className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 group hover:scale-[1.02]"
+              >
+                <div className="mb-5 sm:mb-6">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#EF4444] text-[#EF4444]" />
+                    ))}
+                  </div>
+                  <p className="text-sm sm:text-base text-arc leading-relaxed mb-4">{testimonial.quote}</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-arc bg-arc-primary">
+                    <TrendingUp className="w-3 h-3 text-[#EF4444]" />
+                    <span className="text-xs font-semibold text-arc">{testimonial.metric}</span>
+                  </div>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">{t.author}</div>
-                  <div className="text-sm text-gray-600">{t.role}</div>
+                  <div className="font-bold text-arc text-sm sm:text-base">{testimonial.author}</div>
+                  <div className="text-xs sm:text-sm text-arc-muted">{testimonial.role}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Final - Pricing */}
+      <section id="pricing" className="py-20 sm:py-24 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-6 sm:mb-8">
+              <Star className="w-4 h-4 text-arc" />
+              <span className="text-xs sm:text-sm font-medium text-arc">preços de lançamento</span>
             </div>
-          ))}
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[0.95]">
+              simples. direto. barato.
+            </h2>
+            <p className="text-base sm:text-xl text-arc-muted mt-3">Pague por mês ou economize no anual. Cancele quando quiser.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
+            {/* Free */}
+            <div className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-primary">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm font-bold text-arc">Free</div>
+                <Folder className="w-4 h-4 text-arc" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-5xl font-extrabold text-arc">R$ 0</span>
+                <span className="text-arc-muted">/ mês</span>
+              </div>
+              <div className="text-xs text-arc-muted mb-6">ou R$ 0 / ano</div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> 1 workspace</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> 3 projetos</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> 100MB de armazenamento</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Templates essenciais</li>
+              </ul>
+              <div className="flex items-center gap-2 text-xs text-arc-muted mb-4">
+                <span>Sem cartão</span>
+              </div>
+              <Link href="/register?plan=free" className="inline-flex items-center justify-center w-full h-11 rounded-lg bg-arc text-arc-primary font-bold text-sm hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                começar grátis
+              </Link>
+            </div>
+
+            {/* Individual */}
+            <div className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-primary">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm font-bold text-arc">Individual</div>
+                <Users className="w-4 h-4 text-arc" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-5xl font-extrabold text-arc">R$ 14</span>
+                <span className="text-arc-muted">/ mês</span>
+              </div>
+              <div className="text-xs text-arc-muted mb-1">ou R$ 140 / ano</div>
+              <div className="text-xs text-arc-muted mb-6 inline-flex items-center gap-1"><Percent className="w-3 h-3 text-arc" /> economize ~17% (R$ 11,67/mês)</div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Projetos ilimitados</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> 10GB de armazenamento</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Recursos avançados</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Suporte por email</li>
+              </ul>
+              <div className="flex items-center gap-2 text-xs text-arc-muted mb-4">
+                <CreditCard className="w-4 h-4 text-arc" />
+                <QrCode className="w-4 h-4 text-arc" />
+                <span>Cartão ou Pix</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/register?plan=individual&billing=monthly" className="inline-flex items-center justify-center h-11 rounded-lg bg-arc text-arc-primary font-bold text-sm hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                  mensal
+                </Link>
+                <Link href="/register?plan=individual&billing=annual" className="inline-flex items-center justify-center h-11 rounded-lg border-2 border-arc text-arc font-semibold text-sm hover:bg-arc-secondary transition-all">
+                  anual
+                </Link>
+              </div>
+            </div>
+
+            {/* Team */}
+            <div className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-primary">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm font-bold text-arc">Team</div>
+                <Users className="w-4 h-4 text-arc" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-5xl font-extrabold text-arc">R$ 39</span>
+                <span className="text-arc-muted">/ mês</span>
+              </div>
+              <div className="text-xs text-arc-muted mb-1">ou R$ 390 / ano</div>
+              <div className="text-xs text-arc-muted mb-6 inline-flex items-center gap-1"><Percent className="w-3 h-3 text-arc" /> economize ~17% (R$ 32,50/mês)</div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Até 10 membros</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Permissões granulares</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> 50GB de armazenamento</li>
+                <li className="flex items-center gap-2 text-sm text-arc"><CheckCircle className="w-4 h-4 text-arc" /> Suporte prioritário</li>
+              </ul>
+              <div className="flex items-center gap-2 text-xs text-arc-muted mb-4">
+                <CreditCard className="w-4 h-4 text-arc" />
+                <QrCode className="w-4 h-4 text-arc" />
+                <span>Cartão ou Pix</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/register?plan=team&billing=monthly" className="inline-flex items-center justify-center h-11 rounded-lg bg-arc text-arc-primary font-bold text-sm hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                  mensal
+                </Link>
+                <Link href="/register?plan=team&billing=annual" className="inline-flex items-center justify-center h-11 rounded-lg border-2 border-arc text-arc font-semibold text-sm hover:bg-arc-secondary transition-all">
+                  anual
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm text-arc-muted text-center mt-6 sm:mt-8 px-4">Sem taxas ocultas. Cancelamento a qualquer momento.</p>
         </div>
       </section>
 
-      {/* CTA section - Build in Public */}
-      <section className="bg-gray-900 text-white py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Users className="w-4 h-4" />
-            Construído pela comunidade, para a comunidade
-          </div>
-
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Produtividade não precisa ser cara
-          </h2>
-          <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-            Comece grátis ou ajude o projeto com apenas R$ 5/mês.
-            Cada apoio mantém a ferramenta online e melhora para todos.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition"
-            >
-              Começar gratuitamente
-              <ArrowRight className="w-5 h-5" />
+      {/* Footer minimalista */}
+      <footer className="py-10 sm:py-12 px-4 sm:px-6 border-t border-arc">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6 sm:mb-8">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Image src="/icon/arclogo.svg" alt="Arc" width={28} height={28} priority />
+              <span className="text-lg font-bold text-arc">arc.</span>
             </Link>
-            <Link
-              href="/build-in-public#contato"
-              className="inline-flex items-center gap-2 border-2 border-white/30 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:border-white/50 transition"
-            >
-              Apoiar o projeto
-            </Link>
+
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-xs sm:text-sm text-arc-muted">
+              <Link href="/build-in-public" className="hover:text-arc transition-colors">
+                Desenvolvido Abertamente
+              </Link>
+              <Link href="/pricing" className="hover:text-arc transition-colors">
+                Preços
+              </Link>
+              <Link href="/docs" className="hover:text-arc transition-colors">
+                Documentação
+              </Link>
+              <Link href="/privacy" className="hover:text-arc transition-colors">
+                Privacidade
+              </Link>
+              <Link href="/terms" className="hover:text-arc transition-colors">
+                Termos
+              </Link>
+            </div>
           </div>
 
-          <p className="text-sm text-gray-400 mt-6">
-            Plano gratuito robusto • Código aberto • Preços honestos
-          </p>
-        </div>
-      </section>
-
-      <footer className="border-t border-gray-200 py-12 bg-[#f6f4f0]">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Logo + nome */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/icon/arclogo.svg"
-              alt="Arc Logo"
-              width={32}
-              height={32}
-              priority
-            />
-            <span className="text-lg font-semibold text-gray-900">Arc.</span>
-          </Link>
-
-          {/* Links de navegação */}
-          <div className="flex gap-8 text-sm text-gray-600 text-center md:text-left">
-            <a href="#" className="hover:text-gray-900 transition">
-              Sobre
-            </a>
-            <a href="#" className="hover:text-gray-900 transition">
-              Blog
-            </a>
-            <a href="#" className="hover:text-gray-900 transition">
-              Ajuda
-            </a>
-            <a href="#" className="hover:text-gray-900 transition">
-              Privacidade
-            </a>
-            <a href="#" className="hover:text-gray-900 transition">
-              Termos
-            </a>
+          <div className="text-center text-xs sm:text-sm text-arc-muted pt-6 sm:pt-8 border-t border-arc">
+            <p>© 2025 arc. feito para quem faz acontecer.</p>
           </div>
         </div>
-
-        {/* Linha inferior */}
-        <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500">
-          <p>© 2025 Arc. Feito para pessoas que fazem acontecer.</p>
-        </div>
-      </div>
-    </footer>
+      </footer>
     </div>
-  );
+  )
 }

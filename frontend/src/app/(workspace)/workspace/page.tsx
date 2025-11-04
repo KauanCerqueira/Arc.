@@ -13,7 +13,10 @@ import {
   BarChart3,
   Users,
   Target,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  Shield,
+  UserPlus
 } from 'lucide-react';
 import { useWorkspaceStore } from '@/core/store/workspaceStore';
 import { useState, useEffect, useMemo } from 'react';
@@ -175,6 +178,50 @@ export default function WorkspaceHome() {
               </div>
             );
           })}
+        </div>
+
+        {/* Quick Actions - Team Management (Arc style) */}
+        <div className="rounded-xl p-6 border border-arc bg-arc-secondary">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg border border-arc flex items-center justify-center">
+                  <Users className="w-5 h-5 text-arc" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-arc">Gerenciar time.</h3>
+                  <p className="text-sm text-arc-muted">Convites, permissões e funções de equipe</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
+                <div className="rounded-md px-3 py-2 border border-arc">
+                  <div className="flex items-center gap-2 text-sm text-arc">
+                    <UserPlus className="w-4 h-4 text-arc-muted" />
+                    <span className="text-arc-muted">Convidar membros</span>
+                  </div>
+                </div>
+                <div className="rounded-md px-3 py-2 border border-arc">
+                  <div className="flex items-center gap-2 text-sm text-arc">
+                    <Shield className="w-4 h-4 text-arc-muted" />
+                    <span className="text-arc-muted">Configurar permissões</span>
+                  </div>
+                </div>
+                <div className="rounded-md px-3 py-2 border border-arc">
+                  <div className="flex items-center gap-2 text-sm text-arc">
+                    <Settings className="w-4 h-4 text-arc-muted" />
+                    <span className="text-arc-muted">Gerenciar funções</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/settings/team"
+              className="ml-6 px-4 py-2 rounded-[8px] border border-arc text-arc hover:bg-arc-secondary transition-colors flex items-center gap-2 whitespace-nowrap"
+            >
+              Acessar
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Main Content Grid */}

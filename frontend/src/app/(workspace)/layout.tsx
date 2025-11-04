@@ -13,6 +13,7 @@ import { GroupCreationModal } from "./components/modals/GroupCreationModal"
 import { PageCreationModal } from "./components/modals/PageCreationModal"
 import { Sidebar } from "./components/sidebar/Sidebar"
 import Header from "./components/header/Header"
+import { useTheme } from "@/core/context/ThemeContext"
 import {
   DndContext,
   type DragEndEvent,
@@ -25,6 +26,7 @@ import {
 } from "@dnd-kit/core"
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
+  const { theme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
   const { initializeAuth } = useAuthStore()
@@ -122,7 +124,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         if (!customGroupName.trim()) return
         addGroup(customGroupName)
       } else {
-        addGroupFromPreset(selectedPreset)
+        // Pass custom name if provided, otherwise preset will use its default name
+        addGroupFromPreset(selectedPreset, customGroupName.trim() || undefined)
       }
     }
 
@@ -221,13 +224,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthGuard>
+      <div className={theme === 'dark' ? 'dark' : ''}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col md:flex-row">
+        <div className="min-h-screen bg-arc-primary text-arc flex flex-col md:flex-row">
           {/* Sidebar Mobile Overlay */}
           {sidebarOpen && (
             <div
@@ -260,14 +264,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               setSidebarOpen={setSidebarOpen}
             />
 
-            <main className="h-screen overflow-auto bg-gray-50 dark:bg-black pt-16">{children}</main>
+            <main className="h-screen overflow-auto bg-arc-primary pt-16">{children}</main>
           </div>
         </div>
 
         <DragOverlay>
           {activeId ? (
-            <div className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-xl">
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Arrastando...</span>
+            <div className="px-3 py-2 bg-arc-secondary border border-arc rounded-lg shadow-xl">
+              <span className="text-sm font-medium text-arc">Arrastando...</span>
             </div>
           ) : null}
         </DragOverlay>
@@ -302,6 +306,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         onWorkspaceNameChange={setNewWorkspaceName}
         onCreateWorkspace={handleCreateWorkspace}
       />
+      </div>
     </AuthGuard>
   )
 }

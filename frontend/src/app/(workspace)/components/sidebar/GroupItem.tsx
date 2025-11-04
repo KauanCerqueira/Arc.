@@ -143,14 +143,14 @@ export function GroupItem({
             <div className="flex items-center gap-0.5 opacity-0 group-hover/group:opacity-100 transition-opacity duration-200 flex-shrink-0">
               <button
                 onClick={() => onAddPage(group.id)}
-                className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
+                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-md transition-all duration-200"
                 title="Nova página"
               >
                 <Plus className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
               </button>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
+                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-md transition-all duration-200"
                 title="Mais opções"
               >
                 <Edit2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
@@ -211,3 +211,4 @@ export function GroupItem({
     </div>
   )
 }
+

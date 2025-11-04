@@ -3,7 +3,6 @@ using Arc.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace Arc.API.Controllers;
 
@@ -12,12 +11,12 @@ namespace Arc.API.Controllers;
 [Authorize]
 public class ProjectsController : ControllerBase
 {
-    private readonly IPageService _pageService;
+    private readonly IProjectsService _projectsService;
     private readonly ILogger<ProjectsController> _logger;
 
-    public ProjectsController(IPageService pageService, ILogger<ProjectsController> logger)
+    public ProjectsController(IProjectsService projectsService, ILogger<ProjectsController> logger)
     {
-        _pageService = pageService;
+        _projectsService = projectsService;
         _logger = logger;
     }
 
@@ -33,11 +32,7 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<ProjectsDataDto>(jsonData) ?? new ProjectsDataDto();
-
+            var data = await _projectsService.GetAsync(pageId, userId);
             return Ok(data);
         }
         catch (Exception ex)
@@ -53,22 +48,8 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<ProjectsDataDto>(jsonData) ?? new ProjectsDataDto();
-
-            project.Id = Guid.NewGuid().ToString();
-            data.Projects.Add(project);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetProjectsData), new { pageId }, project);
+            var created = await _projectsService.AddAsync(pageId, userId, project);
+            return CreatedAtAction(nameof(GetProjectsData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -83,30 +64,12 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<ProjectsDataDto>(jsonData) ?? new ProjectsDataDto();
-
-            var project = data.Projects.FirstOrDefault(p => p.Id == projectId);
-            if (project == null)
-                return NotFound(new { message = "Projeto não encontrado" });
-
-            project.Name = updatedProject.Name;
-            project.Description = updatedProject.Description;
-            project.Status = updatedProject.Status;
-            project.Progress = updatedProject.Progress;
-            project.Deadline = updatedProject.Deadline;
-            project.Tags = updatedProject.Tags;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            var project = await _projectsService.UpdateAsync(pageId, userId, projectId, updatedProject);
             return Ok(project);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -121,24 +84,7 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<ProjectsDataDto>(jsonData) ?? new ProjectsDataDto();
-
-            var project = data.Projects.FirstOrDefault(p => p.Id == projectId);
-            if (project == null)
-                return NotFound(new { message = "Projeto não encontrado" });
-
-            data.Projects.Remove(project);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _projectsService.DeleteAsync(pageId, userId, projectId);
             return NoContent();
         }
         catch (Exception ex)
@@ -148,3 +94,4 @@ public class ProjectsController : ControllerBase
         }
     }
 }
+

@@ -9,6 +9,8 @@ import type {
   GroupPermission,
   SetGroupPermissionDto,
   UpgradeWorkspaceDto,
+  PagePermission,
+  SetPagePermissionDto,
 } from '../types/team.types';
 
 class TeamService {
@@ -127,6 +129,37 @@ class TeamService {
    */
   async removeGroupPermission(workspaceId: string, permissionId: string): Promise<void> {
     await api.delete(`/workspaces/${workspaceId}/team/permissions/${permissionId}`);
+  }
+
+  /**
+   * Define permissões de um membro em uma página
+   */
+  async setPagePermission(
+    workspaceId: string,
+    data: SetPagePermissionDto
+  ): Promise<PagePermission> {
+    const response = await api.post<PagePermission>(
+      `/workspaces/${workspaceId}/team/page-permissions`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Obtém permissões de uma página
+   */
+  async getPagePermissions(workspaceId: string, pageId: string): Promise<PagePermission[]> {
+    const response = await api.get<PagePermission[]>(
+      `/workspaces/${workspaceId}/team/pages/${pageId}/permissions`
+    );
+    return response.data;
+  }
+
+  /**
+   * Remove uma permissão de página
+   */
+  async removePagePermission(workspaceId: string, permissionId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/team/page-permissions/${permissionId}`);
   }
 }
 

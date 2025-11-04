@@ -200,6 +200,61 @@ namespace Arc.Infrastructure.Migrations
                     b.ToTable("pages", (string)null);
                 });
 
+            modelBuilder.Entity("Arc.Domain.Entities.PagePermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("CanComment")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_comment");
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_delete");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_edit");
+
+                    b.Property<bool>("CanShare")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_share");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_view");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("PageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("page_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PageId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("page_permissions", (string)null);
+                });
+
             modelBuilder.Entity("Arc.Domain.Entities.PromoCode", b =>
                 {
                     b.Property<Guid>("Id")
@@ -696,6 +751,25 @@ namespace Arc.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Arc.Domain.Entities.PagePermission", b =>
+                {
+                    b.HasOne("Arc.Domain.Entities.Page", "Page")
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Arc.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Page");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Arc.Domain.Entities.Subscription", b =>

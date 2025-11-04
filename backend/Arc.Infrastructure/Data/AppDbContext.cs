@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<WorkspaceMember> WorkspaceMembers { get; set; }
     public DbSet<WorkspaceInvitation> WorkspaceInvitations { get; set; }
     public DbSet<GroupPermission> GroupPermissions { get; set; }
+    public DbSet<PagePermission> PagePermissions { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<TeamMember> TeamMembers { get; set; }
 
@@ -325,6 +326,36 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.WorkspaceId);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => new { e.WorkspaceId, e.UserId }).IsUnique();
+        });
+
+        modelBuilder.Entity<PagePermission>(entity =>
+        {
+            entity.ToTable("page_permissions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PageId).HasColumnName("page_id").IsRequired();
+            entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(e => e.CanView).HasColumnName("can_view").IsRequired();
+            entity.Property(e => e.CanEdit).HasColumnName("can_edit").IsRequired();
+            entity.Property(e => e.CanComment).HasColumnName("can_comment").IsRequired();
+            entity.Property(e => e.CanDelete).HasColumnName("can_delete").IsRequired();
+            entity.Property(e => e.CanShare).HasColumnName("can_share").IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+            entity.HasOne(e => e.Page)
+                .WithMany()
+                .HasForeignKey(e => e.PageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.PageId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.PageId, e.UserId }).IsUnique();
         });
     }
 }

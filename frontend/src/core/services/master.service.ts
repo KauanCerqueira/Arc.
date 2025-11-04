@@ -1,58 +1,53 @@
 import api from './api.service';
 
-export interface UserDto {
+export type MvpSeedResult = {
+  workspaceId: string;
+  groupId: string;
+  kanbanPageId: string;
+  tasksPageId: string;
+  roadmapPageId: string;
+  kanbanCards: number;
+  tasksCount: number;
+  roadmapItems: number;
+};
+
+export type UserDto = {
   userId: string;
   nome: string;
   sobrenome: string;
   email: string;
-  bio: string | null;
-  icone: string | null;
-  profissao: string | null;
-  comoConheceu: string | null;
+  bio?: string;
+  icone?: string;
+  profissao?: string;
+  comoConheceu?: string;
   isMaster: boolean;
   ativo: boolean;
   criadoEm: string;
-}
+};
 
-export interface UpdateUserStatusDto {
-  ativo: boolean;
-}
+const masterService = {
+  async seedMvpDec(): Promise<MvpSeedResult> {
+    const res = await api.post<MvpSeedResult>('/master/seed-mvp-dec');
+    return res.data;
+  },
 
-export interface PromoteUserDto {
-  isMaster: boolean;
-}
-
-class MasterService {
-  /**
-   * Busca todos os usuários
-   */
   async getAllUsers(): Promise<UserDto[]> {
-    const response = await api.get<UserDto[]>('/master/users');
-    return response.data;
-  }
+    const res = await api.get<UserDto[]>('/master/users');
+    return res.data;
+  },
 
-  /**
-   * Ativa ou desativa um usuário
-   */
-  async toggleUserStatus(userId: string, ativo: boolean): Promise<UserDto> {
-    const response = await api.put<UserDto>(`/master/users/${userId}/status`, { ativo });
-    return response.data;
-  }
+  async toggleUserStatus(userId: string, ativo: boolean): Promise<void> {
+    await api.put(`/master/users/${userId}/status`, { ativo });
+  },
 
-  /**
-   * Promove ou remove privilégios master de um usuário
-   */
-  async toggleUserMaster(userId: string, isMaster: boolean): Promise<UserDto> {
-    const response = await api.put<UserDto>(`/master/users/${userId}/master`, { isMaster });
-    return response.data;
-  }
+  async toggleUserMaster(userId: string, isMaster: boolean): Promise<void> {
+    await api.put(`/master/users/${userId}/master`, { isMaster });
+  },
 
-  /**
-   * Deleta um usuário (permanentemente)
-   */
   async deleteUser(userId: string): Promise<void> {
     await api.delete(`/master/users/${userId}`);
-  }
-}
+  },
+};
 
-export default new MasterService();
+export default masterService;
+

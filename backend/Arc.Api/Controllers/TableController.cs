@@ -3,7 +3,6 @@ using Arc.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace Arc.API.Controllers;
 
@@ -12,12 +11,12 @@ namespace Arc.API.Controllers;
 [Authorize]
 public class TableController : ControllerBase
 {
-    private readonly IPageService _pageService;
+    private readonly ITableService _tableService;
     private readonly ILogger<TableController> _logger;
 
-    public TableController(IPageService pageService, ILogger<TableController> logger)
+    public TableController(ITableService tableService, ILogger<TableController> logger)
     {
-        _pageService = pageService;
+        _tableService = tableService;
         _logger = logger;
     }
 
@@ -33,11 +32,7 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
+            var data = await _tableService.GetAsync(pageId, userId);
             return Ok(data);
         }
         catch (Exception ex)
@@ -53,22 +48,8 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
-            column.Id = Guid.NewGuid().ToString();
-            data.Columns.Add(column);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetTableData), new { pageId }, column);
+            var created = await _tableService.AddColumnAsync(pageId, userId, column);
+            return CreatedAtAction(nameof(GetTableData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -83,22 +64,8 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
-            row.Id = Guid.NewGuid().ToString();
-            data.Rows.Add(row);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetTableData), new { pageId }, row);
+            var created = await _tableService.AddRowAsync(pageId, userId, row);
+            return CreatedAtAction(nameof(GetTableData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -113,25 +80,12 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
-            var row = data.Rows.FirstOrDefault(r => r.Id == rowId);
-            if (row == null)
-                return NotFound(new { message = "Linha não encontrada" });
-
-            row.Cells = updatedRow.Cells;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            var row = await _tableService.UpdateRowAsync(pageId, userId, rowId, updatedRow);
             return Ok(row);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -146,30 +100,7 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
-            var column = data.Columns.FirstOrDefault(c => c.Id == columnId);
-            if (column == null)
-                return NotFound(new { message = "Coluna não encontrada" });
-
-            data.Columns.Remove(column);
-
-            // Remover dados da coluna de todas as linhas
-            foreach (var row in data.Rows)
-            {
-                row.Cells.Remove(columnId);
-            }
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _tableService.DeleteColumnAsync(pageId, userId, columnId);
             return NoContent();
         }
         catch (Exception ex)
@@ -185,24 +116,7 @@ public class TableController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<TableDataDto>(jsonData) ?? new TableDataDto();
-
-            var row = data.Rows.FirstOrDefault(r => r.Id == rowId);
-            if (row == null)
-                return NotFound(new { message = "Linha não encontrada" });
-
-            data.Rows.Remove(row);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _tableService.DeleteRowAsync(pageId, userId, rowId);
             return NoContent();
         }
         catch (Exception ex)
@@ -212,3 +126,4 @@ public class TableController : ControllerBase
         }
     }
 }
+

@@ -17,4 +17,7 @@ public interface ITeamService
     Task<GroupPermissionDto> SetGroupPermissionAsync(Guid workspaceId, Guid userId, SetGroupPermissionDto dto);
     Task<IEnumerable<GroupPermissionDto>> GetGroupPermissionsAsync(Guid groupId, Guid userId);
     Task<bool> RemoveGroupPermissionAsync(Guid workspaceId, Guid userId, Guid permissionId);
+    Task<PagePermissionDto> SetPagePermissionAsync(Guid workspaceId, Guid userId, SetPagePermissionDto dto);
+    Task<IEnumerable<PagePermissionDto>> GetPagePermissionsAsync(Guid pageId, Guid userId);
+    Task<bool> RemovePagePermissionAsync(Guid workspaceId, Guid userId, Guid permissionId);
 }

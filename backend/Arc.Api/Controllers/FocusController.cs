@@ -3,7 +3,6 @@ using Arc.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace Arc.API.Controllers;
 
@@ -12,12 +11,12 @@ namespace Arc.API.Controllers;
 [Authorize]
 public class FocusController : ControllerBase
 {
-    private readonly IPageService _pageService;
+    private readonly IFocusService _focusService;
     private readonly ILogger<FocusController> _logger;
 
-    public FocusController(IPageService pageService, ILogger<FocusController> logger)
+    public FocusController(IFocusService focusService, ILogger<FocusController> logger)
     {
-        _pageService = pageService;
+        _focusService = focusService;
         _logger = logger;
     }
 
@@ -33,15 +32,7 @@ public class FocusController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<FocusDataDto>(jsonData) ?? new FocusDataDto();
-
-            // Recalcular totais
-            data.TotalSessions = data.Sessions.Count;
-            data.TotalMinutes = data.Sessions.Sum(s => s.Duration);
-
+            var data = await _focusService.GetAsync(pageId, userId);
             return Ok(data);
         }
         catch (Exception ex)
@@ -57,26 +48,8 @@ public class FocusController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<FocusDataDto>(jsonData) ?? new FocusDataDto();
-
-            session.Id = Guid.NewGuid().ToString();
-            session.StartTime = DateTime.UtcNow;
-            data.Sessions.Add(session);
-
-            data.TotalSessions = data.Sessions.Count;
-            data.TotalMinutes = data.Sessions.Sum(s => s.Duration);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetFocusData), new { pageId }, session);
+            var created = await _focusService.StartSessionAsync(pageId, userId, session);
+            return CreatedAtAction(nameof(GetFocusData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -91,25 +64,7 @@ public class FocusController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<FocusDataDto>(jsonData) ?? new FocusDataDto();
-
-            var session = data.Sessions.FirstOrDefault(s => s.Id == sessionId);
-            if (session == null)
-                return NotFound(new { message = "Sessão não encontrada" });
-
-            session.Completed = true;
-            session.EndTime = DateTime.UtcNow;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _focusService.CompleteSessionAsync(pageId, userId, sessionId);
             return Ok(new { message = "Sessão completada" });
         }
         catch (Exception ex)
@@ -120,27 +75,12 @@ public class FocusController : ControllerBase
     }
 
     [HttpGet("{pageId}/statistics")]
-    public async Task<ActionResult<object>> GetStatistics(Guid pageId)
+    public async Task<ActionResult<FocusStatisticsDto>> GetStatistics(Guid pageId)
     {
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<FocusDataDto>(jsonData) ?? new FocusDataDto();
-
-            var completedSessions = data.Sessions.Count(s => s.Completed);
-            var totalMinutes = data.Sessions.Sum(s => s.Duration);
-
-            var stats = new
-            {
-                TotalSessions = data.Sessions.Count,
-                CompletedSessions = completedSessions,
-                TotalMinutes = totalMinutes,
-                TotalHours = Math.Round(totalMinutes / 60.0, 2)
-            };
-
+            var stats = await _focusService.GetStatisticsAsync(pageId, userId);
             return Ok(stats);
         }
         catch (Exception ex)
@@ -150,3 +90,4 @@ public class FocusController : ControllerBase
         }
     }
 }
+

@@ -40,7 +40,7 @@ type WorkspaceStore = {
 
   // Ações - Grupos
   addGroup: (name: string) => Promise<void>;
-  addGroupFromPreset: (preset: GroupPreset) => Promise<void>;
+  addGroupFromPreset: (preset: GroupPreset, customName?: string) => Promise<void>;
   updateGroup: (groupId: string, updates: Partial<Group>) => Promise<void>;
   renameGroup: (groupId: string, newName: string) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;
@@ -316,12 +316,12 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   // ============================================
   // GRUPOS - ADICIONAR DE PRESET
   // ============================================
-  addGroupFromPreset: async (preset: GroupPreset) => {
+  addGroupFromPreset: async (preset: GroupPreset, customName?: string) => {
     set({ isLoading: true, error: null });
     try {
       await groupService.createGroupFromPreset({
         presetId: preset.id,
-        nome: preset.name,
+        nome: customName && customName.trim() ? customName.trim() : preset.name,
       });
       await get().loadWorkspace();
     } catch (error: any) {

@@ -142,7 +142,7 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
                 e.preventDefault()
                 setShowMenu(!showMenu)
               }}
-              className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
+              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-md transition-all duration-200"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>
@@ -190,3 +190,4 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
     </div>
   )
 }
+

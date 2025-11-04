@@ -32,6 +32,7 @@ builder.Services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
 builder.Services.AddScoped<IWorkspaceMemberRepository, WorkspaceMemberRepository>();
 builder.Services.AddScoped<IWorkspaceInvitationRepository, WorkspaceInvitationRepository>();
 builder.Services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
+builder.Services.AddScoped<IPagePermissionRepository, PagePermissionRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -52,6 +53,20 @@ builder.Services.AddScoped<ICalendarService, CalendarService>();
 builder.Services.AddScoped<IMindMapService, MindMapService>();
 builder.Services.AddScoped<ISprintService, SprintService>();
 builder.Services.AddScoped<IWikiService, WikiService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ITasksService, TasksService>();
+builder.Services.AddScoped<ITableService, TableService>();
+builder.Services.AddScoped<IProjectsService, ProjectsService>();
+builder.Services.AddScoped<IBugsService, BugsService>();
+builder.Services.AddScoped<IStudyService, StudyService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<IFocusService, FocusService>();
+builder.Services.AddScoped<INotesService, NotesService>();
+builder.Services.AddScoped<ITimelineService, TimelineService>();
+builder.Services.AddScoped<IWorkoutService, WorkoutService>();
+builder.Services.AddScoped<INutritionService, NutritionService>();
+builder.Services.AddScoped<IPersonalBudgetService, PersonalBudgetService>();
+builder.Services.AddScoped<IBusinessBudgetService, BusinessBudgetService>();
 
 // ===== AUTENTICAÇÃO JWT =====
 var jwtKey = builder.Configuration["Jwt:Key"]

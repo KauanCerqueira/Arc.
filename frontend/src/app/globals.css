@@ -5,11 +5,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
+  /* Cores customizadas - Light Mode */
   --color-primary: #0073EA;
   --color-primary-hover: #0060C0;
-  --color-border: #E6E9EF;
-  --color-text: #1F2937;
-  --color-text-light: #6B7280;
+  --color-border: #e0ddd8;
+  --color-text: #222222;
+  --color-text-light: #666666;
 
   /* Design moderno - cores brand */
   --color-purple-500: #8b5cf6;
@@ -17,30 +18,31 @@
   --color-orange-500: #f97316;
   --color-orange-600: #ea580c;
 
-  /* Backgrounds */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-tertiary: #f3f4f6;
-  --bg-sidebar: #1a1a1a;
+  /* Backgrounds - Light Mode */
+  --bg-primary: #f6f4f0;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eae7e0;
+  --bg-sidebar: #ffffff;
 
-  /* Sombras modernas */
-  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.12);
+  /* Sombras */
+  --shadow-soft: 0 2px 8px rgba(34, 34, 34, 0.04);
+  --shadow-medium: 0 4px 16px rgba(34, 34, 34, 0.08);
+  --shadow-strong: 0 8px 24px rgba(34, 34, 34, 0.12);
 }
 
 .dark {
+  /* Cores invertidas - Dark Mode */
   --color-primary: #3B82F6;
   --color-primary-hover: #2563EB;
-  --color-border: #374151;
-  --color-text: #F9FAFB;
-  --color-text-light: #D1D5DB;
+  --color-border: #333130;
+  --color-text: #f6f4f0;
+  --color-text-light: #c8c5c0;
 
-  /* Backgrounds dark */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #171717;
-  --bg-tertiary: #262626;
-  --bg-sidebar: #0a0a0a;
+  /* Backgrounds - Dark Mode (cores invertidas) */
+  --bg-primary: #222222;
+  --bg-secondary: #1a1918;
+  --bg-tertiary: #333130;
+  --bg-sidebar: #1a1918;
 
   /* Sombras dark */
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -56,16 +58,11 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f6f4f0;
+  background: var(--bg-primary);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.dark body {
-  background: #0f172a;
-  color: var(--color-text);
 }
 
 /* Scrollbar personalizada - Clean e quase imperceptível */
@@ -335,94 +332,6 @@ html {
   }
 }
 
-/* Theme Toggle Switch */
-.theme-toggle-button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.theme-toggle-checkbox {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.theme-toggle-svg {
-  width: 70px;
-  height: 44px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Container - dia azul claro, noite azul escuro */
-.theme-container {
-  fill: #83cbd8;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-container {
-  fill: #2b4360;
-}
-
-/* Botão - move para a direita quando marcado */
-.theme-button {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-button {
-  transform: translate(30.333px, 2.333px);
-}
-
-/* Sol - visível de dia, escondido à noite */
-.theme-sun {
-  opacity: 1;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-sun {
-  opacity: 0;
-}
-
-/* Lua - escondida de dia, visível à noite */
-.theme-moon {
-  opacity: 0;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-moon {
-  opacity: 1;
-}
-
-/* Nuvem - visível de dia, escondida à noite */
-.theme-cloud {
-  opacity: 1;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-cloud {
-  opacity: 0;
-}
-
-/* Estrelas - escondidas de dia, visíveis à noite */
-.theme-stars {
-  opacity: 0;
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-checkbox:checked ~ svg .theme-stars {
-  opacity: 1;
-}
-
-/* Hover effect */
-.theme-toggle-button:hover .theme-toggle-svg {
-  transform: scale(1.05);
-}
-
-.theme-toggle-button:active .theme-toggle-svg {
-  transform: scale(0.95);
-}
-
 /* Hide scrollbar for breadcrumbs */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
@@ -432,3 +341,62 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* === Arc. Visual Identity Overrides (Dark + Light) === */
+:root {
+  /* Brand tokens */
+  --arc-black: #0E0E0E;
+  --arc-white: #F6F5F2;
+  --arc-gray: #D9D9D9;
+  --arc-violet: #6E62E5;
+  --arc-red: #EB5757;
+  --arc-blue: #4D7DFF;
+
+  /* Light mode mapping */
+  --color-primary: var(--arc-violet);
+  --color-primary-hover: #5E55D9;
+  --color-border: #e0ddd8;
+  --color-text: #0E0E0E;
+  --color-text-light: #4A4A4A;
+
+  --bg-primary: var(--arc-white);
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #EAE7E0;
+  --bg-sidebar: #FFFFFF;
+}
+
+.dark {
+  /* Dark mode mapping */
+  --color-primary: var(--arc-violet);
+  --color-primary-hover: #5E55D9;
+  --color-border: #1F1F1F;
+  --color-text: var(--arc-white);
+  --color-text-light: var(--arc-gray);
+
+  --bg-primary: var(--arc-black);
+  --bg-secondary: #121212;
+  --bg-tertiary: #161616;
+  --bg-sidebar: #121212;
+}
+
+/* Utilities to bind Tailwind background helpers to tokens when needed */
+.bg-arc-primary { background-color: var(--bg-primary) !important; }
+.bg-arc-secondary { background-color: var(--bg-secondary) !important; }
+.text-arc { color: var(--color-text) !important; }
+.text-arc-muted { color: var(--color-text-light) !important; }
+.border-arc { border-color: var(--color-border) !important; }
+.accent-arc { color: var(--color-primary) !important; }
+.bg-arc-border { background-color: var(--color-border) !important; }
+
+/* Map common Tailwind dark backgrounds to Arc tokens */
+.dark .bg-black { background-color: var(--arc-black) !important; }
+.dark .bg-slate-900 { background-color: var(--bg-primary) !important; }
+.dark .bg-slate-800 { background-color: var(--bg-secondary) !important; }
+.dark .bg-white { background-color: var(--bg-secondary) !important; }
+.dark .bg-gray-50 { background-color: var(--bg-primary) !important; }
+.dark .text-gray-100 { color: var(--arc-white) !important; }
+.dark .text-gray-300 { color: var(--arc-gray) !important; }
+.dark .text-gray-700 { color: var(--arc-gray) !important; }
+.dark .text-gray-900 { color: var(--arc-white) !important; }
+.dark .border-slate-600 { border-color: var(--color-border) !important; }
+.dark .border-gray-200 { border-color: var(--color-border) !important; }

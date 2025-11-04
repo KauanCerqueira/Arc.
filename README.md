@@ -152,8 +152,6 @@ docker pull seu-username/projectly-frontend:latest
 - Frontend: Railway ou Vercel (Next.js)
 - Deploy automático via GitHub Actions
 
-**Documentação completa**: [DOCKER_SETUP.md](./DOCKER_SETUP.md)
-
 ## 🔧 Configuração
 
 ### Pré-requisitos

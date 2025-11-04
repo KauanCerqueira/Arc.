@@ -12,24 +12,29 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: '#E5E7EB',
+        // Cores customizadas - Light mode: fundo claro, texto escuro / Dark mode: invertido
+        'bg-primary': '#f6f4f0', // Fundo principal light mode
+        'bg-secondary': '#ffffff', // Fundo secundário light mode
+        'text-primary': '#222222', // Texto principal
+        'text-secondary': '#666666', // Texto secundário
+        border: '#e0ddd8',
         primary: {
-          DEFAULT: '#111827',
-          hover: '#1F2937',
+          DEFAULT: '#222222',
+          hover: '#333333',
         },
-        // Paleta neutra e profissional
+        // Paleta de grays ajustada para as novas cores
         gray: {
-          50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          900: '#111827',
-          950: '#030712',
+          50: '#f6f4f0',
+          100: '#eae7e0',
+          200: '#e0ddd8',
+          300: '#c8c5c0',
+          400: '#9d9a95',
+          500: '#7a7772',
+          600: '#5e5b56',
+          700: '#4a4744',
+          800: '#333130',
+          900: '#222222',
+          950: '#1a1918',
         },
       },
       fontFamily: {

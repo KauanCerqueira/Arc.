@@ -12,23 +12,29 @@ public class TeamService : ITeamService
     private readonly IWorkspaceMemberRepository _memberRepository;
     private readonly IWorkspaceInvitationRepository _invitationRepository;
     private readonly IGroupPermissionRepository _permissionRepository;
+    private readonly IPagePermissionRepository _pagePermissionRepository;
     private readonly IUserRepository _userRepository;
     private readonly IGroupRepository _groupRepository;
+    private readonly IPageRepository _pageRepository;
 
     public TeamService(
         IWorkspaceRepository workspaceRepository,
         IWorkspaceMemberRepository memberRepository,
         IWorkspaceInvitationRepository invitationRepository,
         IGroupPermissionRepository permissionRepository,
+        IPagePermissionRepository pagePermissionRepository,
         IUserRepository userRepository,
-        IGroupRepository groupRepository)
+        IGroupRepository groupRepository,
+        IPageRepository pageRepository)
     {
         _workspaceRepository = workspaceRepository;
         _memberRepository = memberRepository;
         _invitationRepository = invitationRepository;
         _permissionRepository = permissionRepository;
+        _pagePermissionRepository = pagePermissionRepository;
         _userRepository = userRepository;
         _groupRepository = groupRepository;
+        _pageRepository = pageRepository;
     }
 
     public async Task<WorkspaceTeamDto> GetTeamAsync(Guid workspaceId, Guid userId)
@@ -519,6 +525,152 @@ public class TeamService : ITeamService
             throw new Exception("Permissão não encontrada");
 
         await _permissionRepository.DeleteAsync(permissionId);
+        return true;
+    }
+
+    public async Task<PagePermissionDto> SetPagePermissionAsync(Guid workspaceId, Guid userId, SetPagePermissionDto dto)
+    {
+        var workspace = await _workspaceRepository.GetByIdAsync(workspaceId);
+        if (workspace == null)
+            throw new Exception("Workspace não encontrado");
+
+        // Verificar se o usuário tem permissão (é o dono ou é admin)
+        var role = await GetUserRoleInWorkspaceAsync(workspaceId, userId);
+        if (role != TeamRole.Owner && role != TeamRole.Admin)
+            throw new Exception("Você não tem permissão para gerenciar permissões");
+
+        // Verificar se a página pertence ao workspace
+        var page = await _pageRepository.GetByIdAsync(dto.PageId);
+        if (page == null)
+            throw new Exception("Página não encontrada");
+
+        var group = await _groupRepository.GetByIdAsync(page.GroupId);
+        if (group == null || group.WorkspaceId != workspaceId)
+            throw new Exception("Página não encontrada neste workspace");
+
+        // Verificar se o usuário alvo é membro
+        var isMember = await _memberRepository.IsUserMemberAsync(workspaceId, dto.UserId);
+        if (!isMember && workspace.UserId != dto.UserId)
+            throw new Exception("O usuário não é membro deste workspace");
+
+        // Verificar se já existe permissão
+        var existingPermission = await _pagePermissionRepository.GetByPageAndUserAsync(dto.PageId, dto.UserId);
+
+        PagePermission permission;
+        if (existingPermission != null)
+        {
+            existingPermission.CanView = dto.CanView;
+            existingPermission.CanEdit = dto.CanEdit;
+            existingPermission.CanComment = dto.CanComment;
+            existingPermission.CanDelete = dto.CanDelete;
+            existingPermission.CanShare = dto.CanShare;
+            await _pagePermissionRepository.UpdateAsync(existingPermission);
+            permission = existingPermission;
+        }
+        else
+        {
+            permission = new PagePermission
+            {
+                PageId = dto.PageId,
+                UserId = dto.UserId,
+                CanView = dto.CanView,
+                CanEdit = dto.CanEdit,
+                CanComment = dto.CanComment,
+                CanDelete = dto.CanDelete,
+                CanShare = dto.CanShare
+            };
+            await _pagePermissionRepository.CreateAsync(permission);
+        }
+
+        var user = await _userRepository.GetByIdAsync(dto.UserId);
+
+        return new PagePermissionDto
+        {
+            Id = permission.Id,
+            PageId = permission.PageId,
+            PageTitle = page.Nome,
+            UserId = permission.UserId,
+            UserName = $"{user?.Nome} {user?.Sobrenome}",
+            UserEmail = user?.Email ?? "",
+            UserIcon = user?.Icone,
+            CanView = permission.CanView,
+            CanEdit = permission.CanEdit,
+            CanComment = permission.CanComment,
+            CanDelete = permission.CanDelete,
+            CanShare = permission.CanShare,
+            CreatedAt = permission.CreatedAt,
+            UpdatedAt = permission.UpdatedAt
+        };
+    }
+
+    public async Task<IEnumerable<PagePermissionDto>> GetPagePermissionsAsync(Guid pageId, Guid userId)
+    {
+        var page = await _pageRepository.GetByIdAsync(pageId);
+        if (page == null)
+            throw new Exception("Página não encontrada");
+
+        var group = await _groupRepository.GetByIdAsync(page.GroupId);
+        if (group == null)
+            throw new Exception("Grupo não encontrado");
+
+        // Verificar se o usuário tem permissão
+        var role = await GetUserRoleInWorkspaceAsync(group.WorkspaceId, userId);
+        if (role != TeamRole.Owner && role != TeamRole.Admin)
+            throw new Exception("Você não tem permissão para visualizar permissões");
+
+        var permissions = await _pagePermissionRepository.GetByPageIdAsync(pageId);
+
+        var permissionDtos = new List<PagePermissionDto>();
+        foreach (var permission in permissions)
+        {
+            var user = permission.User ?? await _userRepository.GetByIdAsync(permission.UserId);
+            permissionDtos.Add(new PagePermissionDto
+            {
+                Id = permission.Id,
+                PageId = permission.PageId,
+                PageTitle = page.Nome,
+                UserId = permission.UserId,
+                UserName = $"{user?.Nome} {user?.Sobrenome}",
+                UserEmail = user?.Email ?? "",
+                UserIcon = user?.Icone,
+                CanView = permission.CanView,
+                CanEdit = permission.CanEdit,
+                CanComment = permission.CanComment,
+                CanDelete = permission.CanDelete,
+                CanShare = permission.CanShare,
+                CreatedAt = permission.CreatedAt,
+                UpdatedAt = permission.UpdatedAt
+            });
+        }
+
+        return permissionDtos;
+    }
+
+    public async Task<bool> RemovePagePermissionAsync(Guid workspaceId, Guid userId, Guid permissionId)
+    {
+        var workspace = await _workspaceRepository.GetByIdAsync(workspaceId);
+        if (workspace == null)
+            throw new Exception("Workspace não encontrado");
+
+        // Verificar se o usuário tem permissão
+        var role = await GetUserRoleInWorkspaceAsync(workspaceId, userId);
+        if (role != TeamRole.Owner && role != TeamRole.Admin)
+            throw new Exception("Você não tem permissão para remover permissões");
+
+        var permission = await _pagePermissionRepository.GetByIdAsync(permissionId);
+        if (permission == null)
+            throw new Exception("Permissão não encontrada");
+
+        // Verificar se a permissão pertence a uma página do workspace
+        var page = await _pageRepository.GetByIdAsync(permission.PageId);
+        if (page == null)
+            throw new Exception("Permissão não encontrada");
+
+        var group = await _groupRepository.GetByIdAsync(page.GroupId);
+        if (group == null || group.WorkspaceId != workspaceId)
+            throw new Exception("Permissão não encontrada");
+
+        await _pagePermissionRepository.DeleteAsync(permissionId);
         return true;
     }
 

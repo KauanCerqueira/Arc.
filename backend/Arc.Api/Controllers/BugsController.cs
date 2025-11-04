@@ -3,7 +3,6 @@ using Arc.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace Arc.API.Controllers;
 
@@ -12,12 +11,12 @@ namespace Arc.API.Controllers;
 [Authorize]
 public class BugsController : ControllerBase
 {
-    private readonly IPageService _pageService;
+    private readonly IBugsService _bugsService;
     private readonly ILogger<BugsController> _logger;
 
-    public BugsController(IPageService pageService, ILogger<BugsController> logger)
+    public BugsController(IBugsService bugsService, ILogger<BugsController> logger)
     {
-        _pageService = pageService;
+        _bugsService = bugsService;
         _logger = logger;
     }
 
@@ -33,11 +32,7 @@ public class BugsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BugsDataDto>(jsonData) ?? new BugsDataDto();
-
+            var data = await _bugsService.GetAsync(pageId, userId);
             return Ok(data);
         }
         catch (Exception ex)
@@ -53,23 +48,8 @@ public class BugsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BugsDataDto>(jsonData) ?? new BugsDataDto();
-
-            bug.Id = Guid.NewGuid().ToString();
-            bug.CreatedAt = DateTime.UtcNow;
-            data.Bugs.Add(bug);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetBugsData), new { pageId }, bug);
+            var created = await _bugsService.AddAsync(pageId, userId, bug);
+            return CreatedAtAction(nameof(GetBugsData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -84,32 +64,12 @@ public class BugsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BugsDataDto>(jsonData) ?? new BugsDataDto();
-
-            var bug = data.Bugs.FirstOrDefault(b => b.Id == bugId);
-            if (bug == null)
-                return NotFound(new { message = "Bug não encontrado" });
-
-            bug.Title = updatedBug.Title;
-            bug.Description = updatedBug.Description;
-            bug.Status = updatedBug.Status;
-            bug.Priority = updatedBug.Priority;
-            bug.AssignedTo = updatedBug.AssignedTo;
-
-            if (updatedBug.Status == "resolved" && bug.ResolvedAt == null)
-                bug.ResolvedAt = DateTime.UtcNow;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            var bug = await _bugsService.UpdateAsync(pageId, userId, bugId, updatedBug);
             return Ok(bug);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -124,24 +84,7 @@ public class BugsController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BugsDataDto>(jsonData) ?? new BugsDataDto();
-
-            var bug = data.Bugs.FirstOrDefault(b => b.Id == bugId);
-            if (bug == null)
-                return NotFound(new { message = "Bug não encontrado" });
-
-            data.Bugs.Remove(bug);
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _bugsService.DeleteAsync(pageId, userId, bugId);
             return NoContent();
         }
         catch (Exception ex)
@@ -151,3 +94,4 @@ public class BugsController : ControllerBase
         }
     }
 }
+

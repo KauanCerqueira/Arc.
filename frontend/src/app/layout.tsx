@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/core/context/ThemeContext';
 
 export const metadata: Metadata = {
-  title: 'Arc. - Gestão de Projetos',
+  title: 'arc. - Gestão de Projetos',
   description: 'Plataforma de produtividade pessoal',
   icons: {
     icon: '/icon/arclogo.svg',
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     userScalable: true,
   },
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#F6F5F2' },
+    { media: '(prefers-color-scheme: dark)', color: '#0E0E0E' },
   ],
   appleWebApp: {
     capable: true,

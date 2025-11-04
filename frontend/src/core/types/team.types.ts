@@ -92,3 +92,30 @@ export interface SetGroupPermissionDto {
 export interface UpgradeWorkspaceDto {
   maxMembers: number;
 }
+
+export interface PagePermission {
+  id: string;
+  pageId: string;
+  pageTitle: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userIcon: string | null;
+  canView: boolean;
+  canEdit: boolean;
+  canComment: boolean;
+  canDelete: boolean;
+  canShare: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SetPagePermissionDto {
+  pageId: string;
+  userId: string;
+  canView: boolean;
+  canEdit: boolean;
+  canComment: boolean;
+  canDelete: boolean;
+  canShare: boolean;
+}

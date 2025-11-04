@@ -3,7 +3,6 @@ using Arc.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace Arc.API.Controllers;
 
@@ -12,12 +11,12 @@ namespace Arc.API.Controllers;
 [Authorize]
 public class BudgetController : ControllerBase
 {
-    private readonly IPageService _pageService;
+    private readonly IBudgetService _budgetService;
     private readonly ILogger<BudgetController> _logger;
 
-    public BudgetController(IPageService pageService, ILogger<BudgetController> logger)
+    public BudgetController(IBudgetService budgetService, ILogger<BudgetController> logger)
     {
-        _pageService = pageService;
+        _budgetService = budgetService;
         _logger = logger;
     }
 
@@ -33,16 +32,7 @@ public class BudgetController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BudgetDataDto>(jsonData) ?? new BudgetDataDto();
-
-            // Recalcular totais
-            data.TotalIncome = data.Items.Where(i => i.Type == "income").Sum(i => i.Amount);
-            data.TotalExpense = data.Items.Where(i => i.Type == "expense").Sum(i => i.Amount);
-            data.Balance = data.TotalIncome - data.TotalExpense;
-
+            var data = await _budgetService.GetAsync(pageId, userId);
             return Ok(data);
         }
         catch (Exception ex)
@@ -58,27 +48,8 @@ public class BudgetController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BudgetDataDto>(jsonData) ?? new BudgetDataDto();
-
-            item.Id = Guid.NewGuid().ToString();
-            data.Items.Add(item);
-
-            // Recalcular totais
-            data.TotalIncome = data.Items.Where(i => i.Type == "income").Sum(i => i.Amount);
-            data.TotalExpense = data.Items.Where(i => i.Type == "expense").Sum(i => i.Amount);
-            data.Balance = data.TotalIncome - data.TotalExpense;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
-            return CreatedAtAction(nameof(GetBudgetData), new { pageId }, item);
+            var created = await _budgetService.AddItemAsync(pageId, userId, item);
+            return CreatedAtAction(nameof(GetBudgetData), new { pageId }, created);
         }
         catch (Exception ex)
         {
@@ -93,29 +64,7 @@ public class BudgetController : ControllerBase
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BudgetDataDto>(jsonData) ?? new BudgetDataDto();
-
-            var item = data.Items.FirstOrDefault(i => i.Id == itemId);
-            if (item == null)
-                return NotFound(new { message = "Item não encontrado" });
-
-            data.Items.Remove(item);
-
-            // Recalcular totais
-            data.TotalIncome = data.Items.Where(i => i.Type == "income").Sum(i => i.Amount);
-            data.TotalExpense = data.Items.Where(i => i.Type == "expense").Sum(i => i.Amount);
-            data.Balance = data.TotalIncome - data.TotalExpense;
-
-            var updateDto = new Application.DTOs.Page.UpdatePageDataRequestDto
-            {
-                Data = JsonSerializer.Serialize(data)
-            };
-
-            await _pageService.UpdateDataAsync(pageId, userId, updateDto);
-
+            await _budgetService.DeleteItemAsync(pageId, userId, itemId);
             return NoContent();
         }
         catch (Exception ex)
@@ -126,27 +75,12 @@ public class BudgetController : ControllerBase
     }
 
     [HttpGet("{pageId}/statistics")]
-    public async Task<ActionResult<object>> GetStatistics(Guid pageId)
+    public async Task<ActionResult<BudgetStatisticsDto>> GetStatistics(Guid pageId)
     {
         try
         {
             var userId = GetUserId();
-            var page = await _pageService.GetByIdAsync(pageId, userId);
-
-            string jsonData = page.Data?.ToString() ?? "{}";
-            var data = JsonSerializer.Deserialize<BudgetDataDto>(jsonData) ?? new BudgetDataDto();
-
-            var totalIncome = data.Items.Where(i => i.Type == "income").Sum(i => i.Amount);
-            var totalExpense = data.Items.Where(i => i.Type == "expense").Sum(i => i.Amount);
-
-            var stats = new
-            {
-                TotalIncome = totalIncome,
-                TotalExpense = totalExpense,
-                Balance = totalIncome - totalExpense,
-                ItemCount = data.Items.Count
-            };
-
+            var stats = await _budgetService.GetStatisticsAsync(pageId, userId);
             return Ok(stats);
         }
         catch (Exception ex)
@@ -156,3 +90,4 @@ public class BudgetController : ControllerBase
         }
     }
 }
+

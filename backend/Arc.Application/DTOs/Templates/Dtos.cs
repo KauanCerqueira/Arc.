@@ -41,6 +41,14 @@ public class TasksDataDto
     public List<TaskItemDto> Tasks { get; set; } = new();
 }
 
+public class TasksStatisticsDto
+{
+    public int Total { get; set; }
+    public int Completed { get; set; }
+    public int Pending { get; set; }
+    public double CompletionRate { get; set; }
+}
+
 // ===== KANBAN TEMPLATE =====
 
 public class KanbanCardDto
@@ -211,6 +219,14 @@ public class BudgetDataDto
     public decimal Balance { get; set; }
 }
 
+public class BudgetStatisticsDto
+{
+    public decimal TotalIncome { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal Balance { get; set; }
+    public int ItemCount { get; set; }
+}
+
 // ===== SPRINT TEMPLATE =====
 
 public class SprintTaskDto
@@ -259,4 +275,12 @@ public class FocusDataDto
     public List<PomodoroSessionDto> Sessions { get; set; } = new();
     public int TotalSessions { get; set; }
     public int TotalMinutes { get; set; }
+}
+
+public class FocusStatisticsDto
+{
+    public int TotalSessions { get; set; }
+    public int CompletedSessions { get; set; }
+    public int TotalMinutes { get; set; }
+    public double TotalHours { get; set; }
 }

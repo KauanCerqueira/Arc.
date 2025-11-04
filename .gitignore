@@ -120,3 +120,15 @@ secrets.json
 *.key
 *.pem
 *.pfx
+
+# ===== TypeScript =====
+*.tsbuildinfo
+
+# ===== Temporary Files =====
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib
+*.old
+*.backup

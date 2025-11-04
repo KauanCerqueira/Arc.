@@ -15,31 +15,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
-  // Carregar tema do localStorage ao montar
+  // Carregar tema do localStorage ao montar (padrão sempre claro)
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (prefersDark) {
-      setTheme('dark');
-    }
-    
+    if (savedTheme) setTheme(savedTheme);
     setMounted(true);
   }, []);
 
-  // Aplicar tema ao document
+  // Persistir tema (não aplica classe global; escopo será controlado pelo layout do workspace)
   useEffect(() => {
     if (mounted) {
-      const root = document.documentElement;
-      
-      if (theme === 'dark') {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
-      
       localStorage.setItem('theme', theme);
     }
   }, [theme, mounted]);

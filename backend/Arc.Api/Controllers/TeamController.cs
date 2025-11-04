@@ -207,6 +207,60 @@ public class TeamController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Define permissões de um membro em uma página
+    /// </summary>
+    [HttpPost("page-permissions")]
+    public async Task<IActionResult> SetPagePermission(Guid workspaceId, [FromBody] SetPagePermissionDto dto)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var permission = await _teamService.SetPagePermissionAsync(workspaceId, userId, dto);
+            return Ok(permission);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Obtém permissões de uma página
+    /// </summary>
+    [HttpGet("pages/{pageId}/permissions")]
+    public async Task<IActionResult> GetPagePermissions(Guid workspaceId, Guid pageId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var permissions = await _teamService.GetPagePermissionsAsync(pageId, userId);
+            return Ok(permissions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Remove uma permissão de página
+    /// </summary>
+    [HttpDelete("page-permissions/{permissionId}")]
+    public async Task<IActionResult> RemovePagePermission(Guid workspaceId, Guid permissionId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            await _teamService.RemovePagePermissionAsync(workspaceId, userId, permissionId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
 
 /// <summary>

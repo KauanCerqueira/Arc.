@@ -20,16 +20,19 @@ import {
   Plus,
   Trash2,
   ShieldCheck,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 import billingService, { type PaymentMethod } from "@/core/services/billing.service";
 import PaymentWallet from "@/app/(workspace)/components/payments/PaymentWallet";
+import Link from "next/link";
 
 type ThemeMode = "light" | "dark" | "system";
 
 export default function SettingsPage() {
   const { user, updateProfile, updatePassword, refreshProfile, isLoading } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "appearance" | "notifications" | "payments">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "appearance" | "notifications" | "payments" | "team">("profile");
 
   // Profile form state
   const [nome, setNome] = useState("");
@@ -236,6 +239,7 @@ export default function SettingsPage() {
       { id: "appearance", name: "Aparência", icon: Palette },
       { id: "notifications", name: "Notificações", icon: Bell },
       { id: "payments", name: "Pagamentos", icon: CreditCard },
+      { id: "team", name: "Time", icon: Users },
     ],
     []
   );
@@ -654,6 +658,73 @@ export default function SettingsPage() {
                         <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition ${productNotifs ? 'translate-x-5' : ''}`}></div>
                       </div>
                     </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "team" && (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gerenciamento de Time</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">Gerencie membros, funções e permissões do workspace</p>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-8 border-2 border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Users className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        Configurações Avançadas de Time
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Acesse a página de gerenciamento completo para:
+                      </p>
+                      <ul className="space-y-2 mb-6">
+                        <li className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Check className="w-5 h-5 text-green-600" />
+                          Convidar e remover membros
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Check className="w-5 h-5 text-green-600" />
+                          Definir funções (Owner, Admin, Member)
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Check className="w-5 h-5 text-green-600" />
+                          Configurar permissões de grupos e páginas
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Check className="w-5 h-5 text-green-600" />
+                          Visualizar convites pendentes
+                        </li>
+                      </ul>
+                      <Link
+                        href="/settings/team"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
+                      >
+                        Acessar Gerenciamento de Time
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">3</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Membros Ativos</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">1</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Convite Pendente</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">5</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Permissões Ativas</div>
                   </div>
                 </div>
               </div>
