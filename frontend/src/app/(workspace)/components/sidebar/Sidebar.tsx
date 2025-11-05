@@ -87,6 +87,15 @@ export function Sidebar({
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
       <aside
         className={`fixed top-0 left-0 h-screen bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col z-40
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}

@@ -1,14 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Plus,
   MoreHorizontal,
   CalendarIcon,
   MessageSquare,
-  FileText,
-  LinkIcon,
   CheckCircle,
   Grid3x3,
   List,
@@ -17,171 +15,53 @@ import {
   Archive,
   Edit,
   Trash2,
-  Moon,
-  Sun,
+  Send,
 } from "lucide-react"
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar"
 import "react-circular-progressbar/dist/styles.css"
-const cn = (...classes: (string | undefined | boolean)[]) => {
-  return classes.filter(Boolean).join(' ');
-};
-// Local lightweight UI component fallbacks. These keep this template self-contained
-// and avoid TypeScript/module-resolution errors when '@/components/ui/*' is not present.
-function Button({
-  children,
-  onClick,
-  className,
-  variant,
-  size,
-  disabled,
-}: {
-  children?: React.ReactNode
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
-  className?: string
-  variant?: string
-  size?: string
-  disabled?: boolean
-}) {
-  return (
-    <button onClick={onClick} className={className} disabled={disabled}>
-      {children}
-    </button>
-  )
-}
+import { cn } from "@/shared/lib/utils"
+import { Button } from "@/shared/components/ui/Button"
+import { Input } from "@/shared/components/ui/Input"
+import { Textarea } from "@/shared/components/ui/Textarea"
+import { Badge } from "@/shared/components/ui/Badge"
+import { Checkbox } from "@/shared/components/ui/Checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/Dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/Select"
+import teamService from "@/core/services/team.service"
+import type { WorkspaceMember } from "@/core/types/team.types"
 
-function Input({
-  value,
-  onChange,
-  placeholder,
-  type,
-  className,
-}: {
-  value?: string | undefined
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
-  type?: string
-  className?: string
-}) {
-  return <input className={className} value={value} onChange={onChange} placeholder={placeholder} type={type} />
-}
-
-// Lightweight local Dialog components as a fallback if '@/components/ui/dialog' is missing.
-// These mirror the minimal API used in this file: <Dialog open onOpenChange>, <DialogContent>, <DialogHeader>, <DialogTitle>
-export const Dialog: React.FC<{ open?: boolean; onOpenChange?: (open: boolean) => void; children?: React.ReactNode }> = ({
-  children,
-}) => {
-  // This simple implementation always renders its children; open/onOpenChange are accepted for compatibility.
-  return <>{children}</>
-}
-
-export const DialogContent: React.FC<{ className?: string; children?: React.ReactNode }> = ({ className, children }) => {
-  return <div className={className}>{children}</div>
-}
-
-export const DialogHeader: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  return <div className="mb-2">{children}</div>
-}
-
-export const DialogTitle: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  return <h2 className="text-lg font-semibold">{children}</h2>
-}
-
-// Simple Select family: Select, SelectTrigger, SelectValue, SelectContent, SelectItem
-// Select will parse its children to build native <select> options and call onValueChange.
-type SelectProps = {
-  value?: string | undefined
-  onValueChange?: (v: any) => void
-  children?: React.ReactNode
-}
-
-function Select({ value, onValueChange, children }: SelectProps) {
-  // collect SelectItem children
-  const items: { value: string; label: React.ReactNode }[] = []
-
-  function walk(node: React.ReactNode) {
-    if (!node) return
-    if (Array.isArray(node)) return node.forEach(walk)
-    const el = node as React.ReactElement<any>
-    if (!el) return
-    if ((el.type as any) === SelectItem) {
-      items.push({ value: el.props.value, label: el.props.children })
-      return
-    }
-    // recurse into children
-    if (el.props && el.props.children) walk(el.props.children)
-  }
-
-  walk(children)
-
-  return (
-    <div>
-      <select
-        value={value}
-        onChange={(e) => onValueChange && onValueChange(e.target.value)}
-        className="rounded"
-      >
-        {items.map((it) => (
-          <option key={it.value} value={it.value}>
-            {it.label}
-          </option>
-        ))}
-      </select>
-      {/* render trigger/value/content normally for visual compatibility */}
-      {children}
-    </div>
-  )
-}
-
-function SelectTrigger({ children }: { children?: React.ReactNode }) {
-  return <div>{children}</div>
-}
-
-function SelectValue() {
-  return <span />
-}
-
-function SelectContent({ children }: { children?: React.ReactNode }) {
-  return <div>{children}</div>
-}
-
-function SelectItem({ value, children }: { value: string; children?: React.ReactNode }) {
-  // rendered only as a React element for Select to parse; nothing to render by itself
-  return <>{children}</>
-}
-
-function Textarea({ value, onChange, placeholder, rows, className }: { value?: string; onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; placeholder?: string; rows?: number; className?: string }) {
-  return <textarea className={className} value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
-}
-
-function Badge({ children, className, variant }: { children?: React.ReactNode; className?: string; variant?: string }) {
-  return <span className={className}>{children}</span>
-}
-
-function Checkbox({ checked, onCheckedChange, onClick, className }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; onClick?: (e: React.MouseEvent<HTMLInputElement>) => void; className?: string }) {
-  return (
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onCheckedChange && onCheckedChange(e.target.checked)}
-      onClick={onClick}
-      className={className}
-    />
-  )
-}
-
+// Types
 type Status = { id: string; name: string; color: string; icon: React.FC }
 type Label = { id: string; name: string; color: string }
-type User = { id: string; name: string; avatar?: string }
+type User = { id: string; name: string; email: string; avatar?: string }
 type Progress = { completed: number; total: number }
+
+interface Comment {
+  id: string
+  userId: string
+  userName: string
+  content: string
+  createdAt: string
+}
+
 type Task = {
   id: string
   title: string
   description: string
   status: Status
   date?: string
-  comments: number
-  attachments: number
-  links: number
+  comments: Comment[]
   progress: Progress
   assignees: User[]
   labels: Label[]
@@ -189,6 +69,7 @@ type Task = {
   archived?: boolean
 }
 
+// Status Icons
 const BacklogIcon: React.FC = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
     <circle
@@ -330,26 +211,16 @@ const labels: Label[] = [
   { id: "feature", name: "Funcionalidade", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
 ]
 
-const users: User[] = [
-  { id: "u1", name: "Alice Johnson" },
-  { id: "u2", name: "Bob Smith" },
-  { id: "u3", name: "Charlie Brown" },
-  { id: "u4", name: "Diana Prince" },
-  { id: "u5", name: "Eve Wilson" },
-]
-
 const tasksSeed: Task[] = [
   {
     id: "t1",
     title: "Redesign do app mobile",
     description: "Redesign completo da aplicação mobile para melhor UX",
     status: STATUSES[0],
-    date: "10 Fev",
-    comments: 2,
-    attachments: 5,
-    links: 3,
+    date: "2025-02-10",
+    comments: [],
     progress: { completed: 0, total: 0 },
-    assignees: [users[0], users[1]],
+    assignees: [],
     labels: [labels[0]],
     priority: "high",
   },
@@ -358,56 +229,12 @@ const tasksSeed: Task[] = [
     title: "Atualização do design system",
     description: "Melhorar design system para consistência e usabilidade",
     status: STATUSES[1],
-    date: "25 Jan",
-    comments: 4,
-    attachments: 0,
-    links: 0,
+    date: "2025-01-25",
+    comments: [],
     progress: { completed: 1, total: 4 },
-    assignees: [users[2]],
+    assignees: [],
     labels: [labels[0], labels[3]],
     priority: "urgent",
-  },
-  {
-    id: "t3",
-    title: "Funcionalidades de busca",
-    description: "Melhorar busca para resultados mais rápidos e precisos",
-    status: STATUSES[2],
-    date: "25 Jan",
-    comments: 0,
-    attachments: 0,
-    links: 12,
-    progress: { completed: 2, total: 4 },
-    assignees: [users[1], users[3]],
-    labels: [labels[1]],
-    priority: "high",
-  },
-  {
-    id: "t4",
-    title: "Design do fluxo de checkout",
-    description: "Otimizar processo de checkout para melhorar conversão",
-    status: STATUSES[2],
-    date: "25 Jan",
-    comments: 0,
-    attachments: 0,
-    links: 12,
-    progress: { completed: 0, total: 4 },
-    assignees: [users[0]],
-    labels: [labels[0]],
-    priority: "medium",
-  },
-  {
-    id: "t5",
-    title: "Sistema de ícones",
-    description: "Desenvolver ícones escaláveis para visuais coesos",
-    status: STATUSES[1],
-    date: "25 Jan",
-    comments: 0,
-    attachments: 0,
-    links: 0,
-    progress: { completed: 0, total: 0 },
-    assignees: [],
-    labels: [],
-    priority: "low",
   },
 ]
 
@@ -427,6 +254,7 @@ function Avatar({ user }: { user: User }) {
         "size-6 border-2 border-white dark:border-slate-900 rounded-full text-[10px] font-semibold flex items-center justify-center text-white",
         colors[colorIndex],
       )}
+      title={`${user.name} (${user.email})`}
     >
       {initials}
     </div>
@@ -451,11 +279,75 @@ function PriorityBadge({ priority }: { priority: Task["priority"] }) {
   )
 }
 
+function CommentsModal({
+  task,
+  open,
+  onOpenChange,
+  onAddComment,
+}: {
+  task: Task
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onAddComment: (taskId: string, content: string) => void
+}) {
+  const [newComment, setNewComment] = useState("")
+
+  const handleSubmit = () => {
+    if (!newComment.trim()) return
+    onAddComment(task.id, newComment)
+    setNewComment("")
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Comentários - {task.title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4 max-h-[500px] overflow-y-auto">
+          {task.comments.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-8">Nenhum comentário ainda</p>
+          ) : (
+            task.comments.map((comment) => (
+              <div key={comment.id} className="border-b border-gray-200 dark:border-slate-800 pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">{comment.userName}</span>
+                  <span className="text-xs text-gray-500">{new Date(comment.createdAt).toLocaleString('pt-BR')}</span>
+                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Escreva seu comentário..."
+            rows={3}
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.ctrlKey) {
+                handleSubmit()
+              }
+            }}
+          />
+          <Button onClick={handleSubmit} disabled={!newComment.trim()} className="self-end">
+            <Send className="size-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500">Ctrl + Enter para enviar</p>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function TaskCard({
   task,
   onEdit,
   onArchive,
   onDelete,
+  onOpenComments,
   selected,
   onSelect,
   viewMode,
@@ -465,6 +357,7 @@ function TaskCard({
   onEdit: (task: Task) => void
   onArchive: (id: string) => void
   onDelete: (id: string) => void
+  onOpenComments: (task: Task) => void
   selected: boolean
   onSelect: (id: string) => void
   viewMode: "board" | "list"
@@ -515,15 +408,19 @@ function TaskCard({
             {task.date && (
               <div className="flex items-center gap-1.5">
                 <CalendarIcon className="size-3" />
-                <span>{task.date}</span>
+                <span>{new Date(task.date).toLocaleDateString('pt-BR')}</span>
               </div>
             )}
-            {task.comments > 0 && (
-              <div className="flex items-center gap-1.5">
-                <MessageSquare className="size-3" />
-                <span>{task.comments}</span>
-              </div>
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenComments(task)
+              }}
+              className="flex items-center gap-1.5 hover:text-blue-500"
+            >
+              <MessageSquare className="size-3" />
+              <span>{task.comments.length}</span>
+            </button>
             {hasProgress && (
               <div className="flex items-center gap-1.5">
                 <span>
@@ -600,7 +497,7 @@ function TaskCard({
           <Checkbox
             checked={selected}
             onCheckedChange={() => onSelect(task.id)}
-            onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             className="mt-0.5"
           />
           <GripVertical className="size-4 text-gray-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity mt-0.5" />
@@ -679,27 +576,19 @@ function TaskCard({
             {task.date && (
               <div className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2">
                 <CalendarIcon className="size-3" />
-                <span>{task.date}</span>
+                <span>{new Date(task.date).toLocaleDateString('pt-BR')}</span>
               </div>
             )}
-            {task.comments > 0 && (
-              <div className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2">
-                <MessageSquare className="size-3" />
-                <span>{task.comments}</span>
-              </div>
-            )}
-            {task.attachments > 0 && (
-              <div className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2">
-                <FileText className="size-3" />
-                <span>{task.attachments}</span>
-              </div>
-            )}
-            {task.links > 0 && (
-              <div className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2">
-                <LinkIcon className="size-3" />
-                <span>{task.links}</span>
-              </div>
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenComments(task)
+              }}
+              className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              <MessageSquare className="size-3" />
+              <span>{task.comments.length}</span>
+            </button>
             {hasProgress && (
               <div className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-800 rounded-sm py-1 px-2">
                 {isCompleted ? (
@@ -738,6 +627,7 @@ function TaskColumn({
   onEdit,
   onArchive,
   onDelete,
+  onOpenComments,
   selectedTasks,
   onSelect,
   onDrop,
@@ -749,6 +639,7 @@ function TaskColumn({
   onEdit: (task: Task) => void
   onArchive: (id: string) => void
   onDelete: (id: string) => void
+  onOpenComments: (task: Task) => void
   selectedTasks: Set<string>
   onSelect: (id: string) => void
   onDrop: (statusId: string) => void
@@ -798,6 +689,7 @@ function TaskColumn({
               onEdit={onEdit}
               onArchive={onArchive}
               onDelete={onDelete}
+              onOpenComments={onOpenComments}
               selected={selectedTasks.has(t.id)}
               onSelect={onSelect}
               viewMode="board"
@@ -825,12 +717,16 @@ function TaskModal({
   onOpenChange,
   onSave,
   defaultStatus,
+  availableUsers,
+  availableLabels,
 }: {
   task?: Task
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (task: Partial<Task>) => void
   defaultStatus?: Status
+  availableUsers: User[]
+  availableLabels: Label[]
 }) {
   const [formData, setFormData] = useState<Partial<Task>>(
     task || {
@@ -841,9 +737,7 @@ function TaskModal({
       labels: [],
       assignees: [],
       progress: { completed: 0, total: 0 },
-      comments: 0,
-      attachments: 0,
-      links: 0,
+      comments: [],
     },
   )
 
@@ -853,9 +747,31 @@ function TaskModal({
     onOpenChange(false)
   }
 
+  const toggleLabel = (label: Label) => {
+    const currentLabels = formData.labels || []
+    const hasLabel = currentLabels.some((l) => l.id === label.id)
+
+    if (hasLabel) {
+      setFormData({ ...formData, labels: currentLabels.filter((l) => l.id !== label.id) })
+    } else {
+      setFormData({ ...formData, labels: [...currentLabels, label] })
+    }
+  }
+
+  const toggleAssignee = (user: User) => {
+    const currentAssignees = formData.assignees || []
+    const hasUser = currentAssignees.some((u) => u.id === user.id)
+
+    if (hasUser) {
+      setFormData({ ...formData, assignees: currentAssignees.filter((u) => u.id !== user.id) })
+    } else {
+      setFormData({ ...formData, assignees: [...currentAssignees, user] })
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{task ? "Editar Tarefa" : "Nova Tarefa"}</DialogTitle>
         </DialogHeader>
@@ -923,6 +839,81 @@ function TaskModal({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, date: e.target.value })}
             />
           </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Progresso</label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min="0"
+                value={formData.progress?.completed || 0}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  progress: {
+                    ...formData.progress || { completed: 0, total: 0 },
+                    completed: parseInt(e.target.value) || 0
+                  }
+                })}
+                placeholder="Concluído"
+                className="flex-1"
+              />
+              <span className="flex items-center">/</span>
+              <Input
+                type="number"
+                min="0"
+                value={formData.progress?.total || 0}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  progress: {
+                    ...formData.progress || { completed: 0, total: 0 },
+                    total: parseInt(e.target.value) || 0
+                  }
+                })}
+                placeholder="Total"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Responsáveis</label>
+            <div className="flex flex-wrap gap-2">
+              {availableUsers.map((user) => (
+                <button
+                  key={user.id}
+                  onClick={() => toggleAssignee(user)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors",
+                    formData.assignees?.some((u) => u.id === user.id)
+                      ? "bg-blue-500 text-white border-blue-500"
+                      : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700"
+                  )}
+                >
+                  {user.name}
+                </button>
+              ))}
+              {availableUsers.length === 0 && (
+                <p className="text-sm text-gray-500">Nenhum membro disponível</p>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Tags</label>
+            <div className="flex flex-wrap gap-2">
+              {availableLabels.map((label) => (
+                <button
+                  key={label.id}
+                  onClick={() => toggleLabel(label)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md border text-xs font-semibold transition-colors",
+                    formData.labels?.some((l) => l.id === label.id)
+                      ? label.color
+                      : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700"
+                  )}
+                >
+                  {label.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -937,15 +928,39 @@ function TaskModal({
   )
 }
 
-export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pageId?: string }) {
+interface KanbanBoardProps {
+  groupId?: string
+  pageId?: string
+}
+
+export default function KanbanBoard({ groupId, pageId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>(tasksSeed)
   const [viewMode, setViewMode] = useState<"board" | "list">("board")
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [commentsModalOpen, setCommentsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
-  const [darkMode, setDarkMode] = useState(false)
+  const [commentingTask, setCommentingTask] = useState<Task | undefined>()
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [defaultStatus, setDefaultStatus] = useState<Status | undefined>()
+  const [groupMembers, setGroupMembers] = useState<User[]>([])
+
+  useEffect(() => {
+    // Carregar membros do grupo
+    const loadGroupMembers = async () => {
+      if (!groupId) return
+
+      try {
+        // Aqui você precisará ajustar de acordo com sua API
+        // Por enquanto, vamos deixar vazio
+        setGroupMembers([])
+      } catch (error) {
+        console.error("Erro ao carregar membros do grupo:", error)
+      }
+    }
+
+    loadGroupMembers()
+  }, [groupId])
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => !task.archived)
@@ -967,6 +982,35 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
     setTaskModalOpen(true)
   }
 
+  const handleOpenComments = (task: Task) => {
+    setCommentingTask(task)
+    setCommentsModalOpen(true)
+  }
+
+  const handleAddComment = (taskId: string, content: string) => {
+    const newComment: Comment = {
+      id: `c${Date.now()}`,
+      userId: "current-user",
+      userName: "Usuário Atual",
+      content,
+      createdAt: new Date().toISOString(),
+    }
+
+    setTasks(tasks.map((t) =>
+      t.id === taskId
+        ? { ...t, comments: [...t.comments, newComment] }
+        : t
+    ))
+
+    // Atualizar também a tarefa que está sendo comentada
+    if (commentingTask && commentingTask.id === taskId) {
+      setCommentingTask({
+        ...commentingTask,
+        comments: [...commentingTask.comments, newComment]
+      })
+    }
+  }
+
   const handleSaveTask = (taskData: Partial<Task>) => {
     if (editingTask) {
       setTasks(tasks.map((t) => (t.id === editingTask.id ? { ...t, ...taskData } : t)))
@@ -980,9 +1024,7 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
         labels: taskData.labels || [],
         assignees: taskData.assignees || [],
         progress: taskData.progress || { completed: 0, total: 0 },
-        comments: 0,
-        attachments: 0,
-        links: 0,
+        comments: [],
         date: taskData.date,
       }
       setTasks([...tasks, newTask])
@@ -1041,7 +1083,7 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
   }
 
   return (
-    <div className={cn("flex h-screen flex-col", darkMode && "dark")}>
+    <div className="flex h-screen flex-col">
       <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-slate-950">
         <div className="border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3">
           <div className="flex items-center justify-between">
@@ -1066,10 +1108,6 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
                   <List className="size-4" />
                 </Button>
               </div>
-
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => setDarkMode(!darkMode)}>
-                {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
-              </Button>
 
               <Button
                 size="sm"
@@ -1120,6 +1158,7 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
                   onEdit={handleEditTask}
                   onArchive={handleArchiveTask}
                   onDelete={handleDeleteTask}
+                  onOpenComments={handleOpenComments}
                   selectedTasks={selectedTasks}
                   onSelect={handleSelectTask}
                   onDrop={handleDrop}
@@ -1137,6 +1176,7 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
                   onEdit={handleEditTask}
                   onArchive={handleArchiveTask}
                   onDelete={handleDeleteTask}
+                  onOpenComments={handleOpenComments}
                   selected={selectedTasks.has(task.id)}
                   onSelect={handleSelectTask}
                   viewMode="list"
@@ -1154,7 +1194,18 @@ export default function KanbanBoard({ groupId, pageId }: { groupId?: string; pag
         onOpenChange={setTaskModalOpen}
         onSave={handleSaveTask}
         defaultStatus={defaultStatus}
+        availableUsers={groupMembers}
+        availableLabels={labels}
       />
+
+      {commentingTask && (
+        <CommentsModal
+          task={commentingTask}
+          open={commentsModalOpen}
+          onOpenChange={setCommentsModalOpen}
+          onAddComment={handleAddComment}
+        />
+      )}
     </div>
   )
 }

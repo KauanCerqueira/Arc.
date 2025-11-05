@@ -216,9 +216,9 @@ export function SearchBar({ onSearch, onResultClick, collapsed }: SearchBarProps
           {results.length > 0 && (
             <div className="px-2.5 py-1.5 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50">
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                Use <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-xs">↑</kbd>
+                Use <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-xs font-mono">▲</kbd>
                 {" "}e{" "}
-                <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-xs">↓</kbd>
+                <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-xs font-mono">▼</kbd>
                 {" "}para navegar
               </p>
             </div>
