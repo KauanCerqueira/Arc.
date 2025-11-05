@@ -81,10 +81,10 @@ export default function Header({ sidebarCollapsed, setSidebarOpen }: HeaderProps
       <div className="flex items-center gap-3 flex-1 overflow-hidden">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 hover:bg-arc-secondary rounded-lg transition-colors duration-200 md:hidden flex-shrink-0"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 md:hidden flex-shrink-0 active:scale-95 border-2 border-transparent hover:border-arc"
           aria-label="Abrir menu"
         >
-          <Menu className="w-5 h-5 text-arc-muted" />
+          <Menu className="w-6 h-6 text-arc stroke-[2.5]" />
         </button>
 
         {/* Breadcrumbs Navigation */}
