@@ -210,4 +210,70 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "Senha atualizada com sucesso" });
     }
+
+    /// <summary>
+    /// Inicia o fluxo de autenticação OAuth (Google ou GitHub)
+    /// </summary>
+    /// <param name="provider">Provedor OAuth (google ou github)</param>
+    /// <param name="redirectUri">URI de redirecionamento após autenticação</param>
+    /// <returns>URL para redirecionamento do usuário</returns>
+    /// <response code="200">URL de autenticação gerada com sucesso</response>
+    /// <response code="400">Provedor inválido</response>
+    [HttpGet("oauth/{provider}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult GetOAuthUrl(string provider, [FromQuery] string? redirectUri = null)
+    {
+        var validProviders = new[] { "google", "github" };
+        if (!validProviders.Contains(provider.ToLower()))
+        {
+            return BadRequest(new { message = "Provedor inválido. Use 'google' ou 'github'" });
+        }
+
+        _logger.LogInformation("Gerando URL OAuth para provedor: {Provider}", provider);
+        var authUrl = _authService.GetOAuthUrl(provider.ToLower(), redirectUri);
+
+        return Ok(new { authUrl });
+    }
+
+    /// <summary>
+    /// Processa o callback do OAuth e realiza login/registro
+    /// </summary>
+    /// <param name="provider">Provedor OAuth (google ou github)</param>
+    /// <param name="request">Dados do callback OAuth</param>
+    /// <returns>Dados do usuário com token de autenticação</returns>
+    /// <response code="200">Autenticação realizada com sucesso</response>
+    /// <response code="400">Código inválido ou erro no OAuth</response>
+    [HttpPost("oauth/{provider}/callback")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AuthResponseDto>> OAuthCallback(string provider, [FromBody] OAuthLoginRequestDto request)
+    {
+        var validProviders = new[] { "google", "github" };
+        if (!validProviders.Contains(provider.ToLower()))
+        {
+            return BadRequest(new { message = "Provedor inválido. Use 'google' ou 'github'" });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Tentativa de OAuth callback com dados inválidos");
+            return BadRequest(ModelState);
+        }
+
+        _logger.LogInformation("Processando callback OAuth para provedor: {Provider}", provider);
+
+        try
+        {
+            var response = await _authService.OAuthLoginAsync(provider.ToLower(), request.Code, request.RedirectUri);
+            _logger.LogInformation("OAuth login realizado com sucesso para usuário: {UserId}", response.UserId);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao processar OAuth callback para provedor: {Provider}", provider);
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

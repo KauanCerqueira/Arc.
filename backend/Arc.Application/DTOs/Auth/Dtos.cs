@@ -105,3 +105,33 @@ public class UserProfileDto
     public bool IsMaster { get; set; }
     public DateTime CriadoEm { get; set; }
 }
+
+// OAuth DTOs
+public class OAuthLoginRequestDto
+{
+    [Required]
+    public string Provider { get; set; } = string.Empty; // "google" ou "github"
+
+    [Required]
+    public string Code { get; set; } = string.Empty;
+
+    public string? RedirectUri { get; set; }
+}
+
+public class OAuthCallbackDto
+{
+    public string Code { get; set; } = string.Empty;
+    public string? State { get; set; }
+    public string? Error { get; set; }
+    public string? ErrorDescription { get; set; }
+}
+
+public class OAuthUserInfoDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string Nome { get; set; } = string.Empty;
+    public string? Sobrenome { get; set; }
+    public string? Icone { get; set; }
+    public string Provider { get; set; } = string.Empty;
+    public string ProviderId { get; set; } = string.Empty;
+}

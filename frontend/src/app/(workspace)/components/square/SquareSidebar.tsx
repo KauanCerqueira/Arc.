@@ -37,6 +37,7 @@ import {
   ChevronRight,
   Plus,
   Settings,
+  Zap,
 } from "lucide-react";
 import { getPageIcon } from "@/app/(workspace)/components/sidebar/pageIcons";
 import {
@@ -318,6 +319,22 @@ export default function SquareSidebar({
           >
             <Settings className="w-4 h-4" />
             {!sidebarCollapsed && <span>Settings</span>}
+          </Link>
+
+          <Link
+            href="/integrations"
+            onClick={onClose}
+            className={[
+              "flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
+              pathname.startsWith("/integrations")
+                ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm dark:shadow-[inset_0_-1px_0_rgba(255,255,255,0.04)]"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
+              sidebarCollapsed ? "justify-center" : "",
+            ].join(" ")}
+            title={sidebarCollapsed ? "Integrações" : ""}
+          >
+            <Zap className="w-4 h-4" />
+            {!sidebarCollapsed && <span>Integrations</span>}
           </Link>
         </div>
 

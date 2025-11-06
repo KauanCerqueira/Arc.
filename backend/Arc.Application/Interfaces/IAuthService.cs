@@ -10,4 +10,8 @@ public interface IAuthService
     Task<UserProfileDto> GetProfileAsync(Guid userId);
     Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateProfileRequestDto request);
     Task UpdatePasswordAsync(Guid userId, UpdatePasswordRequestDto request);
+
+    // OAuth methods
+    string GetOAuthUrl(string provider, string? redirectUri = null);
+    Task<AuthResponseDto> OAuthLoginAsync(string provider, string code, string? redirectUri = null);
 }

@@ -44,6 +44,13 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
+// Integration Services
+builder.Services.AddScoped<IGoogleIntegrationService, GoogleIntegrationService>();
+builder.Services.AddScoped<IGitHubIntegrationService, GitHubIntegrationService>();
+
+// HttpClientFactory para chamadas externas (OAuth, APIs)
+builder.Services.AddHttpClient();
+
 // Template Services
 builder.Services.AddScoped<IFlowchartService, FlowchartService>();
 builder.Services.AddScoped<IRoadmapService, RoadmapService>();
