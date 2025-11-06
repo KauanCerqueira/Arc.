@@ -203,7 +203,7 @@ export default function SquareSidebar({
 
         {/* Brand + workspace switcher */}
         <div className="px-4 pt-1 pb-2">
-          <div className={["flex items-center", sidebarCollapsed ? "justify-center" : "justify-between"].join(" ") }>
+          <div className={["flex items-center", sidebarCollapsed ? "justify-center" : "justify-start"].join(" ") }>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 h-auto p-0 hover:bg-transparent min-w-0">
@@ -239,11 +239,6 @@ export default function SquareSidebar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {!sidebarCollapsed && (
-              <div className="scale-90">
-                <ThemeToggle />
-              </div>
-            )}
           </div>
 
           {/* Quick stats */}

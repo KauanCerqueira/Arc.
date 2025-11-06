@@ -2,14 +2,10 @@
 
 import React from "react";
 import { Menu, ChevronRight } from "lucide-react";
-import ThemeToggle from "@/shared/components/ui/ThemeToggle";
 import { usePathname } from "next/navigation";
 import { useWorkspaceStore } from "@/core/store/workspaceStore";
 import teamService from "@/core/services/team.service";
 import type { WorkspaceMember } from "@/core/types/team.types";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/DropdownMenu";
-import { useAuthStore } from "@/core/store/authStore";
-import Image from "next/image";
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
@@ -21,7 +17,6 @@ export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: Heade
   const pathname = usePathname();
   const { workspace } = useWorkspaceStore();
   const [members, setMembers] = React.useState<WorkspaceMember[]>([]);
-  const { user, logout } = useAuthStore();
 
   const breadcrumbs = React.useMemo(() => {
     if (pathname === "/workspace") {
@@ -131,9 +126,8 @@ export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: Heade
         </div>
       </div>
 
-      {/* Right - Actions (limpo): tema + membros + perfil */}
+      {/* Right - Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        <ThemeToggle />
         {members.length > 0 && (
           <div className="hidden md:flex items-center gap-2 text-sm text-arc-muted">
             <div className="flex -space-x-2">
@@ -148,54 +142,6 @@ export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: Heade
             )}
           </div>
         )}
-        {/* Perfil */}
-        {/* Perfil (placeholder removido: imagem roxa) */}
-        {/* Botão de perfil compacto com iniciais quando não houver ícone */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="inline-flex items-center justify-center rounded-full w-8 h-8 overflow-hidden border border-arc bg-gray-200 text-gray-700 dark:bg-slate-800 dark:text-gray-200 hover:opacity-90"
-              aria-label="Abrir menu de perfil"
-            >
-              {user?.icone ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.icone} alt="Perfil" className="w-full h-full object-cover rounded-full" />
-              ) : (
-                <span className="text-xs font-semibold">
-                  {`${user?.nome?.[0] ?? 'U'}${user?.sobrenome?.[0] ?? ''}`.toUpperCase()}
-                </span>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[14rem]">
-            <div className="px-3 py-2 text-xs">
-              <div className="font-semibold text-arc">{user?.nome} {user?.sobrenome}</div>
-              <div className="text-arc-muted">{user?.email}</div>
-            </div>
-            <DropdownMenuItem asChild>
-              <a href="/profile">Meu perfil</a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href="/settings">Configurações</a>
-            </DropdownMenuItem>
-            {user?.isMaster && (
-              <>
-                <DropdownMenuItem asChild>
-                  <a href="/analytics">Analytics</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href="/master/users">Gerenciar Usuários</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href="/master/promo-codes">Códigos Promocionais</a>
-                </DropdownMenuItem>
-              </>
-            )}
-            <DropdownMenuItem onClick={() => { logout(); location.href = '/login'; }}>
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useWorkspaceStore } from "@/core/store/workspaceStore"
 import { type TemplateType, type GroupPreset } from "@/core/types/workspace.types"
@@ -12,7 +12,7 @@ import { WorkspaceCreationModal } from "./components/modals/WorkspaceCreationMod
 import { GroupCreationModal } from "./components/modals/GroupCreationModal"
 import { PageCreationModal } from "./components/modals/PageCreationModal"
 import SquareSidebar from "./components/square/SquareSidebar"
-import ThemeToggle from "@/shared/components/ui/ThemeToggle"
+import SquareHeader from "./components/square/SquareHeader"
 import { useTheme } from "@/core/context/ThemeContext"
 import {
   DndContext,
@@ -27,7 +27,6 @@ import {
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme()
-  const pathname = usePathname()
   const router = useRouter()
   const { initializeAuth } = useAuthStore()
   const {
@@ -252,7 +251,11 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
           {/* Main Content */}
           <div className={`flex-1 flex flex-col min-w-0 w-full transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'} relative`}>
-            <main className="h-screen overflow-auto bg-arc-primary">{children}</main>
+            <SquareHeader
+              sidebarCollapsed={sidebarCollapsed}
+              setSidebarOpen={setSidebarOpen}
+            />
+            <main className="h-screen overflow-auto bg-arc-primary pt-12">{children}</main>
           </div>
         </div>
 
