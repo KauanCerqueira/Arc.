@@ -10,9 +10,10 @@ import type { WorkspaceMember } from "@/core/types/team.types";
 interface HeaderProps {
   sidebarCollapsed: boolean;
   setSidebarOpen: (open: boolean) => void;
+  className?: string;
 }
 
-export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: HeaderProps) {
+export default function SquareHeader({ sidebarCollapsed, setSidebarOpen, className = "" }: HeaderProps) {
   // no calendar UI here to keep header minimal
   const pathname = usePathname();
   const { workspace } = useWorkspaceStore();
@@ -87,6 +88,7 @@ export default function SquareHeader({ sidebarCollapsed, setSidebarOpen }: Heade
         "h-12 border-b border-arc flex items-center justify-between px-3 md:px-5 bg-arc-secondary backdrop-blur-xl fixed top-0 right-0 z-30 transition-all duration-300",
         sidebarCollapsed ? "md:left-20" : "md:left-64",
         "left-0",
+        className,
       ].join(" ")}
     >
       {/* Left - Mobile menu + Breadcrumbs */}

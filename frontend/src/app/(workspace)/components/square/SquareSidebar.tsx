@@ -234,12 +234,26 @@ export default function SquareSidebar({
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onCreateWorkspace ? onCreateWorkspace() : undefined}>
-                  <Plus className="w-4 h-4" />
-                  <span>Add new team</span>
-                </DropdownMenuItem>
+                {workspace && (
+                  <Link href="/workspace/settings" onClick={onClose}>
+                    <DropdownMenuItem>
+                      <Settings className="w-4 h-4" />
+                      <span>Configurações</span>
+                    </DropdownMenuItem>
+                  </Link>
+                )}
+                <DropdownMenuSeparator />
+                <Link href="/workspace/create" onClick={onClose}>
+                  <DropdownMenuItem>
+                    <Plus className="w-4 h-4" />
+                    <span>Criar workspace</span>
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
 
           {/* Quick stats */}
@@ -247,7 +261,7 @@ export default function SquareSidebar({
             <div className="mt-3 text-xs text-arc-muted flex items-center gap-3">
               <span><strong>{workspace.groups.length}</strong> grupos</span>
               <span className="w-px h-4 bg-arc-border inline-block" />
-              <span><strong>{totalPages}</strong> pÃ¡ginas</span>
+              <span><strong>{totalPages}</strong> páginas</span>
             </div>
           )}
 
@@ -282,8 +296,8 @@ export default function SquareSidebar({
             ].join(" ")}
             title={sidebarCollapsed ? "Notificações" : ""}
           >
-            <Bell className="w-4 h-4" />
-            {!sidebarCollapsed && <span className="flex-1">Notifications</span>}
+            <Bell className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">Notificações</span>}
             {!sidebarCollapsed && unreadCount > 0 && (
               <span className="bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">{unreadCount}</span>
             )}
@@ -301,8 +315,8 @@ export default function SquareSidebar({
             ].join(" ")}
             title={sidebarCollapsed ? "InÃ­cio" : ""}
           >
-            <LayoutGrid className="w-4 h-4" />
-            {!sidebarCollapsed && <span>Dashboard</span>}
+            <LayoutGrid className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Início</span>}
           </Link>
 
           <Link
@@ -317,8 +331,8 @@ export default function SquareSidebar({
             ].join(" ")}
             title={sidebarCollapsed ? "ConfiguraÃ§Ãµes" : ""}
           >
-            <Settings className="w-4 h-4" />
-            {!sidebarCollapsed && <span>Settings</span>}
+            <Settings className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Configurações</span>}
           </Link>
 
           <Link
@@ -333,8 +347,8 @@ export default function SquareSidebar({
             ].join(" ")}
             title={sidebarCollapsed ? "Integrações" : ""}
           >
-            <Zap className="w-4 h-4" />
-            {!sidebarCollapsed && <span>Integrations</span>}
+            <Zap className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Integrações</span>}
           </Link>
         </div>
 
@@ -602,6 +616,7 @@ export default function SquareSidebar({
           </div>
         </div>
       )}
+
     </aside>
   );
 }

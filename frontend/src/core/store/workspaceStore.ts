@@ -35,11 +35,12 @@ type WorkspaceStore = {
   loadAllWorkspaces: () => Promise<void>;
   switchWorkspace: (workspaceId: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<string | undefined>;
+  updateWorkspace: (workspaceId: string, updates: { name?: string; description?: string; icon?: string }) => Promise<void>;
   renameWorkspace: (workspaceId: string, newName: string) => Promise<void>;
   deleteWorkspace: (workspaceId: string) => Promise<void>;
 
   // Ações - Grupos
-  addGroup: (name: string) => Promise<void>;
+  addGroup: (name: string) => Promise<string | undefined>;
   addGroupFromPreset: (preset: GroupPreset, customName?: string) => Promise<void>;
   updateGroup: (groupId: string, updates: Partial<Group>) => Promise<void>;
   renameGroup: (groupId: string, newName: string) => Promise<void>;
@@ -260,6 +261,21 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     }
   },
 
+  updateWorkspace: async (workspaceId: string, updates: { name?: string; description?: string; icon?: string }) => {
+    set({ isLoading: true, error: null });
+    try {
+      await workspaceService.updateWorkspace(workspaceId, {
+        nome: updates.name
+      });
+      await get().loadAllWorkspaces();
+      if (get().currentWorkspaceId === workspaceId) {
+        await get().loadWorkspace(workspaceId);
+      }
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
   renameWorkspace: async (workspaceId: string, newName: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -302,14 +318,17 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   addGroup: async (name: string) => {
     set({ isLoading: true, error: null });
     try {
-      await groupService.createGroup({
+      const group = await groupService.createGroup({
         nome: name,
         icone: '📁',
         cor: 'gray',
       });
       await get().loadWorkspace();
+      set({ isLoading: false });
+      return group.id;
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
+      return undefined;
     }
   },
 

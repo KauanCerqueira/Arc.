@@ -254,8 +254,9 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             <SquareHeader
               sidebarCollapsed={sidebarCollapsed}
               setSidebarOpen={setSidebarOpen}
+              className="md:hidden"
             />
-            <main className="h-screen overflow-auto bg-arc-primary pt-12">{children}</main>
+            <main className="h-screen overflow-auto bg-arc-primary pt-12 md:pt-0">{children}</main>
           </div>
         </div>
 

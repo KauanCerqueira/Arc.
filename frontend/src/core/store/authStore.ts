@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import authService from '../services/auth.service';
+import { scheduleTokenRefresh, stopTokenRefresh } from '../utils/tokenRefresh';
 import {
   User,
   LoginRequestDto,
@@ -38,7 +39,7 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       /**
-       * Initialize auth from localStorage
+       * Initialize auth from localStorage and cookies
        */
       initializeAuth: () => {
         const token = authService.getToken();
@@ -50,6 +51,9 @@ export const useAuthStore = create<AuthStore>()(
             user,
             isAuthenticated: true,
           });
+
+          // Iniciar sistema de auto-refresh
+          scheduleTokenRefresh();
         }
       },
 
@@ -85,8 +89,9 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authService.login(credentials);
 
-          // Save to localStorage
-          authService.saveAuthData(response);
+          // Save to localStorage and cookies (remember me = true by default)
+          const rememberMe = (credentials as any).rememberMe !== false;
+          authService.saveAuthData(response, rememberMe);
 
           // Update store
           set({
@@ -106,6 +111,9 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
+
+          // Iniciar sistema de auto-refresh
+          scheduleTokenRefresh();
         } catch (error: any) {
           set({
             error: error.message || 'Erro ao fazer login',
@@ -124,8 +132,8 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authService.register(data);
 
-          // Save to localStorage
-          authService.saveAuthData(response);
+          // Save to localStorage and cookies
+          authService.saveAuthData(response, true);
 
           // Update store
           set({
@@ -145,6 +153,9 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
+
+          // Iniciar sistema de auto-refresh
+          scheduleTokenRefresh();
         } catch (error: any) {
           set({
             error: error.message || 'Erro ao registrar',
@@ -237,6 +248,9 @@ export const useAuthStore = create<AuthStore>()(
        * Logout user
        */
       logout: () => {
+        // Parar sistema de auto-refresh
+        stopTokenRefresh();
+
         authService.logout();
         set({
           user: null,

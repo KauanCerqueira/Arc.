@@ -1,4 +1,5 @@
 import apiClient from './api.service';
+import { cookieUtils } from '../utils/cookies';
 import {
   LoginRequestDto,
   RegisterRequestDto,
@@ -73,12 +74,18 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   }
 
   /**
-   * Logout - Clear local storage
+   * Logout - Clear local storage and cookies
    */
   logout(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_refresh_token');
+
+    // Remover cookies
+    cookieUtils.remove('auth_token');
+    cookieUtils.remove('auth_refresh_token');
+    cookieUtils.remove('auth_user');
+    cookieUtils.remove('remember_me');
   }
 
   /**
@@ -108,47 +115,101 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   }
 
   /**
-   * Save auth data to local storage
+   * Save auth data to local storage and cookies
    */
-  saveAuthData(authResponse: AuthResponseDto): void {
-    localStorage.setItem('auth_token', authResponse.token);
-    localStorage.setItem('auth_user', JSON.stringify({
+  saveAuthData(authResponse: AuthResponseDto, rememberMe: boolean = true): void {
+    const userData = {
       userId: authResponse.userId,
       nome: authResponse.nome,
       sobrenome: authResponse.sobrenome,
       email: authResponse.email,
       bio: authResponse.bio,
       icone: authResponse.icone,
-    }));
+    };
 
-    // Salvar refresh token se existir
+    // Sempre salvar em localStorage (para sessão imediata)
+    localStorage.setItem('auth_token', authResponse.token);
+    localStorage.setItem('auth_user', JSON.stringify(userData));
+
     if (authResponse.refreshToken) {
       localStorage.setItem('auth_refresh_token', authResponse.refreshToken);
+    }
+
+    // Se "lembrar de mim" estiver ativo, salvar em cookies (30 dias)
+    if (rememberMe) {
+      cookieUtils.set('auth_token', authResponse.token, 30);
+      cookieUtils.set('auth_user', JSON.stringify(userData), 30);
+      cookieUtils.set('remember_me', 'true', 30);
+
+      if (authResponse.refreshToken) {
+        cookieUtils.set('auth_refresh_token', authResponse.refreshToken, 30);
+      }
     }
   }
 
   /**
-   * Get saved token from local storage
+   * Get saved token from cookies or local storage
    */
   getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('auth_token');
+
+    // Tentar pegar do localStorage primeiro
+    let token = localStorage.getItem('auth_token');
+
+    // Se não tiver no localStorage, tentar cookies
+    if (!token) {
+      token = cookieUtils.get('auth_token');
+
+      // Se encontrou no cookie, restaurar para localStorage
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+    }
+
+    return token;
   }
 
   /**
-   * Get saved refresh token from local storage
+   * Get saved refresh token from cookies or local storage
    */
   getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('auth_refresh_token');
+
+    // Tentar pegar do localStorage primeiro
+    let refreshToken = localStorage.getItem('auth_refresh_token');
+
+    // Se não tiver no localStorage, tentar cookies
+    if (!refreshToken) {
+      refreshToken = cookieUtils.get('auth_refresh_token');
+
+      // Se encontrou no cookie, restaurar para localStorage
+      if (refreshToken) {
+        localStorage.setItem('auth_refresh_token', refreshToken);
+      }
+    }
+
+    return refreshToken;
   }
 
   /**
-   * Get saved user from local storage
+   * Get saved user from cookies or local storage
    */
   getUser(): any | null {
     if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem('auth_user');
+
+    // Tentar pegar do localStorage primeiro
+    let userStr = localStorage.getItem('auth_user');
+
+    // Se não tiver no localStorage, tentar cookies
+    if (!userStr) {
+      userStr = cookieUtils.get('auth_user');
+
+      // Se encontrou no cookie, restaurar para localStorage
+      if (userStr) {
+        localStorage.setItem('auth_user', userStr);
+      }
+    }
+
     return userStr ? JSON.parse(userStr) : null;
   }
 
