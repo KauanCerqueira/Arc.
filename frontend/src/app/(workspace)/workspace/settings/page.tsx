@@ -44,7 +44,7 @@ interface PermissionSettings {
 }
 
 interface MasterUser {
-  id: string
+  userId: string
   nome: string
   sobrenome: string
   email: string
@@ -271,8 +271,8 @@ export default function WorkspaceSettingsPage() {
 
     setSeedingData(true)
     try {
-      const result = await masterService.seedMvpData()
-      alert(`Dados criados com sucesso!\n\nWorkspaces: ${result.workspacesCreated}\nGrupos: ${result.groupsCreated}\nPáginas: ${result.pagesCreated}`)
+      const result = await masterService.seedMvpDec()
+      alert(`Dados criados com sucesso!\n\nWorkspace: ${result.workspaceId}\nGrupo: ${result.groupId}\nKanban Cards: ${result.kanbanCards}\nTarefas: ${result.tasksCount}\nRoadmap Items: ${result.roadmapItems}`)
       await initializeWorkspace() // Reload workspace data
     } catch (error) {
       alert("Erro ao criar dados de exemplo")
@@ -805,7 +805,7 @@ export default function WorkspaceSettingsPage() {
                 <div className="space-y-3">
                   {masterUsers.map((masterUser) => (
                     <div
-                      key={masterUser.id}
+                      key={masterUser.userId}
                       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-arc-primary border border-arc rounded-lg"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -832,21 +832,21 @@ export default function WorkspaceSettingsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleToggleUserStatus(masterUser.id, masterUser.ativo)}
+                          onClick={() => handleToggleUserStatus(masterUser.userId, masterUser.ativo)}
                         >
                           {masterUser.ativo ? "Desativar" : "Ativar"}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleToggleUserMaster(masterUser.id, masterUser.isMaster)}
+                          onClick={() => handleToggleUserMaster(masterUser.userId, masterUser.isMaster)}
                         >
                           {masterUser.isMaster ? "Remover Master" : "Tornar Master"}
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteUser(masterUser.id)}
+                          onClick={() => handleDeleteUser(masterUser.userId)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

@@ -201,7 +201,7 @@ export default function NotificationsInboxPage() {
     const newComment: Comment = {
       id: `${Date.now()}`,
       author: `${user?.nome || "Você"} ${user?.sobrenome || ""}`.trim(),
-      avatar: user?.icone,
+      avatar: user?.icone || undefined,
       text,
       at: new Date()
     }
