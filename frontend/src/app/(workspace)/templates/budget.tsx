@@ -1,103 +1,95 @@
-"use client";
+"use client"
 
-import { useState } from 'react';
-import { 
-  Plus, Trash2, DollarSign, TrendingUp, TrendingDown, 
-  AlertCircle, CheckCircle2, Code, Palette, Laptop,
-  Clock, Users, Server, Zap, Calculator, Edit2, X
-} from 'lucide-react';
-import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
-import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
+import { useState, useRef } from "react"
+import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
+import {
+  Plus,
+  Trash2,
+  DollarSign,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle2,
+  Code,
+  Palette,
+  Clock,
+  Users,
+  Server,
+  Zap,
+  Calculator,
+  Edit2,
+  X,
+  Download,
+  Save,
+  Copy,
+  History,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react"
 
 type CostItem = {
-  id: string;
-  name: string;
-  hours: number;
-  hourlyRate: number;
-  quantity: number;
-  category: 'development' | 'design' | 'infrastructure' | 'team' | 'other';
-};
+  id: string
+  name: string
+  hours: number
+  hourlyRate: number
+  quantity: number
+  category: "development" | "design" | "infrastructure" | "team" | "other"
+  notes?: string
+}
 
 type Project = {
-  name: string;
-  client: string;
-  deadline: string;
-  margin: number;
-  items: CostItem[];
-  clientBudget: number;
-};
+  name: string
+  client: string
+  deadline: string
+  margin: number
+  items: CostItem[]
+  clientBudget: number
+  notes?: string
+  version: number
+}
 
 const CATEGORIES = [
-  { id: 'development', name: 'Desenvolvimento', icon: Code, color: 'blue' },
-  { id: 'design', name: 'Design', icon: Palette, color: 'purple' },
-  { id: 'infrastructure', name: 'Infraestrutura', icon: Server, color: 'green' },
-  { id: 'team', name: 'Equipe', icon: Users, color: 'orange' },
-  { id: 'other', name: 'Outros', icon: Zap, color: 'gray' },
-];
+  { id: "development", name: "Desenvolvimento", icon: Code },
+  { id: "design", name: "Design", icon: Palette },
+  { id: "infrastructure", name: "Infraestrutura", icon: Server },
+  { id: "team", name: "Equipe", icon: Users },
+  { id: "other", name: "Outros", icon: Zap },
+]
 
-const HOURLY_RATES = {
-  development: [
-    { label: 'Júnior', value: 50 },
-    { label: 'Pleno', value: 100 },
-    { label: 'Sênior', value: 150 },
-    { label: 'Especialista', value: 250 },
-  ],
-  design: [
-    { label: 'UI/UX Júnior', value: 60 },
-    { label: 'UI/UX Pleno', value: 120 },
-    { label: 'UI/UX Sênior', value: 180 },
-    { label: 'Creative Director', value: 300 },
-  ],
-};
+const DEFAULT_PROJECT: Project = {
+  name: "Novo Projeto",
+  client: "",
+  deadline: "",
+  margin: 30,
+  items: [],
+  clientBudget: 0,
+  notes: "",
+  version: 1,
+}
 
-type BudgetTemplateData = {
-  project: Project;
-};
+export default function BudgetPage({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+  const [project, setProject] = useState<Project>(DEFAULT_PROJECT)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingProject, setEditingProject] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["development", "design"]))
+  const [showSettings, setShowSettings] = useState(false)
+  const printRef = useRef<HTMLDivElement>(null)
 
-const DEFAULT_DATA: BudgetTemplateData = {
-  project: {
-    name: 'Novo Projeto',
-    client: '',
-    deadline: '',
-    margin: 30,
-    items: [
-      { id: '1', name: 'Frontend React', hours: 80, hourlyRate: 100, quantity: 1, category: 'development' },
-      { id: '2', name: 'Backend Node.js', hours: 60, hourlyRate: 100, quantity: 1, category: 'development' },
-      { id: '3', name: 'UI/UX Design', hours: 40, hourlyRate: 120, quantity: 1, category: 'design' },
-      { id: '4', name: 'Servidor VPS', hours: 0, hourlyRate: 0, quantity: 12, category: 'infrastructure' },
-    ],
-    clientBudget: 0,
-  },
-};
-
-export default function BudgetTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
-  const { data, setData, isSaving } = usePageTemplateData<BudgetTemplateData>(groupId, pageId, DEFAULT_DATA);
-  const project = data.project ?? DEFAULT_DATA.project;
-
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProject, setEditingProject] = useState(false);
-  const [activeTab, setActiveTab] = useState<'items' | 'analysis'>('items');
   const [newItem, setNewItem] = useState({
-    name: '',
-    hours: '',
-    hourlyRate: '',
-    quantity: '1',
-    category: 'development' as CostItem['category'],
-  });
+    name: "",
+    hours: "",
+    hourlyRate: "",
+    quantity: "1",
+    category: "development" as CostItem["category"],
+    notes: "",
+  })
 
   const updateProject = (updater: (current: Project) => Project) => {
-    setData((current) => {
-      const currentProject = current.project ?? DEFAULT_DATA.project;
-      const nextProject = updater(JSON.parse(JSON.stringify(currentProject)));
-      return {
-        ...current,
-        project: nextProject,
-      };
-    });
-  };
+    setProject((current) => updater({ ...current }))
+  }
 
   const addItem = () => {
-    if (!newItem.name.trim()) return;
+    if (!newItem.name.trim()) return
 
     updateProject((current) => ({
       ...current,
@@ -106,684 +98,757 @@ export default function BudgetTemplate({ groupId, pageId }: WorkspaceTemplateCom
         {
           id: Date.now().toString(),
           name: newItem.name,
-          hours: parseFloat(newItem.hours) || 0,
-          hourlyRate: parseFloat(newItem.hourlyRate) || 0,
-          quantity: parseFloat(newItem.quantity) || 1,
+          hours: Number.parseFloat(newItem.hours) || 0,
+          hourlyRate: Number.parseFloat(newItem.hourlyRate) || 0,
+          quantity: Number.parseFloat(newItem.quantity) || 1,
           category: newItem.category,
+          notes: newItem.notes,
         },
       ],
-    }));
+    }))
 
-    setNewItem({ name: '', hours: '', hourlyRate: '', quantity: '1', category: 'development' });
-    setShowAddForm(false);
-  };
+    setNewItem({ name: "", hours: "", hourlyRate: "", quantity: "1", category: "development", notes: "" })
+    setShowAddForm(false)
+  }
 
   const deleteItem = (id: string) => {
-    if (confirm('Excluir este item?')) {
+    if (confirm("Excluir este item?")) {
       updateProject((current) => ({
         ...current,
         items: current.items.filter((item) => item.id !== id),
-      }));
+      }))
     }
-  };
+  }
+
+  const duplicateItem = (item: CostItem) => {
+    updateProject((current) => ({
+      ...current,
+      items: [...current.items, { ...item, id: Date.now().toString(), name: `${item.name} (cópia)` }],
+    }))
+  }
 
   const totalCost = project.items.reduce((sum, item) => {
-    const itemCost = (item.hours * item.hourlyRate * item.quantity);
-    return sum + itemCost;
-  }, 0);
+    return sum + item.hours * item.hourlyRate * item.quantity
+  }, 0)
 
-  const totalHours = project.items.reduce((sum, item) => sum + (item.hours * item.quantity), 0);
-  const profitAmount = totalCost * (project.margin / 100);
-  const finalPrice = totalCost + profitAmount;
-  const isViable = project.clientBudget > 0 && project.clientBudget >= finalPrice;
-  const viabilityPercentage = project.clientBudget > 0 ? (finalPrice / project.clientBudget) * 100 : 0;
+  const totalHours = project.items.reduce((sum, item) => sum + item.hours * item.quantity, 0)
+  const profitAmount = totalCost * (project.margin / 100)
+  const finalPrice = totalCost + profitAmount
+  const isViable = project.clientBudget > 0 && project.clientBudget >= finalPrice
 
-  const groupedItems = project.items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, CostItem[]>);
-
-  const categoryTotals = Object.entries(groupedItems).map(([category, items]) => ({
-    category,
-    total: items.reduce((sum, item) => sum + (item.hours * item.hourlyRate * item.quantity), 0),
-    hours: items.reduce((sum, item) => sum + (item.hours * item.quantity), 0),
-  }));
+  const groupedItems = project.items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = []
+      }
+      acc[item.category].push(item)
+      return acc
+    },
+    {} as Record<string, CostItem[]>,
+  )
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value)
+  }
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev)
+      if (next.has(categoryId)) {
+        next.delete(categoryId)
+      } else {
+        next.add(categoryId)
+      }
+      return next
+    })
+  }
+
+  const exportToPDF = () => {
+    if (printRef.current) {
+      const content = printRef.current.innerHTML
+      const win = window.open("", "_blank")
+      if (win) {
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${project.name} - Orçamento</title>
+              <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { 
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  background: #ffffff;
+                  color: #000000;
+                  padding: 40px;
+                  line-height: 1.6;
+                }
+                .header { 
+                  border-bottom: 2px solid #000;
+                  padding-bottom: 20px;
+                  margin-bottom: 30px;
+                }
+                .header h1 { 
+                  font-size: 32px;
+                  font-weight: 700;
+                  margin-bottom: 8px;
+                }
+                .header .meta { 
+                  color: #666;
+                  font-size: 14px;
+                }
+                .summary { 
+                  display: grid;
+                  grid-template-columns: repeat(4, 1fr);
+                  gap: 20px;
+                  margin-bottom: 30px;
+                }
+                .summary-card { 
+                  border: 1px solid #e5e5e5;
+                  padding: 16px;
+                  border-radius: 8px;
+                }
+                .summary-card .label { 
+                  font-size: 12px;
+                  color: #666;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  margin-bottom: 4px;
+                }
+                .summary-card .value { 
+                  font-size: 24px;
+                  font-weight: 700;
+                }
+                .section { 
+                  margin-bottom: 30px;
+                }
+                .section-title { 
+                  font-size: 18px;
+                  font-weight: 600;
+                  margin-bottom: 16px;
+                  padding-bottom: 8px;
+                  border-bottom: 1px solid #e5e5e5;
+                }
+                .item { 
+                  display: flex;
+                  justify-content: space-between;
+                  padding: 12px 0;
+                  border-bottom: 1px solid #f5f5f5;
+                }
+                .item:last-child { border-bottom: none; }
+                .item-name { 
+                  flex: 1;
+                  font-weight: 500;
+                }
+                .item-details { 
+                  color: #666;
+                  font-size: 13px;
+                  margin-left: 20px;
+                }
+                .item-total { 
+                  font-weight: 600;
+                  min-width: 120px;
+                  text-align: right;
+                }
+                .total { 
+                  background: #000;
+                  color: #fff;
+                  padding: 20px;
+                  border-radius: 8px;
+                  margin-top: 30px;
+                }
+                .total-row { 
+                  display: flex;
+                  justify-content: space-between;
+                  padding: 8px 0;
+                }
+                .total-row.final { 
+                  font-size: 24px;
+                  font-weight: 700;
+                  padding-top: 16px;
+                  border-top: 1px solid rgba(255,255,255,0.2);
+                  margin-top: 8px;
+                }
+                @media print {
+                  body { padding: 20px; }
+                  .no-print { display: none; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1>${project.name}</h1>
+                <div class="meta">
+                  ${project.client ? `Cliente: ${project.client}` : ""}
+                  ${project.deadline ? ` • Prazo: ${new Date(project.deadline).toLocaleDateString("pt-BR")}` : ""}
+                  • Versão ${project.version}
+                </div>
+              </div>
+
+              <div class="summary">
+                <div class="summary-card">
+                  <div class="label">Custo</div>
+                  <div class="value">${formatCurrency(totalCost)}</div>
+                </div>
+                <div class="summary-card">
+                  <div class="label">Lucro (${project.margin}%)</div>
+                  <div class="value">${formatCurrency(profitAmount)}</div>
+                </div>
+                <div class="summary-card">
+                  <div class="label">Total</div>
+                  <div class="value">${formatCurrency(finalPrice)}</div>
+                </div>
+                <div class="summary-card">
+                  <div class="label">Horas</div>
+                  <div class="value">${totalHours}h</div>
+                </div>
+              </div>
+
+              ${CATEGORIES.map((category) => {
+                const categoryItems = groupedItems[category.id] || []
+                if (categoryItems.length === 0) return ""
+
+                const categoryTotal = categoryItems.reduce(
+                  (sum, item) => sum + item.hours * item.hourlyRate * item.quantity,
+                  0,
+                )
+
+                return `
+                  <div class="section">
+                    <h2 class="section-title">${category.name}</h2>
+                    ${categoryItems
+                      .map((item) => {
+                        const itemTotal = item.hours * item.hourlyRate * item.quantity
+                        return `
+                        <div class="item">
+                          <div class="item-name">${item.name}</div>
+                          <div class="item-details">
+                            ${item.hours}h × ${formatCurrency(item.hourlyRate)}/h × ${item.quantity}
+                          </div>
+                          <div class="item-total">${formatCurrency(itemTotal)}</div>
+                        </div>
+                      `
+                      })
+                      .join("")}
+                  </div>
+                `
+              }).join("")}
+
+              <div class="total">
+                <div class="total-row">
+                  <span>Custo de Produção</span>
+                  <span>${formatCurrency(totalCost)}</span>
+                </div>
+                <div class="total-row">
+                  <span>Margem de Lucro (${project.margin}%)</span>
+                  <span>${formatCurrency(profitAmount)}</span>
+                </div>
+                <div class="total-row final">
+                  <span>Valor Total</span>
+                  <span>${formatCurrency(finalPrice)}</span>
+                </div>
+              </div>
+
+              ${
+                project.notes
+                  ? `
+                <div class="section">
+                  <h2 class="section-title">Observações</h2>
+                  <p>${project.notes}</p>
+                </div>
+              `
+                  : ""
+              }
+
+              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #999; font-size: 12px; text-align: center;">
+                Gerado em ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}
+              </div>
+            </body>
+          </html>
+        `)
+        win.document.close()
+        setTimeout(() => win.print(), 250)
+      }
+    }
+  }
+
+  const exportToJSON = () => {
+    const dataStr = JSON.stringify(project, null, 2)
+    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `${project.name.toLowerCase().replace(/\s+/g, "-")}-orcamento.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6">
-      {/* Header do Projeto */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm">
-        {editingProject ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nome do Projeto
-                </label>
+    <div className="min-h-screen bg-white dark:bg-black">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="border-b border-gray-200 dark:border-gray-800 pb-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              {editingProject ? (
                 <input
                   type="text"
                   value={project.name}
                   onChange={(e) => updateProject((current) => ({ ...current, name: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
+                  className="text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-gray-100 w-full"
+                  placeholder="Nome do Projeto"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cliente
-                </label>
-                <input
-                  type="text"
-                  value={project.client}
-                  onChange={(e) => updateProject((current) => ({ ...current, client: e.target.value }))}
-                  placeholder="Nome do cliente"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Prazo de Entrega
-                </label>
-                <input
-                  type="date"
-                  value={project.deadline}
-                  onChange={(e) => updateProject((current) => ({ ...current, deadline: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Orçamento do Cliente (opcional)
-                </label>
-                <input
-                  type="number"
-                  value={project.clientBudget || ''}
-                  onChange={(e) =>
-                    updateProject((current) => ({
-                      ...current,
-                      clientBudget: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  placeholder="R$ 0,00"
-                  step="0.01"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600"
-                />
-              </div>
-            </div>
-            <button
-              onClick={() => setEditingProject(false)}
-              className="w-full sm:w-auto px-6 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium"
-            >
-              Salvar Informações
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 truncate">
-                {project.name}
-              </h1>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600 dark:text-gray-400">
-                {project.client && <span className="truncate">Cliente: {project.client}</span>}
-                {project.deadline && <span className="truncate">Prazo: {new Date(project.deadline).toLocaleDateString('pt-BR')}</span>}
-              </div>
-            </div>
-            <button
-              onClick={() => setEditingProject(true)}
-              className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-            >
-              <Edit2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            </button>
-          </div>
-        )}
-      </div>
+              ) : (
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h1>
+              )}
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Custo</span>
-            <Calculator className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
-          </div>
-          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-            {formatCurrency(totalCost)}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Lucro</span>
-            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
-          </div>
-          <div className="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 truncate">
-            {formatCurrency(profitAmount)}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Final</span>
-            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400 truncate">
-            {formatCurrency(finalPrice)}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Horas</span>
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
-          </div>
-          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {totalHours}h
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Mobile */}
-      <div className="lg:hidden mb-4">
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-1 flex gap-1">
-          <button
-            onClick={() => setActiveTab('items')}
-            className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
-              activeTab === 'items'
-                ? 'bg-gray-900 dark:bg-slate-700 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-          >
-            Itens
-          </button>
-          <button
-            onClick={() => setActiveTab('analysis')}
-            className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
-              activeTab === 'analysis'
-                ? 'bg-gray-900 dark:bg-slate-700 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-          >
-            Análise
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Coluna Principal - Itens */}
-        <div className={`lg:col-span-2 space-y-4 sm:space-y-6 ${activeTab !== 'items' ? 'hidden lg:block' : ''}`}>
-          {/* Itens do Orçamento */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
-                Itens do Orçamento
-              </h2>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="w-full sm:w-auto px-4 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition flex items-center justify-center gap-2 font-medium shadow-lg"
-              >
-                <Plus className="w-4 h-4" />
-                Adicionar Item
-              </button>
-            </div>
-
-            {/* Form Adicionar */}
-            {showAddForm && (
-              <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Novo Item</h3>
-                  <button
-                    onClick={() => setShowAddForm(false)}
-                    className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition"
-                  >
-                    <X className="w-4 h-4 text-gray-500" />
-                  </button>
+              {editingProject ? (
+                <div className="mt-3 space-y-2">
+                  <input
+                    type="text"
+                    value={project.client}
+                    onChange={(e) => updateProject((current) => ({ ...current, client: e.target.value }))}
+                    placeholder="Nome do cliente"
+                    className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-300 dark:border-gray-700 outline-none w-full py-1"
+                  />
+                  <input
+                    type="date"
+                    value={project.deadline}
+                    onChange={(e) => updateProject((current) => ({ ...current, deadline: e.target.value }))}
+                    className="text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-300 dark:border-gray-700 outline-none py-1"
+                  />
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Descrição *
-                    </label>
-                    <input
-                      type="text"
-                      value={newItem.name}
-                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Ex: Desenvolvimento Frontend"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Categoria *
-                    </label>
-                    <select
-                      value={newItem.category}
-                      onChange={(e) => setNewItem({ ...newItem, category: e.target.value as CostItem['category'] })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
-                    >
-                      {CATEGORIES.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Horas
-                      </label>
-                      <input
-                        type="number"
-                        value={newItem.hours}
-                        onChange={(e) => setNewItem({ ...newItem, hours: e.target.value })}
-                        placeholder="0"
-                        step="0.5"
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Valor/Hora (R$)
-                      </label>
-                      <input
-                        type="number"
-                        value={newItem.hourlyRate}
-                        onChange={(e) => setNewItem({ ...newItem, hourlyRate: e.target.value })}
-                        placeholder="0.00"
-                        step="0.01"
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Quantidade
-                      </label>
-                      <input
-                        type="number"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                        placeholder="1"
-                        step="1"
-                        min="1"
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 text-base"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
-                  <button
-                    onClick={addItem}
-                    disabled={!newItem.name.trim()}
-                    className="flex-1 sm:flex-initial px-6 py-3 bg-gray-900 dark:bg-slate-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Adicionar
-                  </button>
-                  <button
-                    onClick={() => setShowAddForm(false)}
-                    className="flex-1 sm:flex-initial px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition font-medium border border-gray-300 dark:border-slate-700 rounded-xl"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Lista de Itens por Categoria */}
-            <div className="space-y-6">
-              {CATEGORIES.map(category => {
-                const categoryItems = groupedItems[category.id] || [];
-                if (categoryItems.length === 0) return null;
-
-                const CategoryIcon = category.icon;
-                const categoryTotal = categoryItems.reduce((sum, item) => sum + (item.hours * item.hourlyRate * item.quantity), 0);
-
-                return (
-                  <div key={category.id}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-10 h-10 bg-${category.color}-100 dark:bg-${category.color}-900/30 rounded-xl flex items-center justify-center flex-shrink-0`}>
-                        <CategoryIcon className={`w-5 h-5 text-${category.color}-600 dark:text-${category.color}-400`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{category.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{formatCurrency(categoryTotal)}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      {categoryItems.map(item => {
-                        const itemTotal = item.hours * item.hourlyRate * item.quantity;
-                        return (
-                          <div
-                            key={item.id}
-                            className="flex items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:shadow-md transition group"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 dark:text-gray-100 mb-1 break-words">
-                                {item.name}
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                <span>{item.hours}h</span>
-                                <span>•</span>
-                                <span className="truncate">{formatCurrency(item.hourlyRate)}/h</span>
-                                <span>•</span>
-                                <span>x{item.quantity}</span>
-                              </div>
-                            </div>
-
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                                {formatCurrency(itemTotal)}
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => deleteItem(item.id)}
-                              className="flex-shrink-0 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {project.items.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-4xl mb-3">📋</div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Nenhum item adicionado
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    Clique em "Adicionar Item" para começar
-                  </p>
+              ) : (
+                <div className="mt-2 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  {project.client && <span>{project.client}</span>}
+                  {project.deadline && (
+                    <>
+                      {project.client && <span>•</span>}
+                      <span>{new Date(project.deadline).toLocaleDateString("pt-BR")}</span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span>Versão {project.version}</span>
                 </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Sidebar - Análise */}
-        <div className={`space-y-4 sm:space-y-6 ${activeTab !== 'analysis' ? 'hidden lg:block' : ''}`}>
-          {/* Margem de Lucro */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Margem de Lucro
-            </h3>
-            <div className="flex items-center gap-3 mb-3">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={project.margin}
-                onChange={(e) =>
-                  updateProject((current) => ({
-                    ...current,
-                    margin: Number.parseInt(e.target.value, 10) || 0,
-                  }))
-                }
-                className="flex-1 h-2 accent-gray-900 dark:accent-slate-700"
-              />
-              <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 min-w-[60px] text-right">
-                {project.margin}%
-              </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEditingProject(!editingProject)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition"
+              >
+                {editingProject ? <X className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={exportToPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition font-medium"
+              >
+                <Download className="w-4 h-4" />
+                Exportar PDF
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-sm">
-              {[10, 20, 30, 40, 50].map(margin => (
+          </div>
+
+          {showSettings && (
+            <div className="mt-4 p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950">
+              <div className="flex items-center justify-between gap-4">
                 <button
-                  key={margin}
-                  onClick={() =>
-                    updateProject((current) => ({
-                      ...current,
-                      margin,
-                    }))
-                  }
-                  className={`px-3 py-2 rounded-lg border transition ${
-                    project.margin === margin
-                      ? 'bg-gray-900 dark:bg-slate-700 text-white border-gray-900 dark:border-slate-700'
-                      : 'bg-white dark:bg-slate-950 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700'
-                  }`}
+                  onClick={exportToJSON}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition"
                 >
-                  {margin}%
+                  <Save className="w-4 h-4" />
+                  Salvar JSON
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Viabilidade */}
-          {project.clientBudget > 0 && (
-            <div className={`border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm ${
-              isViable
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-            }`}>
-              <div className="flex items-center gap-3 mb-4">
-                {isViable ? (
-                  <>
-                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    <h3 className="font-semibold text-green-900 dark:text-green-100">Projeto Viável!</h3>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    <h3 className="font-semibold text-red-900 dark:text-red-100">Orçamento Insuficiente</h3>
-                  </>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className={isViable ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                    Orçamento Cliente
-                  </span>
-                  <span className={`font-bold ${isViable ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
-                    {formatCurrency(project.clientBudget)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <span className={isViable ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                    Seu Preço
-                  </span>
-                  <span className={`font-bold ${isViable ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
-                    {formatCurrency(finalPrice)}
-                  </span>
-                </div>
-
-                <div className="pt-3 border-t border-green-200 dark:border-green-800">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className={isViable ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                      Diferença
-                    </span>
-                    <span className={`font-bold ${isViable ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
-                      {formatCurrency(Math.abs(project.clientBudget - finalPrice))}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-white dark:bg-slate-950 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all ${
-                        isViable
-                          ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                          : 'bg-gradient-to-r from-red-500 to-rose-500'
-                      }`}
-                      style={{ width: `${Math.min(viabilityPercentage, 100)}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-center mt-2 font-medium">
-                    {viabilityPercentage.toFixed(0)}% do orçamento
-                  </div>
-                </div>
-
-                {!isViable && (
-                  <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                    <p className="text-xs text-red-800 dark:text-red-200 font-medium">
-                      💡 Sugestão: {project.clientBudget < totalCost 
-                        ? 'O orçamento não cobre nem os custos. Renegocie com o cliente.'
-                        : 'Reduza a margem de lucro ou otimize os custos do projeto.'}
-                    </p>
-                  </div>
-                )}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(project))
+                    alert("Orçamento copiado!")
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copiar
+                </button>
+                <button
+                  onClick={() => updateProject((current) => ({ ...current, version: current.version + 1 }))}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+                >
+                  <History className="w-4 h-4" />
+                  Nova Versão
+                </button>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Distribuição de Custos */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Distribuição de Custos
-            </h3>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Custo
+              </span>
+              <Calculator className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(totalCost)}</div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Lucro ({project.margin}%)
+              </span>
+              <TrendingUp className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(profitAmount)}</div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 bg-black dark:bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-400 dark:text-gray-600 uppercase tracking-wider">
+                Total
+              </span>
+              <DollarSign className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+            </div>
+            <div className="text-2xl font-bold text-white dark:text-black">{formatCurrency(finalPrice)}</div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Horas
+              </span>
+              <Clock className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalHours}h</div>
+          </div>
+        </div>
+
+        {/* Margin Control */}
+        <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Margem de Lucro</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{project.margin}%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            value={project.margin}
+            onChange={(e) => updateProject((current) => ({ ...current, margin: Number.parseInt(e.target.value) }))}
+            className="w-full h-2 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white"
+          />
+          <div className="flex justify-between mt-2">
+            {[10, 20, 30, 40, 50].map((margin) => (
+              <button
+                key={margin}
+                onClick={() => updateProject((current) => ({ ...current, margin }))}
+                className={`px-3 py-1 text-xs rounded border transition ${
+                  project.margin === margin
+                    ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white"
+                    : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
+                }`}
+              >
+                {margin}%
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Viability Check */}
+        {project.clientBudget > 0 && (
+          <div
+            className={`border rounded-lg p-4 mb-6 ${
+              isViable
+                ? "border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-950"
+                : "border-gray-300 dark:border-gray-700"
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              {isViable ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+              <h3 className="font-semibold">{isViable ? "Projeto Viável" : "Orçamento Insuficiente"}</h3>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Orçamento Cliente</span>
+                <span className="font-semibold">{formatCurrency(project.clientBudget)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Seu Preço</span>
+                <span className="font-semibold">{formatCurrency(finalPrice)}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-800">
+                <span className="text-gray-600 dark:text-gray-400">Diferença</span>
+                <span className="font-bold">{formatCurrency(Math.abs(project.clientBudget - finalPrice))}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Item Button */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-950 transition font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            Adicionar Item
+          </button>
+        </div>
+
+        {/* Add Form */}
+        {showAddForm && (
+          <div className="mb-6 p-6 border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">Novo Item</h3>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-900 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <div className="space-y-4">
-              {categoryTotals.sort((a, b) => b.total - a.total).map(({ category, total, hours }) => {
-                const percentage = totalCost > 0 ? (total / totalCost) * 100 : 0;
-                const categoryData = CATEGORIES.find(c => c.id === category);
-                const CategoryIcon = categoryData?.icon || Code;
-                
-                return (
-                  <div key={category}>
-                    <div className="flex items-center justify-between mb-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <CategoryIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-300">{categoryData?.name}</span>
-                      </div>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap ml-2">
-                        {formatCurrency(total)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full bg-gradient-to-r from-${categoryData?.color}-500 to-${categoryData?.color}-600`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-600 dark:text-gray-400 min-w-[50px] text-right">
-                        {percentage.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {hours}h de trabalho
+              <div>
+                <label className="block text-sm font-medium mb-2">Descrição</label>
+                <input
+                  type="text"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  placeholder="Ex: Desenvolvimento Frontend React"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Categoria</label>
+                <select
+                  value={newItem.category}
+                  onChange={(e) => setNewItem({ ...newItem, category: e.target.value as CostItem["category"] })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Horas</label>
+                  <input
+                    type="number"
+                    value={newItem.hours}
+                    onChange={(e) => setNewItem({ ...newItem, hours: e.target.value })}
+                    placeholder="0"
+                    step="0.5"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">R$/Hora</label>
+                  <input
+                    type="number"
+                    value={newItem.hourlyRate}
+                    onChange={(e) => setNewItem({ ...newItem, hourlyRate: e.target.value })}
+                    placeholder="0.00"
+                    step="0.01"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Quantidade</label>
+                  <input
+                    type="number"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                    placeholder="1"
+                    step="1"
+                    min="1"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Observações (opcional)</label>
+                <textarea
+                  value={newItem.notes}
+                  onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+                  placeholder="Detalhes adicionais..."
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={addItem}
+                  disabled={!newItem.name.trim()}
+                  className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Adicionar
+                </button>
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Items List by Category */}
+        <div className="space-y-4">
+          {CATEGORIES.map((category) => {
+            const categoryItems = groupedItems[category.id] || []
+            if (categoryItems.length === 0) return null
+
+            const CategoryIcon = category.icon
+            const categoryTotal = categoryItems.reduce(
+              (sum, item) => sum + item.hours * item.hourlyRate * item.quantity,
+              0,
+            )
+            const categoryHours = categoryItems.reduce((sum, item) => sum + item.hours * item.quantity, 0)
+            const isExpanded = expandedCategories.has(category.id)
+
+            return (
+              <div key={category.id} className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleCategory(category.id)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-950 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <CategoryIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <div className="text-left">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{category.name}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {categoryItems.length} {categoryItems.length === 1 ? "item" : "itens"} • {categoryHours}h
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-gray-900 dark:text-gray-100">{formatCurrency(categoryTotal)}</span>
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+                    {categoryItems.map((item) => {
+                      const itemTotal = item.hours * item.hourlyRate * item.quantity
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-start justify-between p-4 border-b border-gray-200 dark:border-gray-800 last:border-b-0 hover:bg-white dark:hover:bg-black transition group"
+                        >
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{item.name}</h4>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                              <span>{item.hours}h</span>
+                              <span>×</span>
+                              <span>{formatCurrency(item.hourlyRate)}/h</span>
+                              <span>×</span>
+                              <span>{item.quantity}</span>
+                            </div>
+                            {item.notes && (
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">{item.notes}</p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                              {formatCurrency(itemTotal)}
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                              <button
+                                onClick={() => duplicateItem(item)}
+                                className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-900 rounded"
+                                title="Duplicar"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => deleteItem(item.id)}
+                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Project Notes */}
+        <div className="mt-6 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+          <label className="block text-sm font-medium mb-2">Observações do Projeto</label>
+          <textarea
+            value={project.notes || ""}
+            onChange={(e) => updateProject((current) => ({ ...current, notes: e.target.value }))}
+            placeholder="Adicione observações, condições de pagamento, prazos específicos..."
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-black outline-none focus:border-gray-900 dark:focus:border-gray-100 resize-none"
+          />
+        </div>
+
+        {/* Total Summary */}
+        <div className="mt-6 bg-black dark:bg-white rounded-lg p-6 text-white dark:text-black">
+          <div className="flex items-center justify-between py-2 border-b border-white/20 dark:border-black/20">
+            <span className="text-sm">Custo de Produção</span>
+            <span className="font-semibold">{formatCurrency(totalCost)}</span>
+          </div>
+          <div className="flex items-center justify-between py-2 border-b border-white/20 dark:border-black/20">
+            <span className="text-sm">Margem de Lucro ({project.margin}%)</span>
+            <span className="font-semibold">{formatCurrency(profitAmount)}</span>
+          </div>
+          <div className="flex items-center justify-between pt-4 mt-2">
+            <span className="text-xl font-bold">Valor Total</span>
+            <span className="text-3xl font-bold">{formatCurrency(finalPrice)}</span>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/20 dark:border-black/20 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-white/60 dark:text-black/60 mb-1">Total de Horas</div>
+              <div className="font-semibold">{totalHours}h</div>
+            </div>
+            <div>
+              <div className="text-white/60 dark:text-black/60 mb-1">Valor Médio/Hora</div>
+              <div className="font-semibold">
+                {totalHours > 0 ? formatCurrency(finalPrice / totalHours) : "R$ 0,00"}/h
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Sugestões de Valores/Hora */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              💡 Referência de Valores/Hora
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Desenvolvimento
-                </h4>
-                <div className="space-y-1.5">
-                  {HOURLY_RATES.development.map(rate => (
-                    <div key={rate.label} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">{rate.label}</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatCurrency(rate.value)}/h
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Design
-                </h4>
-                <div className="space-y-1.5">
-                  {HOURLY_RATES.design.map(rate => (
-                    <div key={rate.label} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">{rate.label}</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatCurrency(rate.value)}/h
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Resumo Final */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-slate-800 dark:to-slate-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl text-white">
-            <h3 className="font-bold text-lg sm:text-xl mb-4">Resumo do Orçamento</h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-white/10">
-                <span className="text-gray-300 text-sm sm:text-base">Custo de Produção</span>
-                <span className="font-semibold text-sm sm:text-base">{formatCurrency(totalCost)}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-3 pt-4 border-t border-white/20">
-                <span className="text-base sm:text-lg font-medium">Valor a Cobrar</span>
-                <span className="text-2xl sm:text-3xl font-bold text-white">
-                  {formatCurrency(finalPrice)}
-                </span>
-              </div>
-
-              <div className="mt-4 p-3 bg-white/10 rounded-lg">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span>Total de Horas</span>
-                  <span className="font-semibold">{totalHours}h</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Valor Médio/Hora</span>
-                  <span className="font-semibold">
-                    {totalHours > 0 ? formatCurrency(finalPrice / totalHours) : 'R$ 0,00'}/h
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dicas */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              Dicas de Precificação
-            </h3>
-            <ul className="space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex-shrink-0">•</span>
-                <span>Margem de lucro ideal: 30-40% para projetos estáveis</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex-shrink-0">•</span>
-                <span>Sempre adicione 20-30% de buffer para imprevistos</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex-shrink-0">•</span>
-                <span>Considere custos indiretos (impostos, ferramentas, etc)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex-shrink-0">•</span>
-                <span>Divida o pagamento em milestones para melhor fluxo de caixa</span>
-              </li>
-            </ul>
-          </div>
+        {/* Hidden Print Content */}
+        <div ref={printRef} style={{ display: "none" }}>
+          {/* Content for PDF export - already handled in exportToPDF function */}
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,724 +1,551 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useMemo } from 'react';
-import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
-import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
-import React from "react";
+import { useState, useMemo } from 'react'
+import { usePageTemplateData } from '@/core/hooks/usePageTemplateData'
+import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types'
 import {
   BookOpen,
   Plus,
   Search,
-  Edit2,
   Trash2,
   Eye,
   EyeOff,
   Clock,
-  X,
-  Save,
   FileText,
   Tag,
   User,
-  ChevronRight,
-  List,
-  Heading,
-  Code,
-  CheckSquare,
-  Link as LinkIcon,
-  Bold,
-  Italic
-} from 'lucide-react';
+  Menu,
+  X,
+  MoreHorizontal,
+  Edit3,
+  Star,
+  Hash,
+} from 'lucide-react'
+import { cn } from '@/shared/lib/utils'
+import { Button } from '@/shared/components/ui/Button'
+import { Input } from '@/shared/components/ui/Input'
+import dynamic from 'next/dynamic'
 
-type WikiPage = {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  author: string;
-  createdAt: string;
-  updatedAt: string;
-  published: boolean;
-};
+// Importar o Blank dinamicamente para evitar problemas de SSR
+const BlankTemplate = dynamic(() => import('./blank'), { ssr: false })
 
-const DEFAULT_PAGES: WikiPage[] = [
-    {
-      id: '1',
-      title: 'Bem-vindo ao Arc.',
-      content: `# Bem-vindo ao Arc.
+type WikiArticle = {
+  id: string
+  title: string
+  content: string // Agora armazena o HTML do blank
+  tags: string[]
+  author: string
+  createdAt: string
+  updatedAt: string
+  published: boolean
+  favorite: boolean
+}
 
-Arc. é uma plataforma de gerenciamento de projetos moderna e flexível.
-
-## Recursos Principais
-
-- **Templates Variados**: Escolha entre diversos templates
-- **Analytics**: Acompanhe métricas importantes
-- **Workspaces**: Organize seus projetos
-- **Colaboração**: Trabalhe em equipe
-
-## Como Começar
-
-1. Crie um novo workspace
-2. Escolha um template
-3. Comece a organizar suas tarefas
-
-Para mais informações, consulte as outras páginas da Wiki.`,
-      tags: ['introdução', 'guia'],
-      author: 'Admin',
-      createdAt: new Date(2025, 0, 1).toISOString(),
-      updatedAt: new Date(2025, 0, 15).toISOString(),
-      published: true,
-    },
-    {
-      id: '2',
-      title: 'Guia de Templates',
-      content: `# Guia de Templates
-
-## Templates Disponíveis
-
-### Kanban Board
-Organize tarefas em colunas (To Do, In Progress, Done)
-
-### Sprint Board
-Gerencie sprints ágeis com métricas e burndown
-
-### Calendar
-Visualize eventos e prazos em calendário
-
-### Mind Map
-Crie mapas mentais para brainstorming
-
-### Wiki
-Documente seu projeto (você está aqui!)
-
-Cada template pode ser customizado conforme suas necessidades.`,
-      tags: ['templates', 'guia'],
-      author: 'Admin',
-      createdAt: new Date(2025, 0, 5).toISOString(),
-      updatedAt: new Date(2025, 0, 10).toISOString(),
-      published: true,
-    },
-  ];
+const DEFAULT_ARTICLES: WikiArticle[] = [
+  {
+    id: '1',
+    title: 'Bem-vindo ao Arc.',
+    content: '<h1>Bem-vindo ao Arc.</h1><p>Arc. é uma plataforma de gerenciamento de projetos moderna e flexível.</p>',
+    tags: ['introdução', 'guia'],
+    author: 'Admin',
+    createdAt: new Date(2025, 0, 1).toISOString(),
+    updatedAt: new Date(2025, 0, 15).toISOString(),
+    published: true,
+    favorite: true,
+  },
+]
 
 type WikiData = {
-  pages: WikiPage[];
-};
+  articles: WikiArticle[]
+  editingArticleId: string | null
+}
 
 const DEFAULT_DATA: WikiData = {
-  pages: DEFAULT_PAGES,
-};
+  articles: DEFAULT_ARTICLES,
+  editingArticleId: null,
+}
 
 export default function Wiki({ groupId, pageId }: WorkspaceTemplateComponentProps) {
-  const { data, setData } = usePageTemplateData<WikiData>(groupId, pageId, DEFAULT_DATA);
-  const pages = data.pages ?? DEFAULT_PAGES;
+  const { data, setData } = usePageTemplateData<WikiData>(groupId, pageId, DEFAULT_DATA)
+  const articles = data.articles ?? DEFAULT_ARTICLES
+  const editingArticleId = data.editingArticleId ?? null
 
-  const updatePages = (updater: WikiPage[] | ((current: WikiPage[]) => WikiPage[])) => {
-    setData((current) => {
-      const currentPages = current.pages ?? DEFAULT_PAGES;
-      const nextPages =
-        typeof updater === 'function'
-          ? (updater as (current: WikiPage[]) => WikiPage[])(JSON.parse(JSON.stringify(currentPages)))
-          : updater;
-      return {
-        ...current,
-        pages: nextPages,
-      };
-    });
-  };
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(
+    editingArticleId || articles[0]?.id || null
+  )
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterTag, setFilterTag] = useState<string>('all')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
-  const [selectedPageId, setSelectedPageId] = useState<string | null>(pages[0]?.id ?? null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterTag, setFilterTag] = useState<string>('all');
-  const [isEditing, setIsEditing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingPage, setEditingPage] = useState<WikiPage | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    tags: '',
-    published: true,
-  });
+  const selectedArticle = selectedArticleId
+    ? articles.find((article) => article.id === selectedArticleId) ?? null
+    : null
 
-  useEffect(() => {
-    if (!pages.length) {
-      setSelectedPageId(null);
-      return;
-    }
+  const allTags = useMemo(() => Array.from(new Set(articles.flatMap((a) => a.tags))), [articles])
 
-    if (!selectedPageId || !pages.some((page) => page.id === selectedPageId)) {
-      setSelectedPageId(pages[0].id);
-    }
-  }, [pages, selectedPageId]);
-
-  const selectedPage = selectedPageId ? pages.find((page) => page.id === selectedPageId) ?? null : null;
-
-  const allTags = useMemo(() => Array.from(new Set(pages.flatMap(p => p.tags))), [pages]);
-
-  const filteredPages = pages.filter(page => {
-    const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         page.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTag = filterTag === 'all' || page.tags.includes(filterTag);
-    return matchesSearch && matchesTag;
-  });
+  const filteredArticles = articles.filter((article) => {
+    const matchesSearch =
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    const matchesTag = filterTag === 'all' || article.tags.includes(filterTag)
+    return matchesSearch && matchesTag
+  })
 
   const formatDate = (isoDate: string) => {
-    const date = new Date(isoDate);
+    const date = new Date(isoDate)
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric'
-    }).format(date);
-  };
+      year: 'numeric',
+    }).format(date)
+  }
 
-  // Renderizar markdown
-  const renderMarkdown = (content: string) => {
-    const lines = content.split('\n');
-   const elements: React.ReactElement[] = [];
-    let inCodeBlock = false;
-    let codeBlockContent: string[] = [];
-    let inList = false;
-    let listItems: string[] = [];
-
-    lines.forEach((line, i) => {
-      // Code blocks
-      if (line.trim().startsWith('```')) {
-        if (inCodeBlock) {
-          elements.push(
-            <pre key={`code-${i}`} className="bg-gray-100 dark:bg-slate-800 p-4 rounded-lg overflow-x-auto my-4">
-              <code className="text-sm text-gray-800 dark:text-gray-200">
-                {codeBlockContent.join('\n')}
-              </code>
-            </pre>
-          );
-          codeBlockContent = [];
-        }
-        inCodeBlock = !inCodeBlock;
-        return;
-      }
-
-      if (inCodeBlock) {
-        codeBlockContent.push(line);
-        return;
-      }
-
-      // Lists
-      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-        if (!inList) {
-          inList = true;
-          listItems = [];
-        }
-        listItems.push(line.trim().substring(2));
-        return;
-      } else if (inList) {
-        elements.push(
-          <ul key={`list-${i}`} className="list-disc list-inside space-y-1 my-4">
-            {listItems.map((item, idx) => (
-              <li key={idx} className="text-gray-700 dark:text-gray-300">
-                {renderInlineMarkdown(item)}
-              </li>
-            ))}
-          </ul>
-        );
-        inList = false;
-        listItems = [];
-      }
-
-      // Headings
-      if (line.startsWith('# ')) {
-        elements.push(
-          <h1 key={i} className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-8 mb-4 border-b-2 border-gray-200 dark:border-slate-700 pb-2">
-            {line.substring(2)}
-          </h1>
-        );
-      } else if (line.startsWith('## ')) {
-        elements.push(
-          <h2 key={i} className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-6 mb-3">
-            {line.substring(3)}
-          </h2>
-        );
-      } else if (line.startsWith('### ')) {
-        elements.push(
-          <h3 key={i} className="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-5 mb-2">
-            {line.substring(4)}
-          </h3>
-        );
-      } else if (line.trim() === '') {
-        elements.push(<div key={i} className="h-4"></div>);
-      } else if (!inList) {
-        elements.push(
-          <p key={i} className="text-gray-700 dark:text-gray-300 leading-relaxed my-2">
-            {renderInlineMarkdown(line)}
-          </p>
-        );
-      }
-    });
-
-    // Flush remaining list items
-    if (inList) {
-      elements.push(
-        <ul key={`list-final`} className="list-disc list-inside space-y-1 my-4">
-          {listItems.map((item, idx) => (
-            <li key={idx} className="text-gray-700 dark:text-gray-300">
-              {renderInlineMarkdown(item)}
-            </li>
-          ))}
-        </ul>
-      );
-    }
-
-    return elements;
-  };
-
-  // Inline markdown (bold, italic, code)
-  const renderInlineMarkdown = (text: string) => {
-    const parts = [];
-    let currentText = text;
-    let key = 0;
-
-    // Bold
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    let match;
-    let lastIndex = 0;
-
-    while ((match = boldRegex.exec(currentText)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(currentText.substring(lastIndex, match.index));
-      }
-      parts.push(<strong key={`bold-${key++}`} className="font-bold text-gray-900 dark:text-gray-100">{match[1]}</strong>);
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < currentText.length) {
-      parts.push(currentText.substring(lastIndex));
-    }
-
-    if (parts.length === 0) {
-      return text;
-    }
-
-    return <>{parts}</>;
-  };
-
-  // Modal functions
-  const openModal = (page?: WikiPage) => {
-    if (page) {
-      setEditingPage(page);
-      setFormData({
-        title: page.title,
-        content: page.content,
-        tags: page.tags.join(', '),
-        published: page.published,
-      });
-    } else {
-      setEditingPage(null);
-      setFormData({
-        title: '',
-        content: '',
-        tags: '',
-        published: true,
-      });
-    }
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setEditingPage(null);
-  };
-
-  const savePage = () => {
-    if (!formData.title.trim()) return;
-
-    const pageData: WikiPage = {
-      id: editingPage?.id || `${Date.now()}`,
-      title: formData.title,
-      content: formData.content,
-      tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
-      author: editingPage?.author || 'Você',
-      createdAt: editingPage?.createdAt ?? new Date().toISOString(),
+  const createArticle = () => {
+    const newArticle: WikiArticle = {
+      id: `article-${Date.now()}`,
+      title: 'Novo Artigo',
+      content: '<p>Escreva seu conteúdo aqui...</p>',
+      tags: [],
+      author: 'Você',
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      published: formData.published,
-    };
-
-    if (editingPage) {
-      updatePages((current) => current.map((p) => (p.id === editingPage.id ? pageData : p)));
-      setSelectedPageId(pageData.id);
-    } else {
-      updatePages((current) => [...current, pageData]);
-      setSelectedPageId(pageData.id);
+      published: false,
+      favorite: false,
     }
 
-    closeModal();
-  };
+    setData((current) => ({
+      ...current,
+      articles: [...(current.articles || []), newArticle],
+      editingArticleId: newArticle.id,
+    }))
+    setSelectedArticleId(newArticle.id)
+    setSidebarOpen(false)
+  }
 
-  const deletePage = (id: string) => {
-    if (confirm('Deletar esta página da wiki?')) {
-      const nextPages = pages.filter((p) => p.id !== id);
-      updatePages(nextPages);
-      if (!nextPages.length) {
-        setSelectedPageId(null);
-      } else if (selectedPageId === id) {
-        setSelectedPageId(nextPages[0].id);
+  const deleteArticle = (id: string) => {
+    if (confirm('Deletar este artigo?')) {
+      const nextArticles = articles.filter((a) => a.id !== id)
+      setData((current) => ({
+        ...current,
+        articles: nextArticles,
+        editingArticleId: null,
+      }))
+
+      if (selectedArticleId === id) {
+        setSelectedArticleId(nextArticles[0]?.id || null)
       }
     }
-  };
+    setOpenMenuId(null)
+  }
 
   const togglePublished = (id: string) => {
-    updatePages((current) =>
-      current.map((p) =>
-        p.id === id ? { ...p, published: !p.published, updatedAt: new Date().toISOString() } : p,
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, published: !a.published, updatedAt: new Date().toISOString() } : a
       ),
-    );
-  };
+    }))
+    setOpenMenuId(null)
+  }
 
-  // Insert markdown helper
-  const insertMarkdown = (before: string, after: string = '') => {
-    const textarea = document.getElementById('wiki-editor') as HTMLTextAreaElement;
-    if (!textarea) return;
+  const toggleFavorite = (id: string) => {
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, favorite: !a.favorite, updatedAt: new Date().toISOString() } : a
+      ),
+    }))
+    setOpenMenuId(null)
+  }
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = formData.content.substring(start, end);
-    const newText = formData.content.substring(0, start) + before + selectedText + after + formData.content.substring(end);
+  const startEditing = (id: string) => {
+    setData((current) => ({
+      ...current,
+      editingArticleId: id,
+    }))
+    setSelectedArticleId(id)
+    setSidebarOpen(false)
+    setOpenMenuId(null)
+  }
 
-    setFormData({ ...formData, content: newText });
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
-    }, 0);
-  };
+  const stopEditing = () => {
+    setData((current) => ({
+      ...current,
+      editingArticleId: null,
+    }))
+  }
+
+  const updateArticleContent = (id: string, content: string) => {
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, content, updatedAt: new Date().toISOString() } : a
+      ),
+    }))
+  }
+
+  const updateArticleTitle = (id: string, title: string) => {
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, title, updatedAt: new Date().toISOString() } : a
+      ),
+    }))
+  }
+
+  const updateArticleTags = (id: string, tags: string[]) => {
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, tags, updatedAt: new Date().toISOString() } : a
+      ),
+    }))
+  }
+
+  const addTag = (id: string, tag: string) => {
+    const trimmedTag = tag.trim()
+    if (!trimmedTag) return
+
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) => {
+        if (a.id === id && !a.tags.includes(trimmedTag)) {
+          return { ...a, tags: [...a.tags, trimmedTag], updatedAt: new Date().toISOString() }
+        }
+        return a
+      }),
+    }))
+  }
+
+  const removeTag = (id: string, tag: string) => {
+    setData((current) => ({
+      ...current,
+      articles: (current.articles || []).map((a) =>
+        a.id === id ? { ...a, tags: a.tags.filter((t) => t !== tag), updatedAt: new Date().toISOString() } : a
+      ),
+    }))
+  }
+
+  const isEditing = editingArticleId === selectedArticleId
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-slate-950 overflow-hidden flex">
+    <div className="h-full flex bg-arc-primary">
+      {/* Sidebar Mobile Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden z-40" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <div className="w-80 border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
-        <div className="p-4 border-b border-gray-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="text-blue-600 dark:text-blue-400" size={24} />
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Wiki do Projeto</h2>
+      <div
+        className={cn(
+          'fixed md:relative inset-y-0 left-0 z-50 md:z-0 w-80 border-r border-arc bg-arc-primary flex flex-col transition-transform duration-300',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        )}
+      >
+        {/* Sidebar Header */}
+        <div className="flex-shrink-0 p-4 border-b border-arc">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-arc">Wiki</h2>
+            <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 hover:bg-arc-secondary rounded">
+              <X className="w-5 h-5 text-arc-muted" />
+            </button>
           </div>
 
+          {/* Search */}
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-arc-muted w-4 h-4" />
+            <Input
               type="text"
-              placeholder="Buscar páginas..."
+              placeholder="Buscar artigos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-9 h-9 text-sm"
             />
           </div>
 
-          <select
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">Todas as tags</option>
-            {allTags.map(tag => (
-              <option key={tag} value={tag}>{tag}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex-1 overflow-auto p-2">
-          {filteredPages.length === 0 ? (
-            <div className="text-center py-8 px-4">
-              <FileText className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {searchQuery || filterTag !== 'all' ? 'Nenhuma página encontrada' : 'Nenhuma página ainda'}
-              </p>
-            </div>
-          ) : (
-            filteredPages.map(page => (
-              <button
-                key={page.id}
-                onClick={() => setSelectedPageId(page.id)}
-                className={`w-full text-left p-3 rounded-lg mb-2 transition-all group ${
-                  selectedPage?.id === page.id
-                    ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500'
-                    : 'bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-gray-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm flex-1">
-                    {page.title}
-                  </h3>
-                  <div className="flex items-center gap-1">
-                    {!page.published ? (
-                      <EyeOff size={14} className="text-gray-400" />
-                    ) : (
-                      <Eye size={14} className="text-green-500" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <Clock size={12} />
-                  <span>{formatDate(page.updatedAt)}</span>
-                </div>
-                {page.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {page.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="px-2 py-0.5 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded text-xs">
-                        {tag}
-                      </span>
-                    ))}
-                    {page.tags.length > 3 && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        +{page.tags.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </button>
-            ))
+          {/* Filter Tags */}
+          {allTags.length > 0 && (
+            <select
+              value={filterTag}
+              onChange={(e) => setFilterTag(e.target.value)}
+              className="w-full px-3 py-2 border border-arc rounded-lg bg-arc-secondary text-arc text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todas as tags</option>
+              {allTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  #{tag}
+                </option>
+              ))}
+            </select>
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-200 dark:border-slate-800">
-          <button
-            onClick={() => openModal()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
-          >
-            <Plus size={18} />
-            Nova Página
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto">
-        {selectedPage ? (
-          <div className="max-w-4xl mx-auto p-6 md:p-8">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  {selectedPage.title}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1.5">
-                    <User size={14} />
-                    <span>{selectedPage.author}</span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={14} />
-                    <span>Atualizado em {formatDate(selectedPage.updatedAt)}</span>
-                  </div>
-                  <span>•</span>
-                  {selectedPage.published ? (
-                    <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
-                      <Eye size={14} />
-                      Publicado
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
-                      <EyeOff size={14} />
-                      Rascunho
-                    </span>
+        {/* Articles List */}
+        <div className="flex-1 overflow-y-auto p-3">
+          {filteredArticles.length === 0 ? (
+            <div className="text-center py-8 px-4">
+              <FileText className="w-12 h-12 text-arc-muted mx-auto mb-3 opacity-50" />
+              <p className="text-sm text-arc-muted">
+                {searchQuery || filterTag !== 'all' ? 'Nenhum artigo encontrado' : 'Nenhum artigo ainda'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredArticles.map((article) => (
+                <div
+                  key={article.id}
+                  onClick={() => {
+                    setSelectedArticleId(article.id)
+                    setSidebarOpen(false)
+                  }}
+                  className={cn(
+                    'group relative p-3 rounded-lg border border-arc cursor-pointer transition-all',
+                    selectedArticle?.id === article.id
+                      ? 'bg-arc-secondary shadow-sm'
+                      : 'hover:bg-arc-secondary/50'
                   )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => togglePublished(selectedPage.id)}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-                  title={selectedPage.published ? 'Tornar rascunho' : 'Publicar'}
                 >
-                  {selectedPage.published ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-                <button
-                  onClick={() => openModal(selectedPage)}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-                  title="Editar"
-                >
-                  <Edit2 size={18} />
-                </button>
-                <button
-                  onClick={() => deletePage(selectedPage.id)}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                  title="Deletar"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-
-            {selectedPage.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6 pb-6 border-b border-gray-200 dark:border-slate-800">
-                {selectedPage.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
-                  >
-                    <Tag size={12} />
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="prose prose-gray dark:prose-invert max-w-none">
-              {renderMarkdown(selectedPage.content)}
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full">
-            <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Selecione uma página
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Escolha uma página na barra lateral ou crie uma nova
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Modal Editor */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-800 w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                {editingPage ? 'Editar Página' : 'Nova Página'}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
-              >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Título *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Título da página"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Conteúdo (Markdown)
-                    </label>
-                    <div className="flex items-center gap-1">
+                  {/* Menu */}
+                  <div className="absolute top-2 right-2">
+                    <div className="relative">
                       <button
-                        onClick={() => insertMarkdown('**', '**')}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
-                        title="Negrito"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenMenuId(openMenuId === article.id ? null : article.id)
+                        }}
+                        className="p-1 hover:bg-arc-primary rounded opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <Bold size={16} className="text-gray-600 dark:text-gray-400" />
+                        <MoreHorizontal className="w-4 h-4 text-arc-muted" />
                       </button>
-                      <button
-                        onClick={() => insertMarkdown('*', '*')}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
-                        title="Itálico"
-                      >
-                        <Italic size={16} className="text-gray-600 dark:text-gray-400" />
-                      </button>
-                      <button
-                        onClick={() => insertMarkdown('## ', '')}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
-                        title="Título"
-                      >
-                        <Heading size={16} className="text-gray-600 dark:text-gray-400" />
-                      </button>
-                      <button
-                        onClick={() => insertMarkdown('- ', '')}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
-                        title="Lista"
-                      >
-                        <List size={16} className="text-gray-600 dark:text-gray-400" />
-                      </button>
-                      <button
-                        onClick={() => insertMarkdown('```\n', '\n```')}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition"
-                        title="Código"
-                      >
-                        <Code size={16} className="text-gray-600 dark:text-gray-400" />
-                      </button>
+
+                      {openMenuId === article.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                          <div className="absolute right-0 top-8 z-20 w-44 bg-arc-primary border border-arc rounded-lg shadow-lg py-1">
+                            <button
+                              onClick={() => startEditing(article.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-arc hover:bg-arc-secondary transition-colors flex items-center gap-2"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => toggleFavorite(article.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-arc hover:bg-arc-secondary transition-colors flex items-center gap-2"
+                            >
+                              <Star className={cn('w-4 h-4', article.favorite && 'fill-yellow-500 text-yellow-500')} />
+                              {article.favorite ? 'Desfavoritar' : 'Favoritar'}
+                            </button>
+                            <button
+                              onClick={() => togglePublished(article.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-arc hover:bg-arc-secondary transition-colors flex items-center gap-2"
+                            >
+                              {article.published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              {article.published ? 'Tornar rascunho' : 'Publicar'}
+                            </button>
+                            <button
+                              onClick={() => deleteArticle(article.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Deletar
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <textarea
-                    id="wiki-editor"
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={15}
-                    placeholder="Digite o conteúdo da página usando Markdown..."
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Suporta Markdown: **negrito**, *itálico*, ## títulos, - listas, ```código```
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tags
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.tags}
-                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                      placeholder="tag1, tag2, tag3"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Separe as tags com vírgula
-                    </p>
+                  <div className="flex items-start gap-2 mb-2 pr-8">
+                    {article.favorite && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0 mt-0.5" />}
+                    <h3 className="font-medium text-arc text-sm flex-1 line-clamp-2">{article.title}</h3>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Status
-                    </label>
-                    <label className="flex items-center gap-3 px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.published}
-                        onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        Publicar página
-                      </span>
-                    </label>
+                  <div className="flex items-center gap-2 text-xs text-arc-muted mb-2">
+                    <Clock className="w-3 h-3" />
+                    <span>{formatDate(article.updatedAt)}</span>
+                    {!article.published && (
+                      <>
+                        <span>•</span>
+                        <span className="text-yellow-600 dark:text-yellow-400">Rascunho</span>
+                      </>
+                    )}
                   </div>
+
+                  {article.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {article.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 bg-arc-primary border border-arc rounded text-xs text-arc-muted"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {article.tags.length > 3 && (
+                        <span className="text-xs text-arc-muted">+{article.tags.length - 3}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
+              ))}
             </div>
+          )}
+        </div>
 
-            {/* Modal Footer */}
-            <div className="p-6 border-t border-gray-200 dark:border-slate-800 flex items-center justify-end gap-3">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={savePage}
-                disabled={!formData.title.trim()}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <Save size={18} />
-                {editingPage ? 'Salvar' : 'Criar'}
-              </button>
+        {/* New Article Button */}
+        <div className="flex-shrink-0 p-4 border-t border-arc">
+          <Button onClick={createArticle} className="w-full">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Artigo
+          </Button>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-arc-primary border-b border-arc backdrop-blur-sm bg-opacity-95">
+          <div className="px-3 sm:px-6 py-2.5 sm:py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 hover:bg-arc-secondary rounded-lg">
+                  <Menu className="w-5 h-5 text-arc" />
+                </button>
+
+                {selectedArticle && (
+                  <div className="flex-1 min-w-0">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={selectedArticle.title}
+                        onChange={(e) => updateArticleTitle(selectedArticle.id, e.target.value)}
+                        className="w-full bg-transparent border-none text-base sm:text-lg font-semibold text-arc focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 -ml-2"
+                      />
+                    ) : (
+                      <h1 className="text-base sm:text-lg font-semibold text-arc truncate">{selectedArticle.title}</h1>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-arc-muted mt-0.5">
+                      <User className="w-3 h-3" />
+                      <span>{selectedArticle.author}</span>
+                      <span>•</span>
+                      <Clock className="w-3 h-3" />
+                      <span>{formatDate(selectedArticle.updatedAt)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedArticle && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {isEditing ? (
+                    <Button onClick={stopEditing} size="sm" variant="outline">
+                      Concluir Edição
+                    </Button>
+                  ) : (
+                    <Button onClick={() => startEditing(selectedArticle.id)} size="sm">
+                      <Edit3 className="w-4 h-4 sm:mr-1.5" />
+                      <span className="hidden sm:inline">Editar</span>
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          {selectedArticle ? (
+            isEditing ? (
+              // Modo de Edição com Blank Template
+              <div className="h-full flex flex-col">
+                {/* Tags Manager */}
+                <div className="border-b border-arc bg-arc-secondary px-3 sm:px-6 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-arc-muted flex-shrink-0">
+                      <Hash className="w-4 h-4" />
+                      <span className="text-xs font-medium">Tags:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                      {selectedArticle.tags.map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => removeTag(selectedArticle.id, tag)}
+                          className="group inline-flex items-center gap-1 px-2.5 py-1 bg-arc-primary border border-arc rounded-full text-xs font-medium text-arc hover:border-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <Hash className="w-3 h-3" />
+                          <span>{tag}</span>
+                          <X className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      ))}
+                      <input
+                        type="text"
+                        placeholder="Digite e pressione Enter..."
+                        className="flex-1 min-w-[150px] px-3 py-1 text-xs bg-transparent border border-arc rounded-full text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const input = e.currentTarget
+                            if (input.value.trim()) {
+                              addTag(selectedArticle.id, input.value)
+                              input.value = ''
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Editor */}
+                <div className="flex-1 overflow-y-auto">
+                  <BlankTemplate
+                    groupId={groupId}
+                    pageId={`${pageId}-${selectedArticle.id}`}
+                    onContentChange={(content) => updateArticleContent(selectedArticle.id, content)}
+                    initialContent={selectedArticle.content}
+                  />
+                </div>
+              </div>
+            ) : (
+              // Modo de Visualização
+              <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+                {selectedArticle.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-6 pb-6 border-b border-arc">
+                    {selectedArticle.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-arc-secondary border border-arc rounded-full text-sm font-medium text-arc"
+                      >
+                        <Tag className="w-3 h-3" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div
+                  className="prose prose-gray dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                />
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-6">
+              <div className="w-16 h-16 mb-4 bg-arc-secondary rounded-lg flex items-center justify-center">
+                <BookOpen className="w-8 h-8 text-arc-muted" />
+              </div>
+              <h3 className="text-lg font-semibold text-arc mb-2">Selecione um artigo</h3>
+              <p className="text-arc-muted text-center mb-6">Escolha um artigo na barra lateral ou crie um novo</p>
+              <Button onClick={createArticle}>
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Artigo
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  );
+  )
 }

@@ -3,6 +3,29 @@
 import { useEffect, useState } from "react"
 import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
 import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
+import {
+  Plus,
+  Search,
+  Star,
+  Users,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  Briefcase,
+  X,
+  Edit2,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  MoreHorizontal,
+  FolderKanban,
+  Grid3x3,
+  List,
+} from "lucide-react"
+import { cn } from "@/shared/lib/utils"
+import { Button } from "@/shared/components/ui/Button"
+import { Input } from "@/shared/components/ui/Input"
 
 type ProjectStatus = "planning" | "active" | "paused" | "review" | "completed" | "archived"
 type ProjectPriority = "low" | "medium" | "high" | "critical"
@@ -27,85 +50,45 @@ type Project = {
 }
 
 const PROJECT_COLORS = [
-  "bg-blue-500",
-  "bg-purple-500",
-  "bg-green-500",
-  "bg-orange-500",
-  "bg-pink-500",
-  "bg-red-500",
-  "bg-indigo-500",
-  "bg-cyan-500",
-  "bg-amber-500",
-  "bg-teal-500",
+  "from-blue-500 to-blue-600",
+  "from-purple-500 to-purple-600",
+  "from-green-500 to-green-600",
+  "from-orange-500 to-orange-600",
+  "from-pink-500 to-pink-600",
+  "from-red-500 to-red-600",
+  "from-indigo-500 to-indigo-600",
+  "from-cyan-500 to-cyan-600",
 ]
 
 const STATUS_CONFIG = {
-  planning: {
-    label: "Planejamento",
-    color: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800",
-  },
-  active: {
-    label: "Em Andamento",
-    color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-  },
-  paused: {
-    label: "Pausado",
-    color:
-      "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800",
-  },
-  review: {
-    label: "Em Revisão",
-    color:
-      "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
-  },
-  completed: {
-    label: "Concluído",
-    color:
-      "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800",
-  },
-  archived: {
-    label: "Arquivado",
-    color: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800",
-  },
+  planning: { label: "Planejamento", color: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300" },
+  active: { label: "Em Andamento", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+  paused: { label: "Pausado", color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
+  review: { label: "Em Revisão", color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" },
+  completed: { label: "Concluído", color: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" },
+  archived: { label: "Arquivado", color: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300" },
 }
 
 const PRIORITY_CONFIG = {
-  low: {
-    label: "Baixa",
-    color: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800",
-  },
-  medium: {
-    label: "Média",
-    color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-  },
-  high: {
-    label: "Alta",
-    color:
-      "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800",
-  },
-  critical: {
-    label: "Crítica",
-    color: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800",
-  },
+  low: { label: "Baixa", color: "text-gray-600" },
+  medium: { label: "Média", color: "text-blue-600" },
+  high: { label: "Alta", color: "text-orange-600" },
+  critical: { label: "Crítica", color: "text-red-600" },
 }
 
-type ProjectsTemplateData = {
-  projects: Project[]
-}
-
-const DEFAULT_DATA: ProjectsTemplateData = {
+const DEFAULT_DATA: { projects: Project[] } = {
   projects: [
     {
       id: "1",
       name: "Website Redesign",
-      description: "Redesign completo do site institucional com nova identidade visual",
-      status: "active",
-      priority: "high",
+      description: "Redesign completo do site institucional",
+      status: "active" as ProjectStatus,
+      priority: "high" as ProjectPriority,
       progress: 65,
       team: ["João Silva", "Maria Santos", "Pedro Costa"],
       deadline: "2025-02-15",
       startDate: "2025-01-05",
-      color: "bg-blue-500",
+      color: "from-blue-500 to-blue-600",
       tasksTotal: 24,
       tasksCompleted: 16,
       budget: 50000,
@@ -117,13 +100,13 @@ const DEFAULT_DATA: ProjectsTemplateData = {
       id: "2",
       name: "App Mobile",
       description: "Desenvolvimento do aplicativo iOS e Android",
-      status: "active",
-      priority: "critical",
+      status: "active" as ProjectStatus,
+      priority: "critical" as ProjectPriority,
       progress: 40,
       team: ["Ana Lima", "Carlos Souza"],
       deadline: "2025-03-20",
       startDate: "2025-01-10",
-      color: "bg-purple-500",
+      color: "from-purple-500 to-purple-600",
       tasksTotal: 32,
       tasksCompleted: 13,
       budget: 80000,
@@ -131,28 +114,11 @@ const DEFAULT_DATA: ProjectsTemplateData = {
       favorite: false,
       client: "StartupXYZ",
     },
-    {
-      id: "3",
-      name: "Marketing Q1",
-      description: "Campanhas de marketing para o primeiro trimestre",
-      status: "paused",
-      priority: "medium",
-      progress: 25,
-      team: ["Fernanda Costa"],
-      deadline: "2025-01-30",
-      startDate: "2025-01-01",
-      color: "bg-orange-500",
-      tasksTotal: 15,
-      tasksCompleted: 4,
-      budget: 20000,
-      spent: 5000,
-      favorite: false,
-    },
   ],
 }
 
 export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateComponentProps) {
-  const { data, setData, isSaving } = usePageTemplateData<ProjectsTemplateData>(groupId, pageId, DEFAULT_DATA)
+  const { data, setData } = usePageTemplateData(groupId, pageId, DEFAULT_DATA)
   const [projects, setProjects] = useState<Project[]>(data.projects ?? DEFAULT_DATA.projects)
 
   useEffect(() => {
@@ -162,22 +128,19 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
   const persistProjects = (updater: (current: Project[]) => Project[]) => {
     setProjects((current) => {
       const next = updater(current)
-      setData((prev) => ({
-        ...prev,
-        projects: next,
-      }))
+      setData({ projects: next })
       return next
     })
   }
 
   const [view, setView] = useState<"grid" | "list">("grid")
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all")
-  const [filterPriority, setFilterPriority] = useState<ProjectPriority | "all">("all")
+  const [searchQuery, setSearchQuery] = useState("")
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
-  const [newProject, setNewProject] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     description: "",
     client: "",
@@ -188,39 +151,36 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
   })
 
   const addProject = () => {
-    if (!newProject.name.trim()) return
+    if (!formData.name.trim()) return
 
     const randomColor = PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]
 
     const project: Project = {
       id: Date.now().toString(),
-      name: newProject.name,
-      description: newProject.description,
+      name: formData.name,
+      description: formData.description,
       status: "planning",
-      priority: newProject.priority,
+      priority: formData.priority,
       progress: 0,
-      team: newProject.team
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t),
-      deadline: newProject.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      team: formData.team.split(",").map((t) => t.trim()).filter((t) => t),
+      deadline: formData.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       startDate: new Date().toISOString().split("T")[0],
       color: randomColor,
       tasksTotal: 0,
       tasksCompleted: 0,
-      budget: Number.parseFloat(newProject.budget) || undefined,
+      budget: Number.parseFloat(formData.budget) || undefined,
       spent: 0,
       favorite: false,
-      client: newProject.client,
+      client: formData.client,
     }
 
     persistProjects((current) => [...current, project])
-    setNewProject({ name: "", description: "", client: "", deadline: "", team: "", budget: "", priority: "medium" })
-    setShowAddForm(false)
+    setFormData({ name: "", description: "", client: "", deadline: "", team: "", budget: "", priority: "medium" })
+    setShowModal(false)
   }
 
   const updateProject = (id: string, updates: Partial<Project>) => {
-    persistProjects((current) => current.map((project) => (project.id === id ? { ...project, ...updates } : project)))
+    persistProjects((current) => current.map((p) => (p.id === id ? { ...p, ...updates } : p)))
     if (selectedProject?.id === id) {
       setSelectedProject({ ...selectedProject, ...updates })
     }
@@ -228,7 +188,7 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
 
   const deleteProject = (id: string) => {
     if (confirm("Excluir este projeto?")) {
-      persistProjects((current) => current.filter((project) => project.id !== id))
+      persistProjects((current) => current.filter((p) => p.id !== id))
       setSelectedProject(null)
     }
   }
@@ -241,29 +201,28 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
 
   const filteredProjects = projects.filter((project) => {
     const matchesStatus = filterStatus === "all" || project.status === filterStatus
-    const matchesPriority = filterPriority === "all" || project.priority === filterPriority
     const matchesFavorite = !showFavoritesOnly || project.favorite
-    return matchesStatus && matchesPriority && matchesFavorite
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.client?.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesFavorite && matchesSearch
   })
 
   const stats = {
     total: projects.length,
     active: projects.filter((p) => p.status === "active").length,
     completed: projects.filter((p) => p.status === "completed").length,
-    paused: projects.filter((p) => p.status === "paused").length,
     totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
     totalSpent: projects.reduce((sum, p) => sum + (p.spent || 0), 0),
   }
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value)
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
   }
 
   const isOverdue = (deadline: string) => {
-    return new Date(deadline) < new Date() && new Date(deadline).toDateString() !== new Date().toDateString()
+    return new Date(deadline) < new Date()
   }
 
   const getDaysRemaining = (deadline: string) => {
@@ -272,253 +231,354 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
-                  Projetos
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5">
-                  {filteredProjects.length} {filteredProjects.length === 1 ? "projeto" : "projetos"}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="inline-flex items-center gap-2 px-4 lg:px-5 py-2.5 bg-gray-900 dark:bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-slate-600 transition-colors shadow-sm"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span className="hidden sm:inline">Novo Projeto</span>
-              </button>
+    <div className="h-full flex flex-col bg-arc-primary">
+      {/* Header Fixo */}
+      <div className="sticky top-0 z-10 bg-arc-primary border-b border-arc backdrop-blur-sm bg-opacity-95">
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold text-arc">Projetos</h1>
+              <p className="text-xs text-arc-muted mt-0.5">
+                {filteredProjects.length} {filteredProjects.length === 1 ? "projeto" : "projetos"}
+              </p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
-              <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-4 lg:p-5">
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Total
-                </div>
-                <div className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-gray-50">{stats.total}</div>
-              </div>
-              <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-4 lg:p-5">
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Ativos
-                </div>
-                <div className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-gray-50">{stats.active}</div>
-              </div>
-              <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-4 lg:p-5">
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Concluídos
-                </div>
-                <div className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-gray-50">
-                  {stats.completed}
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-4 lg:p-5">
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Orçamento
-                </div>
-                <div className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-50">
-                  {formatCurrency(stats.totalBudget)}
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-4 lg:p-5">
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                  Gasto
-                </div>
-                <div className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-50">
-                  {formatCurrency(stats.totalSpent)}
-                </div>
-              </div>
+            <Button onClick={() => setShowModal(true)} size="sm" className="h-8 px-2.5">
+              <Plus className="w-4 h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Novo Projeto</span>
+            </Button>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-arc-muted w-3.5 h-3.5" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="pl-9 h-9 text-sm"
+              />
             </div>
 
-            {/* Filtros */}
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as ProjectStatus | "all")}
-                className="flex-shrink-0 px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-              >
-                <option value="all">Todos os Status</option>
-                {Object.entries(STATUS_CONFIG).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value.label}
-                  </option>
-                ))}
-              </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as ProjectStatus | "all")}
+              className="px-3 py-2 border border-arc rounded-lg bg-arc-secondary text-arc text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-9"
+            >
+              <option value="all">Todos Status</option>
+              {Object.entries(STATUS_CONFIG).map(([key, value]) => (
+                <option key={key} value={key}>
+                  {value.label}
+                </option>
+              ))}
+            </select>
 
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value as ProjectPriority | "all")}
-                className="flex-shrink-0 px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-              >
-                <option value="all">Todas as Prioridades</option>
-                {Object.entries(PRIORITY_CONFIG).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value.label}
-                  </option>
-                ))}
-              </select>
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={cn(
+                "px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 border h-9",
+                showFavoritesOnly
+                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                  : "bg-arc-secondary text-arc border-arc hover:bg-arc-primary"
+              )}
+            >
+              <Star className={cn("w-3.5 h-3.5", showFavoritesOnly && "fill-current")} />
+              <span className="hidden sm:inline">Favoritos</span>
+            </button>
 
+            <div className="flex border border-arc rounded-lg p-0.5 bg-arc-secondary h-9">
               <button
-                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                className={`flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                  showFavoritesOnly
-                    ? "bg-gray-900 dark:bg-slate-700 text-white border-gray-900 dark:border-slate-700"
-                    : "bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
-                }`}
+                onClick={() => setView("grid")}
+                className={cn(
+                  "p-1.5 rounded transition-colors",
+                  view === "grid" ? "bg-arc-primary shadow-sm" : "hover:bg-arc-primary/50"
+                )}
               >
-                <svg
-                  className="w-4 h-4"
-                  fill={showFavoritesOnly ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-                Favoritos
+                <Grid3x3 className="w-3.5 h-3.5 text-arc" />
               </button>
-
-              <div className="flex-shrink-0 ml-auto flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1 border border-gray-200 dark:border-slate-700">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    view === "grid"
-                      ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                    />
-                  </svg>
-                  Grade
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    view === "list"
-                      ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                  Lista
-                </button>
-              </div>
+              <button
+                onClick={() => setView("list")}
+                className={cn(
+                  "p-1.5 rounded transition-colors",
+                  view === "list" ? "bg-arc-primary shadow-sm" : "hover:bg-arc-primary/50"
+                )}
+              >
+                <List className="w-3.5 h-3.5 text-arc" />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Add Form */}
-      {showAddForm && (
-        <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Novo Projeto</h3>
-              <button
-                onClick={() => setShowAddForm(false)}
-                className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+        {filteredProjects.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <div className="w-16 h-16 mx-auto mb-4 bg-arc-secondary rounded-lg flex items-center justify-center">
+                <FolderKanban className="w-8 h-8 text-arc-muted" />
+              </div>
+              <h2 className="text-lg font-semibold text-arc mb-2">Nenhum projeto encontrado</h2>
+              <p className="text-sm text-arc-muted mb-6">
+                {searchQuery || filterStatus !== "all" || showFavoritesOnly
+                  ? "Tente ajustar os filtros"
+                  : "Crie seu primeiro projeto para começar"}
+              </p>
+              <Button onClick={() => setShowModal(true)} variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Projeto
+              </Button>
+            </div>
+          </div>
+        ) : view === "grid" ? (
+          /* Grid View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map((project) => {
+              const statusConfig = STATUS_CONFIG[project.status]
+              const priorityConfig = PRIORITY_CONFIG[project.priority]
+              const daysRemaining = getDaysRemaining(project.deadline)
+              const overdue = isOverdue(project.deadline)
+
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => setSelectedProject(project)}
+                  className="group relative bg-arc-secondary border border-arc rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer"
+                >
+                  {/* Header */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className={cn("w-12 h-12 rounded-lg flex-shrink-0 bg-gradient-to-br", project.color)} />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base text-arc truncate mb-0.5">{project.name}</h3>
+                      {project.client && <p className="text-xs text-arc-muted truncate">{project.client}</p>}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleFavorite(project.id)
+                      }}
+                      className="p-1 hover:bg-arc-primary rounded transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Star className={cn("w-4 h-4", project.favorite ? "fill-yellow-500 text-yellow-500" : "text-arc-muted")} />
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-arc mb-4 line-clamp-2">{project.description}</p>
+
+                  {/* Status & Priority */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", statusConfig.color)}>
+                      {statusConfig.label}
+                    </span>
+                    <span className={cn("text-xs font-medium", priorityConfig.color)}>
+                      {priorityConfig.label}
+                    </span>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-arc-muted">Progresso</span>
+                      <span className="font-semibold text-arc">{project.progress}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-arc-primary rounded-full overflow-hidden">
+                      <div
+                        className={cn("h-2 bg-gradient-to-r transition-all", project.color)}
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-arc-muted mt-1">
+                      {project.tasksCompleted} de {project.tasksTotal} tarefas
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-arc text-xs">
+                    <div className="flex items-center gap-1 text-arc-muted">
+                      <Users className="w-3 h-3" />
+                      <span>{project.team.length}</span>
+                    </div>
+                    <div className={cn("flex items-center gap-1 font-medium", overdue ? "text-red-600" : daysRemaining <= 7 ? "text-orange-600" : "text-arc-muted")}>
+                      <Calendar className="w-3 h-3" />
+                      <span>{overdue ? "Atrasado" : daysRemaining === 0 ? "Hoje" : `${daysRemaining}d`}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          /* List View */
+          <div className="space-y-3">
+            {filteredProjects.map((project) => {
+              const statusConfig = STATUS_CONFIG[project.status]
+              const daysRemaining = getDaysRemaining(project.deadline)
+
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => setSelectedProject(project)}
+                  className="group bg-arc-secondary border border-arc rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={cn("w-12 h-12 rounded-lg flex-shrink-0 bg-gradient-to-br", project.color)} />
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-base text-arc truncate">{project.name}</h3>
+                        {project.favorite && <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+                      </div>
+                      <p className="text-sm text-arc-muted truncate">{project.description}</p>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-6 flex-shrink-0">
+                      <span className={cn("px-3 py-1 rounded-lg text-xs font-medium", statusConfig.color)}>
+                        {statusConfig.label}
+                      </span>
+
+                      <div className="text-center min-w-[60px]">
+                        <div className="text-lg font-semibold text-arc">{project.progress}%</div>
+                        <div className="text-xs text-arc-muted">
+                          {project.tasksCompleted}/{project.tasksTotal}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-sm text-arc-muted min-w-[80px]">
+                        <Users className="w-4 h-4" />
+                        {project.team.length}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-sm text-arc-muted min-w-[100px]">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(project.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Footer Stats */}
+      {projects.length > 0 && (
+        <div className="border-t border-arc px-3 sm:px-6 py-3">
+          <div className="grid grid-cols-5 gap-2">
+            <div className="text-center">
+              <div className="text-lg sm:text-xl font-bold text-arc">{stats.total}</div>
+              <div className="text-[10px] sm:text-xs text-arc-muted">Total</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg sm:text-xl font-bold text-blue-600">{stats.active}</div>
+              <div className="text-[10px] sm:text-xs text-arc-muted">Ativos</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg sm:text-xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-[10px] sm:text-xs text-arc-muted">Concluídos</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs sm:text-sm font-bold text-arc">{formatCurrency(stats.totalBudget)}</div>
+              <div className="text-[10px] sm:text-xs text-arc-muted">Orçamento</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs sm:text-sm font-bold text-arc">{formatCurrency(stats.totalSpent)}</div>
+              <div className="text-[10px] sm:text-xs text-arc-muted">Gasto</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Criar/Editar */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-arc-primary rounded-2xl w-full max-w-2xl shadow-2xl border border-arc">
+            <div className="p-6 border-b border-arc flex items-center justify-between">
+              <h2 className="text-xl font-bold text-arc">Novo Projeto</h2>
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-arc-secondary rounded transition-colors">
+                <X className="w-5 h-5 text-arc" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nome do Projeto
-                </label>
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-arc mb-2">Nome do Projeto *</label>
                 <input
                   type="text"
-                  value={newProject.name}
-                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                  placeholder="Digite o nome do projeto"
-                  autoFocus
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Nome do projeto"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Descrição</label>
+              <div>
+                <label className="block text-sm font-medium text-arc mb-2">Descrição</label>
                 <textarea
-                  value={newProject.description}
-                  onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                  placeholder="Descreva o projeto"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent resize-none"
+                  className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Descreva o projeto"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cliente</label>
-                <input
-                  type="text"
-                  value={newProject.client}
-                  onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
-                  placeholder="Nome do cliente"
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-arc mb-2">Cliente</label>
+                  <input
+                    type="text"
+                    value={formData.client}
+                    onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                    className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Nome do cliente"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-arc mb-2">Prazo</label>
+                  <input
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                    className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-arc mb-2">Equipe</label>
+                  <input
+                    type="text"
+                    value={formData.team}
+                    onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                    className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Nome1, Nome2"
+                  />
+                  <p className="text-xs text-arc-muted mt-1">Separe por vírgula</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-arc mb-2">Orçamento (R$)</label>
+                  <input
+                    type="number"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0,00"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prazo</label>
-                <input
-                  type="date"
-                  value={newProject.deadline}
-                  onChange={(e) => setNewProject({ ...newProject, deadline: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Equipe</label>
-                <input
-                  type="text"
-                  value={newProject.team}
-                  onChange={(e) => setNewProject({ ...newProject, team: e.target.value })}
-                  placeholder="Nomes separados por vírgula"
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Orçamento</label>
-                <input
-                  type="number"
-                  value={newProject.budget}
-                  onChange={(e) => setNewProject({ ...newProject, budget: e.target.value })}
-                  placeholder="0,00"
-                  step="0.01"
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prioridade</label>
+                <label className="block text-sm font-medium text-arc mb-2">Prioridade</label>
                 <select
-                  value={newProject.priority}
-                  onChange={(e) => setNewProject({ ...newProject, priority: e.target.value as ProjectPriority })}
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent"
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as ProjectPriority })}
+                  className="w-full px-4 py-2 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {Object.entries(PRIORITY_CONFIG).map(([key, value]) => (
                     <option key={key} value={key}>
@@ -529,318 +589,51 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
               </div>
             </div>
 
-            <div className="flex items-center gap-3 mt-6">
-              <button
-                onClick={addProject}
-                disabled={!newProject.name.trim()}
-                className="px-5 py-2.5 bg-gray-900 dark:bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-slate-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-900 dark:disabled:hover:bg-slate-700"
-              >
-                Criar Projeto
-              </button>
-              <button
-                onClick={() => setShowAddForm(false)}
-                className="px-5 py-2.5 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
+            <div className="p-6 pt-4 border-t border-arc flex justify-end gap-3">
+              <Button onClick={() => setShowModal(false)} variant="outline" size="sm">
                 Cancelar
-              </button>
+              </Button>
+              <Button onClick={addProject} size="sm" disabled={!formData.name.trim()}>
+                Criar Projeto
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Projects Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {view === "grid" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-              {filteredProjects.map((project) => {
-                const statusConfig = STATUS_CONFIG[project.status]
-                const priorityConfig = PRIORITY_CONFIG[project.priority]
-                const daysRemaining = getDaysRemaining(project.deadline)
-
-                return (
-                  <div
-                    key={project.id}
-                    onClick={() => setSelectedProject(project)}
-                    className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-5 lg:p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-700 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`w-12 h-12 ${project.color} rounded-lg flex-shrink-0 shadow-sm`} />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base text-gray-900 dark:text-gray-50 truncate mb-0.5">
-                            {project.name}
-                          </h3>
-                          {project.client && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{project.client}</p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleFavorite(project.id)
-                        }}
-                        className="flex-shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
-                      >
-                        <svg
-                          className={`w-5 h-5 ${project.favorite ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`}
-                          fill={project.favorite ? "currentColor" : "none"}
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 leading-relaxed">
-                      {project.description}
-                    </p>
-
-                    <div className="flex items-center gap-2 mb-5">
-                      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${statusConfig.color}`}>
-                        {statusConfig.label}
-                      </span>
-                      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${priorityConfig.color}`}>
-                        {priorityConfig.label}
-                      </span>
-                    </div>
-
-                    <div className="mb-5">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">Progresso</span>
-                        <span className="font-semibold text-gray-900 dark:text-gray-50">{project.progress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`${project.color} h-2 transition-all duration-500 rounded-full`}
-                          style={{ width: `${project.progress}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                        <span>
-                          {project.tasksCompleted} de {project.tasksTotal} tarefas
-                        </span>
-                      </div>
-                    </div>
-
-                    {project.budget && (
-                      <div className="mb-5 p-3.5 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
-                        <div className="flex items-center justify-between text-xs mb-2">
-                          <span className="text-gray-600 dark:text-gray-400 font-medium">Orçamento</span>
-                          <span className="font-semibold text-gray-900 dark:text-gray-50">
-                            {project.spent && project.budget ? ((project.spent / project.budget) * 100).toFixed(0) : 0}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600 dark:text-gray-400">{formatCurrency(project.spent || 0)}</span>
-                          <span className="text-gray-600 dark:text-gray-400">{formatCurrency(project.budget)}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-slate-800 text-xs">
-                      <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                          />
-                        </svg>
-                        <span>{project.team.length}</span>
-                      </div>
-                      <div
-                        className={`flex items-center gap-1.5 font-medium ${
-                          isOverdue(project.deadline)
-                            ? "text-red-600 dark:text-red-400"
-                            : daysRemaining <= 7
-                              ? "text-orange-600 dark:text-orange-400"
-                              : "text-gray-600 dark:text-gray-400"
-                        }`}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <span>
-                          {isOverdue(project.deadline)
-                            ? "Atrasado"
-                            : daysRemaining === 0
-                              ? "Hoje"
-                              : `${daysRemaining}d`}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {view === "list" && (
-            <div className="space-y-3">
-              {filteredProjects.map((project) => {
-                const statusConfig = STATUS_CONFIG[project.status]
-                const daysRemaining = getDaysRemaining(project.deadline)
-
-                return (
-                  <div
-                    key={project.id}
-                    onClick={() => setSelectedProject(project)}
-                    className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4 lg:p-5 hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-700 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 ${project.color} rounded-lg flex-shrink-0 shadow-sm`} />
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-base text-gray-900 dark:text-gray-50 truncate">
-                            {project.name}
-                          </h3>
-                          {project.favorite && (
-                            <svg className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" viewBox="0 0 24 24">
-                              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{project.description}</p>
-                      </div>
-
-                      <div className="hidden md:flex items-center gap-6 flex-shrink-0">
-                        <span className={`px-3 py-1.5 rounded-md text-xs font-medium border ${statusConfig.color}`}>
-                          {statusConfig.label}
-                        </span>
-
-                        <div className="text-center min-w-[60px]">
-                          <div className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-                            {project.progress}%
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {project.tasksCompleted}/{project.tasksTotal}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                            />
-                          </svg>
-                          {project.team.length} {project.team.length === 1 ? "pessoa" : "pessoas"}
-                        </div>
-
-                        <div
-                          className={`flex items-center gap-1.5 text-sm font-medium min-w-[100px] ${
-                            isOverdue(project.deadline)
-                              ? "text-red-600 dark:text-red-400"
-                              : daysRemaining <= 7
-                                ? "text-orange-600 dark:text-orange-400"
-                                : "text-gray-600 dark:text-gray-400"
-                          }`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          {new Date(project.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {filteredProjects.length === 0 && (
-            <div className="text-center py-16 lg:py-20">
-              <svg
-                className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                />
-              </svg>
-              <p className="text-base text-gray-600 dark:text-gray-400 font-medium">Nenhum projeto encontrado</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">Ajuste os filtros ou crie um novo projeto</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Project Detail Modal */}
+      {/* Modal Detalhes */}
       {selectedProject && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-t-2xl md:rounded-2xl w-full md:max-w-4xl shadow-2xl border-t md:border border-gray-200 dark:border-slate-800 max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-800">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div
-                    className={`w-14 h-14 lg:w-16 lg:h-16 ${selectedProject.color} rounded-xl flex-shrink-0 shadow-sm`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-xl lg:text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-1 truncate">
-                      {selectedProject.name}
-                    </h2>
-                    {selectedProject.client && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Cliente: {selectedProject.client}</p>
-                    )}
-                  </div>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-arc-primary rounded-2xl w-full max-w-3xl shadow-2xl border border-arc max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-arc flex items-start justify-between">
+              <div className="flex items-center gap-4 flex-1">
+                <div className={cn("w-14 h-14 rounded-xl flex-shrink-0 bg-gradient-to-br", selectedProject.color)} />
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-semibold text-arc mb-1 truncate">{selectedProject.name}</h2>
+                  {selectedProject.client && <p className="text-sm text-arc-muted">Cliente: {selectedProject.client}</p>}
                 </div>
-                <button
-                  onClick={() => setSelectedProject(null)}
-                  className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="p-2 hover:bg-arc-secondary rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-arc" />
+              </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Status do Projeto
-                </label>
+                <label className="block text-sm font-medium text-arc mb-3">Status</label>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                     <button
                       key={status}
                       onClick={() => updateProject(selectedProject.id, { status: status as ProjectStatus })}
-                      className={`px-4 py-2 rounded-lg transition-all text-sm font-medium border ${
-                        selectedProject.status === status
-                          ? config.color + " shadow-sm"
-                          : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700"
-                      }`}
+                      className={cn(
+                        "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                        selectedProject.status === status ? config.color + " shadow-sm" : "bg-arc-secondary text-arc-muted hover:bg-arc-primary"
+                      )}
                     >
                       {config.label}
                     </button>
@@ -850,168 +643,94 @@ export default function ProjectsManager({ groupId, pageId }: WorkspaceTemplateCo
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Descrição</label>
+                <label className="block text-sm font-medium text-arc mb-3">Descrição</label>
                 <textarea
                   value={selectedProject.description}
                   onChange={(e) => updateProject(selectedProject.id, { description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-slate-600 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-arc rounded-lg bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                    Progresso
-                  </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
-                    {selectedProject.progress}%
-                  </div>
+              {/* Stats */}
+              <div className="grid grid-cols-4 gap-4">
+                <div className="p-4 bg-arc-secondary border border-arc rounded-lg text-center">
+                  <div className="text-2xl font-semibold text-arc">{selectedProject.progress}%</div>
+                  <div className="text-xs text-arc-muted mt-1">Progresso</div>
                 </div>
-                <div className="p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                    Tarefas
-                  </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
+                <div className="p-4 bg-arc-secondary border border-arc rounded-lg text-center">
+                  <div className="text-2xl font-semibold text-arc">
                     {selectedProject.tasksCompleted}/{selectedProject.tasksTotal}
                   </div>
+                  <div className="text-xs text-arc-muted mt-1">Tarefas</div>
                 </div>
-                <div className="p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                    Equipe
-                  </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
-                    {selectedProject.team.length}
-                  </div>
+                <div className="p-4 bg-arc-secondary border border-arc rounded-lg text-center">
+                  <div className="text-2xl font-semibold text-arc">{selectedProject.team.length}</div>
+                  <div className="text-xs text-arc-muted mt-1">Equipe</div>
                 </div>
-                <div className="p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                    Prazo
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                <div className="p-4 bg-arc-secondary border border-arc rounded-lg text-center">
+                  <div className="text-sm font-semibold text-arc">
                     {new Date(selectedProject.deadline).toLocaleDateString("pt-BR")}
                   </div>
+                  <div className="text-xs text-arc-muted mt-1">Prazo</div>
                 </div>
               </div>
 
               {/* Budget */}
               {selectedProject.budget && (
-                <div className="p-5 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg">
+                <div className="p-5 bg-arc-secondary border border-arc rounded-lg">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-50">Orçamento</h4>
-                    <span className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+                    <h4 className="text-sm font-semibold text-arc">Orçamento</h4>
+                    <span className="text-lg font-semibold text-arc">
                       {selectedProject.spent && selectedProject.budget
                         ? ((selectedProject.spent / selectedProject.budget) * 100).toFixed(0)
                         : 0}
                       %
                     </span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">Gasto</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-50">
-                        {formatCurrency(selectedProject.spent || 0)}
-                      </span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-arc-muted">Gasto</span>
+                      <span className="font-semibold text-arc">{formatCurrency(selectedProject.spent || 0)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">Total</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-50">
-                        {formatCurrency(selectedProject.budget)}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-arc-muted">Total</span>
+                      <span className="font-semibold text-arc">{formatCurrency(selectedProject.budget)}</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Priority */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Prioridade</label>
-                <div className="grid grid-cols-2 lg:flex gap-2">
-                  {Object.entries(PRIORITY_CONFIG).map(([priority, config]) => (
-                    <button
-                      key={priority}
-                      onClick={() => updateProject(selectedProject.id, { priority: priority as ProjectPriority })}
-                      className={`px-4 py-2 rounded-lg transition-all text-sm font-medium border ${
-                        selectedProject.priority === priority
-                          ? config.color + " shadow-sm"
-                          : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {config.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Team */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Equipe</label>
+                <label className="block text-sm font-medium text-arc mb-3">Equipe</label>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.team.map((member, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700"
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-arc-secondary border border-arc text-arc rounded-lg text-sm"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
+                      <Users className="w-3.5 h-3.5" />
                       {member}
                     </span>
                   ))}
-                  {selectedProject.team.length === 0 && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum membro na equipe</p>
-                  )}
+                  {selectedProject.team.length === 0 && <p className="text-sm text-arc-muted">Nenhum membro</p>}
                 </div>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-800 flex flex-col-reverse sm:flex-row gap-3">
-              <button
-                onClick={() => toggleFavorite(selectedProject.id)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-gray-200 dark:border-slate-700"
-              >
-                <svg
-                  className={`w-4 h-4 ${selectedProject.favorite ? "text-yellow-500 fill-yellow-500" : ""}`}
-                  fill={selectedProject.favorite ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-                {selectedProject.favorite ? "Remover Favorito" : "Favoritar"}
-              </button>
-              <button
-                onClick={() => deleteProject(selectedProject.id)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-red-200 dark:border-red-800"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+            <div className="p-6 border-t border-arc flex gap-3">
+              <Button onClick={() => toggleFavorite(selectedProject.id)} variant="outline" size="sm">
+                <Star className={cn("w-4 h-4 mr-2", selectedProject.favorite && "fill-yellow-500 text-yellow-500")} />
+                {selectedProject.favorite ? "Desfavoritar" : "Favoritar"}
+              </Button>
+              <Button onClick={() => deleteProject(selectedProject.id)} variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                <Trash2 className="w-4 h-4 mr-2" />
                 Excluir
-              </button>
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="sm:ml-auto px-6 py-2.5 text-sm bg-gray-900 dark:bg-slate-700 text-white font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-slate-600 transition-colors shadow-sm"
-              >
-                Salvar e Fechar
-              </button>
+              </Button>
+              <Button onClick={() => setSelectedProject(null)} size="sm" className="ml-auto">
+                Fechar
+              </Button>
             </div>
           </div>
         </div>

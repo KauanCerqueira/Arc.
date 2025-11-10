@@ -151,7 +151,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     setSelectedTemplate(templateId)
   }
 
-  const handleCreatePage = () => {
+  const handleCreatePage = async () => {
     if (!showPageModal || !selectedTemplate || !newPageName.trim()) {
       console.error("Erro: Campos inválidos", {
         showPageModal,
@@ -168,18 +168,18 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     console.log("Criando página:", { groupId, pageName, template })
 
     try {
-      const pageId = addPage(groupId, pageName, template)
+      const pageId = await addPage(groupId, pageName, template)
 
       console.log("Página criada com ID:", pageId)
 
       if (pageId) {
+        // Fecha o modal e limpa o estado
         setNewPageName("")
         setSelectedTemplate(null)
         setShowPageModal(null)
 
-        setTimeout(() => {
-          router.push(`/workspace/group/${groupId}/page/${pageId}`)
-        }, 100)
+        // Navega imediatamente para a nova página
+        router.push(`/workspace/group/${groupId}/page/${pageId}`)
       } else {
         console.error("addPage retornou undefined")
         alert("Erro ao criar página. Tente novamente.")

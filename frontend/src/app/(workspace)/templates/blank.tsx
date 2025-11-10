@@ -80,15 +80,19 @@ const FontSize = Extension.create({
 type RichTextTemplateData = { content: string }
 const DEFAULT_DATA: RichTextTemplateData = { content: "" }
 
-export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComponentProps) {
+interface BlankTemplateProps extends WorkspaceTemplateComponentProps {
+  onContentChange?: (content: string) => void
+  initialContent?: string
+}
+
+export default function BlankTemplate({ groupId, pageId, onContentChange, initialContent }: BlankTemplateProps) {
   const { data, setData } = usePageTemplateData<RichTextTemplateData>(groupId, pageId, DEFAULT_DATA)
 
 
   const [isClient, setIsClient] = useState(false)
   useEffect(() => setIsClient(true), [])
 
-  const [showToolbar, setShowToolbar] = useState(true)
-  const [toolbarExpanded, setToolbarExpanded] = useState(false)
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(false)
   const storageKey = useMemo(() => `richtext-${groupId}-${pageId}`, [groupId, pageId])
 
   const pendingRef = useRef<RichTextTemplateData | null>(null)
@@ -114,7 +118,7 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
       Highlight.configure({ multicolor: true }),
       FontSize,
     ],
-    content: data.content ?? "",
+    content: initialContent ?? data.content ?? "",
     editorProps: {
       attributes: {
         class:
@@ -125,6 +129,12 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
     onUpdate({ editor }) {
       const html = editor.getHTML()
       pendingRef.current = { content: html }
+
+      // Chamar onContentChange se fornecido (para integração com Wiki)
+      if (onContentChange) {
+        onContentChange(html)
+      }
+
       try {
         localStorage.setItem(storageKey, html)
       } catch {}
@@ -133,14 +143,27 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
 
   useEffect(() => {
     if (!editor) return
+
+    // Se initialContent foi fornecido, usá-lo (modo Wiki)
+    if (initialContent !== undefined) {
+      if (initialContent !== editor.getHTML()) {
+        editor.commands.setContent(initialContent)
+      }
+      return
+    }
+
+    // Caso contrário, usar localStorage ou data.content (modo normal)
     const local = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null
     const finalContent = local || data.content || ""
     if (finalContent && finalContent !== editor.getHTML()) {
       editor.commands.setContent(finalContent)
     }
-  }, [editor, data.content, storageKey])
+  }, [editor, data.content, storageKey, initialContent])
 
   const flushPending = useCallback(() => {
+    // Se onContentChange está definido, não salvar no store (modo Wiki)
+    if (onContentChange) return
+
     const payload = pendingRef.current
     if (!payload) return
     pendingRef.current = null
@@ -150,7 +173,7 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
 
     lastSavedRef.current = json
     setData(() => payload)
-  }, [setData])
+  }, [setData, onContentChange])
 
   useEffect(() => {
     const id = setInterval(flushPending, 3000)
@@ -209,9 +232,104 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
       {/* TOOLBAR */}
-      {showToolbar && (
-        <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
-          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 p-2 md:p-3">
+      <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
+        {toolbarCollapsed ? (
+          /* Toolbar Colapsada - Uma linha */
+          <div className="flex items-center gap-2 p-2 md:p-3">
+            <button
+              onClick={() => setToolbarCollapsed(false)}
+              className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Expandir toolbar"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-700" />
+
+            {/* Botões essenciais */}
+            <button
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("bold") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Negrito"
+            >
+              <Bold className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("italic") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Itálico"
+            >
+              <Italic className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("underline") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Sublinhado"
+            >
+              <UnderlineIcon className="w-4 h-4" />
+            </button>
+
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-700" />
+
+            <button
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("bulletList") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Lista"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("orderedList") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Lista numerada"
+            >
+              <ListOrdered className="w-4 h-4" />
+            </button>
+
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-700" />
+
+            <button
+              onClick={askLink}
+              className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                editor.isActive("link") ? "bg-gray-300 dark:bg-gray-700" : ""
+              }`}
+              title="Inserir link"
+            >
+              <Link2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={askImage}
+              className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Inserir imagem"
+            >
+              <ImageIcon className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          /* Toolbar Expandida - Completa */
+          <div className="p-2 md:p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                onClick={() => setToolbarCollapsed(true)}
+                className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                title="Minimizar toolbar"
+              >
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Ferramentas de formatação</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
             {/* Controles essenciais - sempre visíveis */}
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
@@ -308,21 +426,8 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
               <ImageIcon className="w-4 h-4 md:w-5 md:h-5" />
             </button>
 
-            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 md:hidden" />
-            <button
-              onClick={() => setToolbarExpanded(!toolbarExpanded)}
-              className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors md:hidden ml-auto"
-              title={toolbarExpanded ? "Ocultar mais opções" : "Mostrar mais opções"}
-            >
-              {toolbarExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-          </div>
+            <div className="h-5 md:h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1" />
 
-          <div
-            className={`${
-              toolbarExpanded ? "flex" : "hidden"
-            } md:flex flex-wrap items-center gap-1.5 md:gap-2 px-2 pb-2 md:px-3 md:pb-3 md:pt-0 border-t md:border-t-0 border-gray-200 dark:border-gray-800 md:border-0`}
-          >
             {/* Formatação adicional */}
             <button
               onClick={() => editor.chain().focus().toggleStrike().run()}
@@ -462,9 +567,10 @@ export default function BlankTemplate({ groupId, pageId }: WorkspaceTemplateComp
             >
               <Minus className="w-4 h-4 md:w-5 md:h-5" />
             </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* EDITOR */}
       <div className="flex-1 overflow-y-auto">

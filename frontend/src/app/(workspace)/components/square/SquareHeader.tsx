@@ -102,7 +102,7 @@ export default function SquareHeader({ sidebarCollapsed, setSidebarOpen, classNa
         </button>
         <nav className="hidden md:flex flex-row items-center gap-2 overflow-x-auto scrollbar-hide" style={{ flexWrap: 'nowrap' }}>
           {breadcrumbs.map((crumb, index) => (
-            <React.Fragment key={crumb.href}>
+            <React.Fragment key={`${crumb.href}-${index}`}>
               {index > 0 && (
                 <ChevronRight className="w-4 h-4 text-arc-muted flex-shrink-0" />
               )}

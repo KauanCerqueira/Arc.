@@ -463,9 +463,12 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         template: template,
         icone: TEMPLATE_ICONS[template], // Adiciona o ícone baseado no template
       });
-      await get().loadWorkspace();
-      set({ isLoading: false });
-      return page.id;
+
+      // Retorna o ID imediatamente e recarrega o workspace em background
+      const pageId = page.id;
+      get().loadWorkspace().finally(() => set({ isLoading: false }));
+
+      return pageId;
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
       return undefined;

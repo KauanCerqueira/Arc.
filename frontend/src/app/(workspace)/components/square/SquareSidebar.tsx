@@ -490,7 +490,7 @@ export default function SquareSidebar({
                       onClick={() => onAddPage && onAddPage(group.id)}
                       className="mt-1 mb-2 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Nova pÃ¡gina
+                      <Plus className="w-3.5 h-3.5" /> Nova página
                     </button>
                   </div>
                 )}

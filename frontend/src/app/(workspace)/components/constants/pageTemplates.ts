@@ -3,7 +3,7 @@ import {
   StickyNote,
   BookOpen,
   Brain,
-  FolderOpen,
+  Cloud,
   Trello,
   CheckSquare,
   Map,
@@ -71,9 +71,9 @@ export const pageTemplates: PageTemplate[] = [
   {
     id: "documents",
     name: "Documentos",
-    description: "Gerenciador de documentos",
-    iconComponent: FolderOpen,
-    color: "from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-slate-200 dark:border-slate-700",
+    description: "Integração com Google Drive",
+    iconComponent: Cloud,
+    color: "from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-blue-200 dark:border-purple-800",
     category: "basico",
   },
 
