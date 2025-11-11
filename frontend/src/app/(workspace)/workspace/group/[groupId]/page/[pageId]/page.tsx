@@ -82,7 +82,8 @@ export default function PageView() {
       case 'study':
         return <StudyTemplate {...templateProps} />;
       case 'budget':
-        return <BudgetTemplate {...templateProps} />;
+        // BudgetTemplate manages its own routing/params; no props expected
+        return <BudgetTemplate />;
       case 'sprint':
         return <SprintTemplate {...templateProps} />;
       case 'focus':
