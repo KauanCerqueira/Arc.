@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { WorkspaceTemplateComponentProps } from "@/core/types/workspace.types"
 import {
   Trophy,
@@ -12,13 +12,12 @@ import {
   Calendar,
   Clock,
   Star,
-  Medal,
-  Crown,
   Sparkles,
   Plus,
   CheckCircle,
   Circle,
   BarChart3,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/components/ui/Button"
@@ -27,7 +26,12 @@ import { Input } from "@/shared/components/ui/Input"
 import { Textarea } from "@/shared/components/ui/Textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/Dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/Select"
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Leaderboard } from "@/shared/components/gamification/Leaderboard"
+import { AchievementCard } from "@/shared/components/gamification/AchievementCard"
+import { useWorkspaceGamification } from "@/core/hooks/useWorkspaceGamification"
+import { useAuthStore } from "@/core/store/authStore"
+import { useWorkspaceStore } from "@/core/store/workspaceStore"
 
 // Types
 type TaskStatus = "backlog" | "in-progress" | "done"
@@ -41,6 +45,8 @@ type Task = {
   assignee?: string
   priority: "urgent" | "high" | "medium" | "low"
   tags: string[]
+  createdAt?: Date
+  completedAt?: Date
 }
 
 type SprintTag = {
@@ -49,124 +55,22 @@ type SprintTag = {
   color: string
 }
 
-type TeamMember = {
-  id: string
-  name: string
-  avatar: string
-  points: number
-  tasksCompleted: number
-  level: number
-  badges: string[]
-}
-
-// Initial Data
+// Sprint Tags Configuration - Monochromatic palette
 const sprintTags: SprintTag[] = [
-  { id: "backend", name: "Backend", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-  { id: "frontend", name: "Frontend", color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" },
-  { id: "bug", name: "Bug", color: "bg-red-500/10 text-red-500 border-red-500/20" },
-  { id: "feature", name: "Feature", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-  { id: "urgent", name: "Urgente", color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
-  { id: "design", name: "Design", color: "bg-pink-500/10 text-pink-500 border-pink-500/20" },
-]
-
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Implementar autenticação JWT",
-    description: "Sistema completo de auth com refresh tokens",
-    storyPoints: 8,
-    status: "done",
-    assignee: "João Silva",
-    priority: "high",
-    tags: ["backend", "feature"],
-  },
-  {
-    id: "2",
-    title: "Redesign da landing page",
-    description: "Nova UI com animações modernas",
-    storyPoints: 13,
-    status: "in-progress",
-    assignee: "Maria Santos",
-    priority: "urgent",
-    tags: ["frontend", "design"],
-  },
-  {
-    id: "3",
-    title: "Corrigir bug de performance",
-    description: "Otimizar queries do banco",
-    storyPoints: 5,
-    status: "done",
-    assignee: "Pedro Costa",
-    priority: "high",
-    tags: ["backend", "bug"],
-  },
-  {
-    id: "4",
-    title: "Dashboard de analytics",
-    description: "Criar dashboard com métricas",
-    storyPoints: 21,
-    status: "in-progress",
-    assignee: "Ana Lima",
-    priority: "medium",
-    tags: ["frontend", "feature"],
-  },
-  {
-    id: "5",
-    title: "Testes E2E",
-    description: "Implementar testes end-to-end",
-    storyPoints: 8,
-    status: "backlog",
-    assignee: "João Silva",
-    priority: "medium",
-    tags: ["backend"],
-  },
-]
-
-const initialTeamMembers: TeamMember[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    avatar: "JS",
-    points: 850,
-    tasksCompleted: 12,
-    level: 8,
-    badges: ["🚀", "⚡", "🏆"],
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    avatar: "MS",
-    points: 920,
-    tasksCompleted: 15,
-    level: 9,
-    badges: ["👑", "✨", "🎨", "🔥"],
-  },
-  {
-    id: "3",
-    name: "Pedro Costa",
-    avatar: "PC",
-    points: 680,
-    tasksCompleted: 9,
-    level: 7,
-    badges: ["💎", "⚡"],
-  },
-  {
-    id: "4",
-    name: "Ana Lima",
-    avatar: "AL",
-    points: 790,
-    tasksCompleted: 11,
-    level: 8,
-    badges: ["🌟", "🎯", "💪"],
-  },
+  { id: "backend", name: "Backend", color: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
+  { id: "frontend", name: "Frontend", color: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
+  { id: "bug", name: "Bug", color: "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-400 dark:border-gray-500" },
+  { id: "feature", name: "Feature", color: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
+  { id: "urgent", name: "Urgente", color: "bg-gray-900 dark:bg-gray-100 text-gray-100 dark:text-gray-900 border-gray-900 dark:border-gray-100" },
+  { id: "design", name: "Design", color: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
 ]
 
 function PriorityIcon({ priority }: { priority: Task["priority"] }) {
   const config = {
-    urgent: { icon: Flame, color: "text-red-500" },
-    high: { icon: Zap, color: "text-orange-500" },
-    medium: { icon: TrendingUp, color: "text-yellow-500" },
-    low: { icon: Circle, color: "text-blue-500" },
+    urgent: { icon: Flame, color: "text-gray-900 dark:text-gray-100" },
+    high: { icon: Zap, color: "text-gray-700 dark:text-gray-300" },
+    medium: { icon: TrendingUp, color: "text-gray-500 dark:text-gray-400" },
+    low: { icon: Circle, color: "text-gray-400 dark:text-gray-500" },
   }
 
   const Icon = config[priority].icon
@@ -178,11 +82,13 @@ function TaskModal({
   onOpenChange,
   task,
   onSave,
+  members,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   task?: Task
   onSave: (task: Task) => void
+  members: Array<{ userId: string; userName: string }>
 }) {
   const [formData, setFormData] = useState<Partial<Task>>(
     task || {
@@ -207,6 +113,8 @@ function TaskModal({
       assignee: formData.assignee,
       priority: (formData.priority as Task["priority"]) || "medium",
       tags: formData.tags || [],
+      createdAt: task?.createdAt || new Date(),
+      completedAt: formData.status === "done" ? new Date() : undefined,
     }
 
     onSave(newTask)
@@ -291,6 +199,25 @@ function TaskModal({
             </div>
           </div>
           <div>
+            <label className="text-sm font-medium mb-2 block">Atribuído para</label>
+            <Select
+              value={formData.assignee || "unassigned"}
+              onValueChange={(value) => setFormData({ ...formData, assignee: value === "unassigned" ? undefined : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um membro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Nenhum</SelectItem>
+                {members.map((member) => (
+                  <SelectItem key={member.userId} value={member.userId}>
+                    {member.userName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <label className="text-sm font-medium mb-2 block">Tags</label>
             <div className="flex flex-wrap gap-2">
               {sprintTags.map((tag) => (
@@ -329,14 +256,29 @@ function TaskModal({
 }
 
 export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTemplateComponentProps) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [teamMembers] = useState<TeamMember[]>(initialTeamMembers)
-  const [sprintName, setSprintName] = useState("Sprint 3 - Janeiro 2025")
+  const { user } = useAuthStore()
+  const { workspace } = useWorkspaceStore()
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [sprintName, setSprintName] = useState("Sprint - " + new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }))
   const [sprintGoal, setSprintGoal] = useState(
-    "Implementar sistema de autenticação completo e redesign da interface principal com foco em UX",
+    "Defina a meta desta sprint para manter o time focado e alinhado nos objetivos principais.",
   )
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>()
+
+  // Sprint dates
+  const today = new Date()
+  const [sprintStart] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
+  const [sprintEnd] = useState(new Date(today.getFullYear(), today.getMonth() + 1, 0))
+
+  // Get workspace ID from workspace store
+  const workspaceId = workspace?.id || ''
+
+  // Use gamification hook
+  const { leaderboard, userStats, members, isLoading, error } = useWorkspaceGamification(
+    workspaceId,
+    tasks,
+  )
 
   // Gamification Calculations
   const totalPoints = tasks.reduce((sum, t) => sum + t.storyPoints, 0)
@@ -349,15 +291,9 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
   const totalTasks = tasks.length
 
   // Sprint Days
-  const sprintStart = "2025-01-20"
-  const sprintEnd = "2025-02-03"
-  const daysTotal = Math.ceil((new Date(sprintEnd).getTime() - new Date(sprintStart).getTime()) / (1000 * 60 * 60 * 24))
-  const daysElapsed = Math.ceil((new Date().getTime() - new Date(sprintStart).getTime()) / (1000 * 60 * 60 * 24))
+  const daysTotal = Math.ceil((sprintEnd.getTime() - sprintStart.getTime()) / (1000 * 60 * 60 * 24))
+  const daysElapsed = Math.ceil((today.getTime() - sprintStart.getTime()) / (1000 * 60 * 60 * 24))
   const daysRemaining = daysTotal - daysElapsed > 0 ? daysTotal - daysElapsed : 0
-
-  // Team Stats
-  const teamTotalPoints = teamMembers.reduce((sum, m) => sum + m.points, 0)
-  const sortedTeam = [...teamMembers].sort((a, b) => b.points - a.points)
 
   // Task by status
   const tasksByStatus = useMemo(() => {
@@ -367,6 +303,14 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
       done: tasks.filter((t) => t.status === "done"),
     }
   }, [tasks])
+
+  // Get current user stats
+  const currentUserStats = user ? userStats.get(user.userId) : undefined
+
+  // Get top achievements
+  const topAchievements = currentUserStats?.achievements
+    .filter(a => a.progress === 100)
+    .slice(0, 3) || []
 
   const handleSaveTask = (task: Task) => {
     if (editingTask) {
@@ -386,86 +330,113 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
             "in-progress": "done",
             done: "backlog",
           }
-          return { ...t, status: nextStatus[t.status] }
+          const newStatus = nextStatus[t.status]
+          return {
+            ...t,
+            status: newStatus,
+            completedAt: newStatus === "done" ? new Date() : undefined,
+          }
         }
         return t
       }),
     )
   }
 
+  const getMemberName = (userId: string) => {
+    const member = members.find(m => m.userId === userId)
+    return member?.userName || userId
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-primary dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
+          <p className="text-gray-600 dark:text-gray-400">Carregando dados de gamificação...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-bg-primary dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">Erro ao carregar dados: {error.message}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-bg-primary dark:bg-gray-900">
+      <div className="max-w-[1600px] mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
         {/* Header com Sprint Info */}
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl overflow-hidden">
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <div className="flex items-start justify-between w-full">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="size-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                      <Target className="size-6 text-slate-700 dark:text-slate-200" />
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        value={sprintName}
-                        onChange={(e) => setSprintName(e.target.value)}
-                        className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-none outline-none"
-                      />
-                      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="size-4" />
-                          {new Date(sprintStart).toLocaleDateString("pt-BR")} - {new Date(sprintEnd).toLocaleDateString("pt-BR")}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="size-4" />
-                          {daysRemaining} dias restantes
-                        </span>
-                      </div>
+        <div className="bg-bg-secondary dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-start justify-between w-full mb-4 gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="size-10 md:size-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                    <Target className="size-5 md:size-6 text-text-primary dark:text-gray-200" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input
+                      type="text"
+                      value={sprintName}
+                      onChange={(e) => setSprintName(e.target.value)}
+                      className="text-lg md:text-2xl font-bold text-text-primary dark:text-gray-100 bg-transparent border-none outline-none w-full"
+                    />
+                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs md:text-sm text-text-secondary dark:text-gray-400 mt-1">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="size-3 md:size-4" />
+                        {sprintStart.toLocaleDateString("pt-BR")} - {sprintEnd.toLocaleDateString("pt-BR")}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="size-3 md:size-4" />
+                        {daysRemaining} dias restantes
+                      </span>
                     </div>
                   </div>
                 </div>
-                <Button
-                  onClick={() => {
-                    setEditingTask(undefined)
-                    setTaskModalOpen(true)
-                  }}
-                  variant="secondary"
-                  size="sm"
-                  className="h-9"
-                >
-                  <Plus className="size-4 mr-2" />
-                  Nova Tarefa
-                </Button>
               </div>
-              <div className="mt-3">
-                <Textarea
-                  value={sprintGoal}
-                  onChange={(e) => setSprintGoal(e.target.value)}
-                  rows={2}
-                  className="w-full bg-transparent border border-gray-200 dark:border-slate-800 rounded-lg p-3 outline-none resize-none text-gray-700 dark:text-gray-200"
-                  placeholder="Meta do sprint..."
-                />
-              </div>
-            </CardHeader>
-          </Card>
+              <Button
+                onClick={() => {
+                  setEditingTask(undefined)
+                  setTaskModalOpen(true)
+                }}
+                variant="secondary"
+                size="sm"
+                className="h-9 w-full md:w-auto"
+              >
+                <Plus className="size-4 mr-2" />
+                Nova Tarefa
+              </Button>
+            </div>
+            <Textarea
+              value={sprintGoal}
+              onChange={(e) => setSprintGoal(e.target.value)}
+              rows={2}
+              className="w-full bg-transparent border border-border dark:border-gray-700 rounded-lg p-3 outline-none resize-none text-text-primary dark:text-gray-200"
+              placeholder="Meta do sprint..."
+            />
+          </div>
 
           {/* Progress Bar */}
-          <div className="p-6">
+          <div className="px-6 pb-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <Trophy className="size-5 text-yellow-500" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Progresso do Sprint</span>
+                <Trophy className="size-5 text-gray-700 dark:text-gray-300" />
+                <span className="text-sm font-semibold text-text-primary dark:text-gray-300">Progresso do Sprint</span>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-bold text-gray-900 dark:text-gray-100">{completedPoints}</span> / {totalPoints}{" "}
+              <div className="text-sm text-text-secondary dark:text-gray-400">
+                <span className="font-bold text-text-primary dark:text-gray-100">{completedPoints}</span> / {totalPoints}{" "}
                 pontos ({progress}%)
               </div>
             </div>
-            <div className="relative w-full h-4 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="relative w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 transition-all duration-500 shadow-lg"
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 dark:from-gray-300 dark:via-gray-200 dark:to-gray-100 transition-all duration-500 shadow-lg"
                 style={{ width: `${progress}%` }}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer" />
@@ -478,62 +449,62 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
           {/* Métricas Principais */}
           <div className="lg:col-span-3 space-y-6">
             {/* Cards de Métricas */}
-            <div className="grid grid-cols-4 gap-4">
-              <Card>
-                <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <BarChart3 className="size-5 text-slate-600 dark:text-slate-200" />
-                    <Badge className="bg-muted/5 text-muted px-2 py-0.5">Total</Badge>
+                    <BarChart3 className="size-5 text-gray-600 dark:text-gray-400" />
+                    <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 text-xs">Total</Badge>
                   </div>
-                  <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">{totalPoints}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Story Points</div>
+                  <div className="text-2xl md:text-3xl font-bold mb-1 text-text-primary dark:text-gray-100">{totalPoints}</div>
+                  <div className="text-xs text-text-secondary dark:text-gray-400">Story Points</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <CheckCircle className="size-5 text-slate-600 dark:text-slate-200" />
-                    <Badge className="bg-muted/5 text-muted px-2 py-0.5">{progress}%</Badge>
+                    <CheckCircle className="size-5 text-gray-800 dark:text-gray-200" />
+                    <Badge className="bg-gray-800 dark:bg-gray-200 text-gray-100 dark:text-gray-900 px-2 py-0.5 text-xs">{progress}%</Badge>
                   </div>
-                  <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">{completedPoints}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Concluídos</div>
+                  <div className="text-2xl md:text-3xl font-bold mb-1 text-text-primary dark:text-gray-100">{completedPoints}</div>
+                  <div className="text-xs text-text-secondary dark:text-gray-400">Concluídos</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <Zap className="size-5 text-slate-600 dark:text-slate-200" />
-                    <Badge className="bg-muted/5 text-muted px-2 py-0.5">Ativo</Badge>
+                    <Zap className="size-5 text-gray-700 dark:text-gray-300" />
+                    <Badge className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-0.5 text-xs">Ativo</Badge>
                   </div>
-                  <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">{inProgressPoints}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Em Progresso</div>
+                  <div className="text-2xl md:text-3xl font-bold mb-1 text-text-primary dark:text-gray-100">{inProgressPoints}</div>
+                  <div className="text-xs text-text-secondary dark:text-gray-400">Em Progresso</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <Target className="size-5 text-slate-600 dark:text-slate-200" />
-                    <Badge className="bg-muted/5 text-muted px-2 py-0.5">Meta</Badge>
+                    <Target className="size-5 text-gray-600 dark:text-gray-400" />
+                    <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 text-xs">Meta</Badge>
                   </div>
-                  <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">{backlogPoints}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Backlog</div>
+                  <div className="text-2xl md:text-3xl font-bold mb-1 text-text-primary dark:text-gray-100">{backlogPoints}</div>
+                  <div className="text-xs text-text-secondary dark:text-gray-400">Backlog</div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Tasks List */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Sparkles className="size-5 text-purple-500" />
+            <div className="bg-bg-secondary dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 shadow-sm p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-3">
+                <h2 className="text-base md:text-lg font-bold text-text-primary dark:text-gray-100 flex items-center gap-2">
+                  <Sparkles className="size-4 md:size-5 text-gray-600 dark:text-gray-400" />
                   Tarefas do Sprint
                 </h2>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                   {sprintTags.slice(0, 4).map((tag) => (
-                    <Badge key={tag.id} variant="outline" className={cn("text-xs", tag.color)}>
+                    <Badge key={tag.id} variant="outline" className={cn("text-xs whitespace-nowrap", tag.color)}>
                       {tag.name}
                     </Badge>
                   ))}
@@ -577,88 +548,94 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
                     <div
                       key={status}
                       className={cn(
-                        "rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden",
+                        "rounded-xl border border-border dark:border-gray-700 overflow-hidden",
                         config.bg,
                       )}
                     >
-                      <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+                      <div className="px-4 py-3 border-b border-border dark:border-gray-700 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Icon className={cn("size-4", config.color)} />
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{config.label}</span>
+                          <span className="text-sm font-semibold text-text-primary dark:text-gray-300">{config.label}</span>
                           <Badge variant="secondary" className="h-5 px-2 text-xs">
                             {statusTasks.length}
                           </Badge>
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                        <div className="text-xs text-text-secondary dark:text-gray-400">
                           {statusTasks.reduce((sum, t) => sum + t.storyPoints, 0)} pts
                         </div>
                       </div>
                       <div className="p-2 space-y-2">
-                        {statusTasks.map((task) => {
-                          const taskTag = sprintTags.find((t) => task.tags.includes(t.id))
+                        {statusTasks.length === 0 ? (
+                          <div className="text-center py-8 text-text-secondary dark:text-gray-400 text-sm">
+                            Nenhuma tarefa neste status
+                          </div>
+                        ) : (
+                          statusTasks.map((task) => {
+                            const taskTag = sprintTags.find((t) => task.tags.includes(t.id))
 
-                          return (
-                            <div
-                              key={task.id}
-                              className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-3 hover:shadow-md transition-all cursor-pointer group"
-                              onClick={() => {
-                                setEditingTask(task)
-                                setTaskModalOpen(true)
-                              }}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleToggleTaskStatus(task.id)
-                                      }}
-                                      className="shrink-0"
-                                    >
-                                      {task.status === "done" ? (
-                                        <CheckCircle className="size-5 text-green-500" />
-                                      ) : (
-                                        <Circle className="size-5 text-gray-400 hover:text-blue-500 transition" />
-                                      )}
-                                    </button>
-                                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                      {task.title}
-                                    </h3>
-                                    <PriorityIcon priority={task.priority} />
-                                  </div>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1 ml-7">
-                                    {task.description}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {taskTag && (
-                                    <Badge variant="outline" className={cn("text-[10px] px-2 h-5", taskTag.color)}>
-                                      {taskTag.name}
-                                    </Badge>
-                                  )}
-                                  <Badge className="bg-indigo-500/10 text-indigo-600 border-indigo-500/20 px-2 h-6">
-                                    <Award className="size-3 mr-1" />
-                                    {task.storyPoints}
-                                  </Badge>
-                                  {task.assignee && (
-                                    <div
-                                      className="size-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
-                                      title={task.assignee}
-                                    >
-                                      {task.assignee
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")
-                                        .slice(0, 2)
-                                        .toUpperCase()}
+                            return (
+                              <div
+                                key={task.id}
+                                className="bg-bg-secondary dark:bg-gray-900 rounded-lg border border-border dark:border-gray-700 p-3 hover:shadow-md transition-all cursor-pointer group"
+                                onClick={() => {
+                                  setEditingTask(task)
+                                  setTaskModalOpen(true)
+                                }}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleToggleTaskStatus(task.id)
+                                        }}
+                                        className="shrink-0"
+                                      >
+                                        {task.status === "done" ? (
+                                          <CheckCircle className="size-5 text-green-500" />
+                                        ) : (
+                                          <Circle className="size-5 text-gray-400 hover:text-blue-500 transition" />
+                                        )}
+                                      </button>
+                                      <h3 className="text-sm font-medium text-text-primary dark:text-gray-100 truncate">
+                                        {task.title}
+                                      </h3>
+                                      <PriorityIcon priority={task.priority} />
                                     </div>
-                                  )}
+                                    <p className="text-xs text-text-secondary dark:text-gray-400 line-clamp-1 ml-7">
+                                      {task.description}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {taskTag && (
+                                      <Badge variant="outline" className={cn("text-[10px] px-2 h-5 hidden md:flex", taskTag.color)}>
+                                        {taskTag.name}
+                                      </Badge>
+                                    )}
+                                    <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 px-2 h-6 text-xs">
+                                      <Award className="size-3 mr-1" />
+                                      {task.storyPoints}
+                                    </Badge>
+                                    {task.assignee && (
+                                      <div
+                                        className="size-6 md:size-7 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-300 dark:to-gray-100 flex items-center justify-center text-white dark:text-gray-900 text-[10px] font-bold shadow-sm"
+                                        title={getMemberName(task.assignee)}
+                                      >
+                                        {getMemberName(task.assignee)
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .join("")
+                                          .slice(0, 2)
+                                          .toUpperCase()}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )
-                        })}
+                            )
+                          })
+                        )}
                       </div>
                     </div>
                   )
@@ -670,113 +647,62 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
           {/* Leaderboard & Team Stats */}
           <div className="lg:col-span-2 space-y-6">
             {/* Velocity Card */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-200 dark:to-gray-100 rounded-xl p-6 text-white dark:text-gray-900 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
-                <div className="size-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <div className="size-12 rounded-xl bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm flex items-center justify-center">
                   <TrendingUp className="size-6" />
                 </div>
                 <div>
                   <div className="text-sm opacity-80">Velocidade do Time</div>
-                  <div className="text-3xl font-bold">
+                  <div className="text-2xl md:text-3xl font-bold">
                     {daysElapsed > 0 ? Math.round(completedPoints / daysElapsed) : 0} pts/dia
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                <div className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-sm rounded-lg p-3">
                   <div className="text-xs opacity-80 mb-1">Tarefas</div>
-                  <div className="text-xl font-bold">
+                  <div className="text-lg md:text-xl font-bold">
                     {completedTasks}/{totalTasks}
                   </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                <div className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-sm rounded-lg p-3">
                   <div className="text-xs opacity-80 mb-1">Dias Ativos</div>
-                  <div className="text-xl font-bold">{daysElapsed}</div>
+                  <div className="text-lg md:text-xl font-bold">{daysElapsed}</div>
                 </div>
               </div>
             </div>
 
             {/* Leaderboard */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Crown className="size-5 text-yellow-500" />
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Leaderboard</h2>
-              </div>
-
-              <div className="space-y-3">
-                {sortedTeam.map((member, index) => {
-                  const rankColors = [
-                    "from-yellow-500 to-amber-500",
-                    "from-gray-400 to-gray-500",
-                    "from-amber-600 to-orange-700",
-                  ]
-                  const rankColor = rankColors[index] || "from-gray-300 to-gray-400"
-
-                  return (
-                    <div
-                      key={member.id}
-                      className={cn(
-                        "rounded-xl border p-4 transition-all hover:shadow-md",
-                        index === 0
-                          ? "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border-yellow-200 dark:border-yellow-800/30"
-                          : "bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800",
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "size-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold shadow-sm",
-                            rankColor,
-                          )}
-                        >
-                          {index < 3 ? <Medal className="size-5" /> : <span className="text-sm">#{index + 1}</span>}
-                        </div>
-                        <div
-                          className="size-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-sm"
-                          title={member.name}
-                        >
-                          {member.avatar}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {member.name}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className="h-5 px-1.5 text-xs bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800"
-                            >
-                              Lvl {member.level}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Star className="size-3 text-yellow-500" />
-                              {member.points} pts
-                            </span>
-                            <span>•</span>
-                            <span>{member.tasksCompleted} tarefas</span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          {member.badges.map((badge, i) => (
-                            <span key={i} className="text-lg">
-                              {badge}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+            <div className="bg-bg-secondary dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 shadow-sm p-6">
+              <Leaderboard entries={leaderboard} currentUserId={user?.userId} highlightTop={3} />
             </div>
 
+            {/* Current User Achievements */}
+            {currentUserStats && topAchievements.length > 0 && (
+              <div className="bg-bg-secondary dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="size-5 text-yellow-500" />
+                  <h3 className="text-lg font-bold text-text-primary dark:text-gray-100">Suas Conquistas</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {topAchievements.map((achievement) => (
+                    <AchievementCard
+                      key={achievement.id}
+                      achievement={achievement}
+                      compact
+                      showProgress={false}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Sprint Tags */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl p-6">
+            <div className="bg-bg-secondary dark:bg-gray-800 rounded-xl border border-border dark:border-gray-700 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="size-5 text-purple-500" />
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Tags do Sprint</h2>
+                <h2 className="text-lg font-bold text-text-primary dark:text-gray-100">Tags do Sprint</h2>
               </div>
               <div className="flex flex-wrap gap-2">
                 {sprintTags.map((tag) => {
@@ -797,23 +723,37 @@ export default function SprintGamificationPage({ groupId, pageId }: WorkspaceTem
             </div>
 
             {/* Achievement Alert */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
-              <div className="flex items-start gap-3">
-                <div className="size-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                  <Trophy className="size-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold mb-1">Meta Atingida!</h3>
-                  <p className="text-sm opacity-90">Você completou {progress}% do sprint. Continue assim!</p>
+            {progress >= 50 && (
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-200 dark:to-gray-100 rounded-xl p-6 text-white dark:text-gray-900 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <div className="size-12 rounded-xl bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                    <Trophy className="size-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1 text-sm md:text-base">
+                      {progress === 100 ? "Sprint Completa!" : "Ótimo Progresso!"}
+                    </h3>
+                    <p className="text-xs md:text-sm opacity-90">
+                      {progress === 100
+                        ? "Parabéns! Você completou todas as tarefas da sprint!"
+                        : `Você completou ${progress}% do sprint. Continue assim!`}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Task Modal */}
-      <TaskModal open={taskModalOpen} onOpenChange={setTaskModalOpen} task={editingTask} onSave={handleSaveTask} />
+      <TaskModal
+        open={taskModalOpen}
+        onOpenChange={setTaskModalOpen}
+        task={editingTask}
+        onSave={handleSaveTask}
+        members={members.map(m => ({ userId: m.userId, userName: m.userName }))}
+      />
 
       <style jsx global>{`
         @keyframes shimmer {

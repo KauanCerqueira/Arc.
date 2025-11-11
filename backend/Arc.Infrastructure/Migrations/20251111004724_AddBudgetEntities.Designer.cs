@@ -3,6 +3,7 @@ using System;
 using Arc.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Arc.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111004724_AddBudgetEntities")]
+    partial class AddBudgetEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,29 +42,15 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("budget_number");
 
-                    b.Property<decimal>("COFINSAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("COFINSPercentage")
-                        .HasColumnType("numeric");
-
                     b.Property<int>("CalculationType")
                         .HasColumnType("integer")
                         .HasColumnName("calculation_type");
-
-                    b.Property<string>("ClientAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ClientCompany")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("client_company");
-
-                    b.Property<string>("ClientDocument")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ClientEmail")
                         .IsRequired()
@@ -74,38 +63,6 @@ namespace Arc.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("client_name");
-
-                    b.Property<string>("ClientPhone")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyCNPJ")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyLogoUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyPhone")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyWebsite")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -133,18 +90,6 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("final_amount");
 
-                    b.Property<decimal>("IRPFAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("IRPFPercentage")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ISSAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ISSPercentage")
-                        .HasColumnType("numeric");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -155,26 +100,9 @@ namespace Arc.Infrastructure.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("notes");
 
-                    b.Property<int>("NumberOfInstallments")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("PISAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("PISPercentage")
-                        .HasColumnType("numeric");
-
                     b.Property<Guid>("PageId")
                         .HasColumnType("uuid")
                         .HasColumnName("page_id");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PaymentTerms")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ProjectDescription")
                         .IsRequired()
@@ -195,15 +123,6 @@ namespace Arc.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
-
-                    b.Property<decimal>("SubtotalAfterDiscount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TaxPercentage")
-                        .HasColumnType("numeric");
 
                     b.Property<string>("TermsAndConditions")
                         .IsRequired()
@@ -308,50 +227,6 @@ namespace Arc.Infrastructure.Migrations
                     b.HasIndex("BudgetId", "Order");
 
                     b.ToTable("budget_items", (string)null);
-                });
-
-            modelBuilder.Entity("Arc.Domain.Entities.BudgetPaymentInstallment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("BudgetId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DaysFromStart")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("InstallmentNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("Percentage")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BudgetId");
-
-                    b.ToTable("BudgetPaymentInstallments");
                 });
 
             modelBuilder.Entity("Arc.Domain.Entities.BudgetPhase", b =>
@@ -1428,17 +1303,6 @@ namespace Arc.Infrastructure.Migrations
                     b.Navigation("Budget");
                 });
 
-            modelBuilder.Entity("Arc.Domain.Entities.BudgetPaymentInstallment", b =>
-                {
-                    b.HasOne("Arc.Domain.Entities.Budget", "Budget")
-                        .WithMany("PaymentInstallments")
-                        .HasForeignKey("BudgetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Budget");
-                });
-
             modelBuilder.Entity("Arc.Domain.Entities.BudgetPhase", b =>
                 {
                     b.HasOne("Arc.Domain.Entities.Budget", "Budget")
@@ -1678,8 +1542,6 @@ namespace Arc.Infrastructure.Migrations
             modelBuilder.Entity("Arc.Domain.Entities.Budget", b =>
                 {
                     b.Navigation("Items");
-
-                    b.Navigation("PaymentInstallments");
 
                     b.Navigation("Phases");
                 });

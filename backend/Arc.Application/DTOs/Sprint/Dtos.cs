@@ -81,3 +81,83 @@ public class SprintVelocityPointDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 }
+
+// DTOs for CRUD operations
+public class CreateSprintDto
+{
+    public Guid WorkspaceId { get; set; }
+    public Guid PageId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Goal { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+}
+
+public class UpdateSprintDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Goal { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+public class CreateSprintTaskDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int StoryPoints { get; set; }
+    public string Status { get; set; } = "backlog";
+    public string Priority { get; set; } = "medium";
+    public string Type { get; set; } = "task";
+    public Guid? AssignedTo { get; set; }
+    public List<string> Tags { get; set; } = new();
+}
+
+public class UpdateSprintTaskDto
+{
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public int? StoryPoints { get; set; }
+    public string? Status { get; set; }
+    public string? Priority { get; set; }
+    public string? Type { get; set; }
+    public Guid? AssignedTo { get; set; }
+    public List<string>? Tags { get; set; }
+}
+
+public class SprintResponseDto
+{
+    public Guid Id { get; set; }
+    public Guid WorkspaceId { get; set; }
+    public Guid PageId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Goal { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public int TotalStoryPoints { get; set; }
+    public int CommittedStoryPoints { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public List<SprintTaskResponseDto> Tasks { get; set; } = new();
+}
+
+public class SprintTaskResponseDto
+{
+    public Guid Id { get; set; }
+    public Guid SprintId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int StoryPoints { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Priority { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public Guid? AssignedTo { get; set; }
+    public string? AssignedUserName { get; set; }
+    public List<string> Tags { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public int Order { get; set; }
+}

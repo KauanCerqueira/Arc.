@@ -33,6 +33,9 @@ builder.Services.AddScoped<IWorkspaceMemberRepository, WorkspaceMemberRepository
 builder.Services.AddScoped<IWorkspaceInvitationRepository, WorkspaceInvitationRepository>();
 builder.Services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
 builder.Services.AddScoped<IPagePermissionRepository, PagePermissionRepository>();
+builder.Services.AddScoped<ISprintRepository, SprintRepository>();
+builder.Services.AddScoped<ISprintTaskRepository, SprintTaskRepository>();
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -67,6 +70,7 @@ builder.Services.AddScoped<IProjectsService, ProjectsService>();
 builder.Services.AddScoped<IBugsService, BugsService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<IBudgetPdfService, BudgetPdfService>();
 builder.Services.AddScoped<IFocusService, FocusService>();
 builder.Services.AddScoped<INotesService, NotesService>();
 builder.Services.AddScoped<ITimelineService, TimelineService>();
