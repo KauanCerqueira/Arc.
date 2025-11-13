@@ -121,6 +121,7 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
   const queryClient = useQueryClient();
 
   return useMutation<TData, AxiosError, TVariables>({
+    ...mutationOptions,
     mutationFn: async (variables) => {
       const finalUrl = typeof url === 'function' ? url(variables) : url;
 
@@ -132,16 +133,17 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
 
       return data;
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (...args: any[]) => {
       // Invalidar queries relacionadas
       invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });
       });
 
       // Chamar onSuccess customizado se existir
-      mutationOptions.onSuccess?.(data, variables, context);
+      if (mutationOptions.onSuccess) {
+        (mutationOptions.onSuccess as any)(...args);
+      }
     },
-    ...mutationOptions,
   });
 }
 

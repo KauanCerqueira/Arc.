@@ -65,6 +65,9 @@ builder.Services.AddScoped<Arc.Application.Encryption.IHmacService, Arc.Infrastr
 // Audit Log Service
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
+// Automation Service
+builder.Services.AddScoped<IAutomationService, Arc.Infrastructure.Services.AutomationService>();
+
 // Rate Limiting for Integrations
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<Arc.Infrastructure.RateLimiting.IIntegrationRateLimiter, Arc.Infrastructure.RateLimiting.IntegrationRateLimiter>();

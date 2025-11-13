@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<IntegrationToken> IntegrationTokens { get; set; }
     public DbSet<IntegrationSync> IntegrationSyncs { get; set; }
+    public DbSet<AutomationConfiguration> AutomationConfigurations { get; set; }
 
     public override int SaveChanges()
     {
@@ -104,6 +105,27 @@ public class AppDbContext : DbContext
         var budgetEntries = ChangeTracker.Entries<Budget>()
             .Where(e => e.State == EntityState.Modified);
         foreach (var entry in budgetEntries)
+        {
+            entry.Entity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var automationEntries = ChangeTracker.Entries<AutomationConfiguration>()
+            .Where(e => e.State == EntityState.Modified);
+        foreach (var entry in automationEntries)
+        {
+            entry.Entity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var integrationTokenEntries = ChangeTracker.Entries<IntegrationToken>()
+            .Where(e => e.State == EntityState.Modified);
+        foreach (var entry in integrationTokenEntries)
+        {
+            entry.Entity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var integrationSyncEntries = ChangeTracker.Entries<IntegrationSync>()
+            .Where(e => e.State == EntityState.Modified);
+        foreach (var entry in integrationSyncEntries)
         {
             entry.Entity.UpdatedAt = DateTime.UtcNow;
         }
@@ -650,6 +672,41 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(e => e.BudgetId);
             entity.HasIndex(e => new { e.BudgetId, e.Order });
+        });
+
+        modelBuilder.Entity<AutomationConfiguration>(entity =>
+        {
+            entity.ToTable("automation_configurations");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(e => e.WorkspaceId).HasColumnName("workspace_id");
+            entity.Property(e => e.AutomationType).HasColumnName("automation_type").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.IsEnabled).HasColumnName("is_enabled").IsRequired();
+            entity.Property(e => e.Settings).HasColumnName("settings").HasColumnType("TEXT");
+            entity.Property(e => e.LastRunAt).HasColumnName("last_run_at");
+            entity.Property(e => e.NextRunAt).HasColumnName("next_run_at");
+            entity.Property(e => e.ItemsProcessed).HasColumnName("items_processed").IsRequired();
+            entity.Property(e => e.ErrorMessage).HasColumnName("error_message").HasMaxLength(2000);
+            entity.Property(e => e.Status).HasColumnName("status").IsRequired();
+            entity.Property(e => e.Metadata).HasColumnName("metadata").HasColumnType("TEXT");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Workspace)
+                .WithMany()
+                .HasForeignKey(e => e.WorkspaceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.WorkspaceId);
+            entity.HasIndex(e => new { e.UserId, e.WorkspaceId, e.AutomationType }).IsUnique();
+            entity.HasIndex(e => new { e.IsEnabled, e.Status });
         });
     }
 }
