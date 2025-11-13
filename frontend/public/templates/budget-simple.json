@@ -1,0 +1,197 @@
+{
+  "meta": {
+    "id": "budget-simple",
+    "name": "Budget Manager",
+    "description": "Sistema completo de gerenciamento de orçamentos com calculadora, lista e formulários",
+    "icon": "Calculator",
+    "category": "Finance",
+    "tags": ["budget", "finance", "calculator", "invoicing"],
+    "version": "1.0.0",
+    "author": "Arc. Team",
+    "createdAt": "2025-01-12T00:00:00Z",
+    "updatedAt": "2025-01-12T00:00:00Z"
+  },
+  "layout": {
+    "type": "default",
+    "header": {
+      "id": "budget-header",
+      "type": "Flex",
+      "props": {
+        "className": "justify-between items-center p-4 border-b",
+        "style": {
+          "gap": "1rem"
+        }
+      },
+      "children": [
+        {
+          "id": "header-title",
+          "type": "Header",
+          "props": {
+            "className": "text-3xl font-bold",
+            "value": { "type": "constant", "source": "Budget Manager" }
+          }
+        },
+        {
+          "id": "header-actions",
+          "type": "Flex",
+          "props": {
+            "className": "gap-2"
+          },
+          "children": [
+            {
+              "id": "new-budget-btn",
+              "type": "Button",
+              "props": {
+                "className": "bg-primary text-white hover:bg-primary/90",
+                "events": [
+                  {
+                    "type": "click",
+                    "action": "createBudget",
+                    "params": {}
+                  }
+                ],
+                "value": { "type": "constant", "source": "Novo Orçamento" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "main": {
+      "id": "budget-main",
+      "type": "Container",
+      "props": {
+        "className": "p-6"
+      },
+      "children": [
+        {
+          "id": "budget-tabs",
+          "type": "Flex",
+          "props": {
+            "className": "gap-4 mb-6"
+          },
+          "children": [
+            {
+              "id": "tab-list",
+              "type": "Button",
+              "props": {
+                "className": "bg-gray-100 hover:bg-gray-200",
+                "events": [
+                  {
+                    "type": "click",
+                    "action": "setState:activeTab",
+                    "params": { "value": "list" }
+                  }
+                ],
+                "value": { "type": "constant", "source": "Lista" }
+              }
+            },
+            {
+              "id": "tab-calculator",
+              "type": "Button",
+              "props": {
+                "className": "bg-gray-100 hover:bg-gray-200",
+                "events": [
+                  {
+                    "type": "click",
+                    "action": "setState:activeTab",
+                    "params": { "value": "calculator" }
+                  }
+                ],
+                "value": { "type": "constant", "source": "Calculadora" }
+              }
+            }
+          ]
+        },
+        {
+          "id": "budget-content",
+          "type": "Stack",
+          "props": {
+            "className": "gap-4"
+          },
+          "children": [
+            {
+              "id": "budget-list",
+              "type": "Grid",
+              "props": {
+                "className": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              },
+              "loop": {
+                "type": "state",
+                "source": "budgets"
+              },
+              "children": [
+                {
+                  "id": "budget-card",
+                  "type": "Card",
+                  "children": [
+                    {
+                      "id": "budget-title",
+                      "type": "Text",
+                      "props": {
+                        "className": "font-bold text-lg",
+                        "value": {
+                          "type": "computed",
+                          "source": "item.projectName"
+                        }
+                      }
+                    },
+                    {
+                      "id": "budget-client",
+                      "type": "Text",
+                      "props": {
+                        "className": "text-gray-600",
+                        "value": {
+                          "type": "computed",
+                          "source": "item.clientName"
+                        }
+                      }
+                    },
+                    {
+                      "id": "budget-total",
+                      "type": "Text",
+                      "props": {
+                        "className": "text-2xl font-bold text-green-600 mt-4",
+                        "value": {
+                          "type": "computed",
+                          "source": "item.totalAmount"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "state": [
+    {
+      "key": "budgets",
+      "initialValue": [],
+      "persist": false
+    },
+    {
+      "key": "selectedBudget",
+      "initialValue": null,
+      "persist": false
+    },
+    {
+      "key": "activeTab",
+      "initialValue": "list",
+      "persist": true
+    }
+  ],
+  "services": [
+    {
+      "name": "budgetService",
+      "path": "@/core/services/budget.service",
+      "methods": ["getByPage", "create", "update", "delete", "quickCalculate"]
+    }
+  ],
+  "dependencies": [
+    "lucide-react"
+  ]
+}

@@ -47,9 +47,27 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
-// Integration Services
-builder.Services.AddScoped<IGoogleIntegrationService, GoogleIntegrationService>();
-builder.Services.AddScoped<IGitHubIntegrationService, GitHubIntegrationService>();
+// Integration Services (Secure with OAuth + Encryption)
+builder.Services.AddScoped<IIntegrationTokenService, Arc.Infrastructure.Services.IntegrationTokenService>();
+builder.Services.AddScoped<IIntegrationSyncService, Arc.Infrastructure.Services.IntegrationSyncService>();
+builder.Services.AddScoped<IExternalIntegrationService, Arc.Infrastructure.Services.Integrations.GoogleIntegrationService>();
+builder.Services.AddScoped<Arc.Infrastructure.Services.Integrations.GitHubIntegrationService>();
+
+// Legacy Integration Services (deprecated - use IExternalIntegrationService instead)
+builder.Services.AddScoped<IGoogleIntegrationService, Arc.Application.Services.GoogleIntegrationService>();
+builder.Services.AddScoped<IGitHubIntegrationService, Arc.Application.Services.GitHubIntegrationService>();
+
+// Encryption Services
+builder.Services.AddSingleton<Arc.Application.Encryption.IKeyManagementService, Arc.Infrastructure.Security.Encryption.KeyManagementService>();
+builder.Services.AddScoped<Arc.Application.Encryption.IEncryptionService, Arc.Infrastructure.Security.Encryption.EncryptionService>();
+builder.Services.AddScoped<Arc.Application.Encryption.IHmacService, Arc.Infrastructure.Security.Encryption.HmacService>();
+
+// Audit Log Service
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+// Rate Limiting for Integrations
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<Arc.Infrastructure.RateLimiting.IIntegrationRateLimiter, Arc.Infrastructure.RateLimiting.IntegrationRateLimiter>();
 
 // HttpClientFactory para chamadas externas (OAuth, APIs)
 builder.Services.AddHttpClient();

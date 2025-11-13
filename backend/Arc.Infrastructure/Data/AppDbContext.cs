@@ -27,6 +27,9 @@ public class AppDbContext : DbContext
     public DbSet<BudgetItem> BudgetItems { get; set; }
     public DbSet<BudgetPhase> BudgetPhases { get; set; }
     public DbSet<BudgetPaymentInstallment> BudgetPaymentInstallments { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<IntegrationToken> IntegrationTokens { get; set; }
+    public DbSet<IntegrationSync> IntegrationSyncs { get; set; }
 
     public override int SaveChanges()
     {
