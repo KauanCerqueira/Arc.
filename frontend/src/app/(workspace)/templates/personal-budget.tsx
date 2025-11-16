@@ -187,6 +187,19 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
 
   const balance = totalIncome - totalExpense
 
+  // Recommended percentage distribution by category (heuristic, editable via budgets)
+  const getRecommendedCategoryPercentage = (name: string): number => {
+    const lower = name.toLowerCase()
+    if (lower.includes("moradia") || lower.includes("aluguel") || lower.includes("habita")) return 30
+    if (lower.includes("transporte") || lower.includes("carro") || lower.includes("combust")) return 15
+    if (lower.includes("aliment") || lower.includes("mercado") || lower.includes("supermerc")) return 20
+    if (lower.includes("saúde") || lower.includes("saude") || lower.includes("plano") || lower.includes("farm")) return 10
+    if (lower.includes("educa") || lower.includes("curso") || lower.includes("faculdade") || lower.includes("escola")) return 10
+    if (lower.includes("lazer") || lower.includes("entreten") || lower.includes("hobby") || lower.includes("viagem")) return 10
+    if (lower.includes("invest") || lower.includes("poup") || lower.includes("reserva")) return 10
+    return 0
+  }
+
   const expensesByCategory = useMemo(() => {
     const categories = data.categories.filter(c => c.type === "expense")
     return categories.map(cat => {
@@ -194,18 +207,28 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
         .filter(t => t.type === "expense" && t.categoryId === cat.id)
         .reduce((sum, t) => sum + t.amount, 0)
 
-      const budget = cat.budget || 0
-      const percentage = budget > 0 ? (total / budget) * 100 : 0
+      const budgetPercent = typeof cat.budget === "number" && cat.budget > 0
+        ? cat.budget
+        : getRecommendedCategoryPercentage(cat.name)
+
+      const budgetAmount = totalIncome > 0 && budgetPercent > 0
+        ? (totalIncome * budgetPercent) / 100
+        : 0
+
+      const percentageUsed = budgetAmount > 0 ? (total / budgetAmount) * 100 : 0
 
       return {
         ...cat,
         total,
-        budget,
-        percentage,
-        remaining: budget - total
+        budgetPercent,
+        budgetAmount,
+        percentageUsed,
+        // alias para compatibilidade com layout existente
+        percentage: percentageUsed,
+        remaining: budgetAmount - total
       }
-    }).filter(c => c.total > 0 || c.budget)
-  }, [currentMonthTransactions, data.categories])
+    }).filter(c => c.total > 0 || c.budgetPercent)
+  }, [currentMonthTransactions, data.categories, totalIncome])
 
   const incomeByCategory = useMemo(() => {
     const categories = data.categories.filter(c => c.type === "income")
@@ -295,10 +318,10 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
 
     const categoryTableData = expensesByCategory.map(cat => [
       cat.name,
-      cat.budget ? `R$ ${cat.budget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-',
+      cat.budgetPercent ? `${cat.budgetPercent.toFixed(0)}%` : '-',
       `R$ ${cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      cat.budget ? `R$ ${Math.abs(cat.remaining).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-',
-      cat.budget ? `${cat.percentage.toFixed(0)}%` : '-'
+      cat.budgetAmount ? `R$ ${Math.abs(cat.remaining).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-',
+      cat.budgetAmount ? `${cat.percentageUsed.toFixed(0)}%` : '-'
     ])
 
     autoTable(doc, {
@@ -863,9 +886,12 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
                 })}
               </select>
 
-              {/* Add Button */}
+              {/* Add Button - open Transactions tab and form */}
               <button
-                onClick={() => setShowAddTransaction(true)}
+                onClick={() => {
+                  setActiveTab("transactions")
+                  setShowAddTransaction(true)
+                }}
                 className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 flex items-center gap-1 sm:gap-1.5 whitespace-nowrap"
               >
                 <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -931,9 +957,9 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
         {/* DASHBOARD TAB */}
         {activeTab === "dashboard" && (
           <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
-            {/* Summary Cards - Mobile optimized grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
+          {/* Summary Cards - Mobile optimized grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+               <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
@@ -945,7 +971,7 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
+               <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
                     <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" />
@@ -969,27 +995,19 @@ export default function PersonalBudgetTemplate({ groupId, pageId }: WorkspaceTem
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
-                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                    <Percent className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <span className="text-[10px] sm:text-xs text-neutral-600 dark:text-neutral-400">Taxa</span>
-                </div>
-                <p className="text-sm sm:text-xl font-bold text-neutral-900 dark:text-white">
-                  {savingsRate}%
-                </p>
-              </div>
             </div>
 
             {/* Charts and Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {/* Expenses by Category */}
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
-                <h3 className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+               <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
+                 <h3 className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-white mb-1.5 sm:mb-2 flex items-center gap-2">
                   <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Despesas por Categoria
-                </h3>
+                 </h3>
+                 <p className="text-[10px] sm:text-xs text-neutral-500 dark:text-neutral-400 mb-2 sm:mb-3">
+                   As metas por categoria são percentuais médios da renda mensal. Use como referência indicativa e ajuste conforme sua realidade.
+                 </p>
                 <div className="space-y-2 sm:space-y-3">
                   {expensesByCategory.map((cat) => {
                     const Icon = getCategoryIcon(cat.icon)
