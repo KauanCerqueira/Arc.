@@ -88,7 +88,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com",
+              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
