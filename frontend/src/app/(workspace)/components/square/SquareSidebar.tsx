@@ -38,8 +38,12 @@ import {
   Plus,
   Settings,
   Zap,
+  Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { getPageIcon } from "@/app/(workspace)/components/sidebar/pageIcons";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +52,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/DropdownMenu";
+
+type SidebarPage = {
+  id: string;
+  name: string;
+  template?: string;
+  favorite?: boolean;
+};
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -118,6 +129,191 @@ function SidebarSection({
   );
 }
 
+function SquarePageItem({
+  page,
+  groupId,
+  pathname,
+  onClose,
+  onDeletePage,
+  onToggleFavorite,
+}: {
+  page: SidebarPage;
+  groupId: string;
+  pathname: string;
+  onClose: () => void;
+  onDeletePage: (groupId: string, pageId: string) => Promise<void> | void;
+  onToggleFavorite: (groupId: string, pageId: string) => Promise<void> | void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: page.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.85 : 1,
+  };
+
+  const iconCfg = getPageIcon(page.template || "blank");
+  const Icon = iconCfg.icon;
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleFavorite(groupId, page.id);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const ok = window.confirm(`Excluir "${page.name}"?`);
+    if (ok) {
+      await onDeletePage(groupId, page.id);
+    }
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <Link
+        href={`/workspace/group/${groupId}/page/${page.id}`}
+        onClick={onClose}
+        {...attributes}
+        {...listeners}
+        className={[
+          "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
+          pathname.includes(page.id)
+            ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white"
+            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
+        ].join(" ")}
+      >
+        <Icon className="w-4 h-4" />
+        <span className="truncate flex-1">{page.name}</span>
+        <div className="flex items-center gap-1 ml-1">
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={handleFavorite}
+            className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+            title={page.favorite ? "Desfavoritar" : "Favoritar"}
+          >
+            <Star
+              className={`w-3.5 h-3.5 ${
+                page.favorite ? "fill-amber-400 text-amber-400" : "text-gray-400 dark:text-gray-500"
+              }`}
+            />
+          </button>
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={handleDelete}
+            className="p-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30"
+            title="Excluir página"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          </button>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+function DraggablePageRow({
+  page,
+  groupId,
+  pathname,
+  onClose,
+  onDeletePage,
+  onToggleFavorite,
+}: {
+  page: SidebarPage;
+  groupId: string;
+  pathname: string;
+  onClose: () => void;
+  onDeletePage: (groupId: string, pageId: string) => Promise<void> | void;
+  onToggleFavorite: (groupId: string, pageId: string) => Promise<void> | void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: page.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.85 : 1,
+  };
+
+  const iconCfg = getPageIcon(page.template || "blank");
+  const Icon = iconCfg.icon;
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <Link
+        href={`/workspace/group/${groupId}/page/${page.id}`}
+        onClick={onClose}
+        {...attributes}
+        {...listeners}
+        className={[
+          "flex items-center justify-between px-2 py-1 rounded-md text-xs sm:text-sm",
+          pathname.includes(page.id)
+            ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white"
+            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
+        ].join(" ")}
+      >
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <Icon className="w-4 h-4 flex-shrink-0" />
+          <span className="truncate">{page.name}</span>
+        </div>
+        <div className="flex items-center ml-1 flex-shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+                title="Mais opções"
+              >
+                <MoreVertical className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[9rem]">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleFavorite(groupId, page.id);
+                }}
+                className="flex items-center gap-2 text-xs"
+              >
+                <Star
+                  className={`w-3 h-3 ${
+                    page.favorite ? "fill-amber-400 text-amber-400" : "text-gray-400 dark:text-gray-500"
+                  }`}
+                />
+                <span>{page.favorite ? "Desfavoritar" : "Favoritar"}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const ok = window.confirm(`Excluir "${page.name}"?`);
+                  if (ok) {
+                    await onDeletePage(groupId, page.id);
+                  }
+                }}
+                className="flex items-center gap-2 text-xs text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Excluir</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
 export default function SquareSidebar({
   sidebarOpen,
   sidebarCollapsed,
@@ -135,6 +331,8 @@ export default function SquareSidebar({
     getFavoritePages,
     toggleGroupExpanded,
     updateGroup,
+    deletePage,
+    togglePageFavorite,
   } = useWorkspaceStore();
   const favoritePages = getFavoritePages();
   const [favoritesExpanded, setFavoritesExpanded] = React.useState(true);
@@ -466,26 +664,22 @@ export default function SquareSidebar({
 
                 {group.expanded && (
                   <div className="ml-2 pl-2 border-l border-gray-200 dark:border-slate-800">
-                    {group.pages.map((page) => {
-                      const iconCfg = getPageIcon(page.template || "blank");
-                      const Icon = iconCfg.icon;
-                      return (
-                        <Link
+                    <SortableContext
+                      items={group.pages.map((p) => p.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {group.pages.map((page) => (
+                        <DraggablePageRow
                           key={page.id}
-                          href={`/workspace/group/${group.id}/page/${page.id}`}
-                          onClick={onClose}
-                          className={[
-                            "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
-                            pathname.includes(page.id)
-                              ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white"
-                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
-                          ].join(" ")}
-                        >
-                          <Icon className="w-4 h-4" />
-                          <span className="truncate">{page.name}</span>
-                        </Link>
-                      );
-                    })}
+                          page={page as SidebarPage}
+                          groupId={group.id}
+                          pathname={pathname}
+                          onClose={onClose}
+                          onDeletePage={deletePage}
+                          onToggleFavorite={togglePageFavorite}
+                        />
+                      ))}
+                    </SortableContext>
                     <button
                       onClick={() => onAddPage && onAddPage(group.id)}
                       className="mt-1 mb-2 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -620,4 +814,3 @@ export default function SquareSidebar({
     </aside>
   );
 }
-
