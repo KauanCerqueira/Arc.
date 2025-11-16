@@ -162,7 +162,15 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
   const { data, setData } = usePageTemplateData<MindMapData>(groupId, pageId, DEFAULT_DATA)
   const persistedNodes = data.nodes ?? DEFAULT_NODES
 
-  const [nodes, setNodes] = useState<Record<string, MindMapNode>>(persistedNodes)
+  // Normalize nodes to ensure all have comments array
+  const normalizedNodes = Object.fromEntries(
+    Object.entries(persistedNodes).map(([id, node]) => [
+      id,
+      { ...node, comments: node.comments || [] }
+    ])
+  )
+
+  const [nodes, setNodes] = useState<Record<string, MindMapNode>>(normalizedNodes)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [editingNode, setEditingNode] = useState<string | null>(null)
   const [editLabel, setEditLabel] = useState('')
@@ -182,7 +190,14 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
 
   // Sync nodes from data
   useEffect(() => {
-    setNodes(persistedNodes)
+    // Normalize nodes to ensure all have comments array
+    const normalizedNodes = Object.fromEntries(
+      Object.entries(persistedNodes).map(([id, node]) => [
+        id,
+        { ...node, comments: node.comments || [] }
+      ])
+    )
+    setNodes(normalizedNodes)
   }, [persistedNodes])
 
   // Persist nodes with debounce
@@ -701,7 +716,7 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
                 title="Comentários"
               >
                 <MessageSquare className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
-                {selectedNodeObj.comments.length > 0 && (
+                {selectedNodeObj.comments && selectedNodeObj.comments.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 text-white text-[8px] rounded-full flex items-center justify-center">
                     {selectedNodeObj.comments.length}
                   </span>
@@ -885,7 +900,7 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
                   )}
 
                   {/* Comments indicator */}
-                  {node.comments.length > 0 && (
+                  {node.comments && node.comments.length > 0 && (
                     <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-600 text-white text-[9px] rounded-full flex items-center justify-center font-bold shadow-lg">
                       {node.comments.length}
                     </div>
@@ -942,7 +957,7 @@ export default function MindMap({ groupId, pageId }: WorkspaceTemplateComponentP
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {commentsModalNode.comments.length === 0 ? (
+              {!commentsModalNode.comments || commentsModalNode.comments.length === 0 ? (
                 <div className="text-center py-8 text-neutral-400">
                   <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-50" />
                   <p className="text-xs">Nenhum comentário</p>

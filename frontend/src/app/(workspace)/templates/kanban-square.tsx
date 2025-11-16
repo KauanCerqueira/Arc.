@@ -51,6 +51,7 @@ import {
 } from "@/shared/components/ui/Select"
 import teamService from "@/core/services/team.service"
 import type { WorkspaceMember } from "@/core/types/team.types"
+import { usePageTemplateData } from "@/core/hooks/usePageTemplateData"
 
 // Types
 type Status = { id: string; name: string; color: string; icon: React.FC }
@@ -209,6 +210,15 @@ const tasksSeed: Task[] = [
     priority: "urgent",
   },
 ]
+
+// Data type for persistence
+type KanbanData = {
+  tasks: Task[]
+}
+
+const DEFAULT_DATA: KanbanData = {
+  tasks: tasksSeed
+}
 
 function Avatar({ user }: { user: User }) {
   const initials = user.name
@@ -927,12 +937,27 @@ function TaskModal({
 }
 
 interface KanbanBoardProps {
-  groupId?: string
-  pageId?: string
+  groupId: string
+  pageId: string
 }
 
 export default function KanbanBoard({ groupId, pageId }: KanbanBoardProps) {
-  const [tasks, setTasks] = useState<Task[]>(tasksSeed)
+  // Use persistent data hook
+  const { data, setData } = usePageTemplateData<KanbanData>(groupId, pageId, DEFAULT_DATA)
+
+  // Normalize tasks to restore status icons (lost during JSON serialization)
+  const normalizedTasks = useMemo(() => {
+    const rawTasks = data.tasks ?? DEFAULT_DATA.tasks
+    return rawTasks.map(task => {
+      const matchingStatus = STATUSES.find(s => s.id === task.status.id)
+      return {
+        ...task,
+        status: matchingStatus || STATUSES[0] // fallback to first status if not found
+      }
+    })
+  }, [data.tasks])
+
+  const [tasks, setTasks] = useState<Task[]>(normalizedTasks)
   const [viewMode, setViewMode] = useState<"board" | "list">("board")
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [taskModalOpen, setTaskModalOpen] = useState(false)
@@ -946,6 +971,20 @@ export default function KanbanBoard({ groupId, pageId }: KanbanBoardProps) {
   const [filterPriority, setFilterPriority] = useState<string>("all")
   const [filterLabel, setFilterLabel] = useState<string>("all")
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+
+  // Sync tasks from persisted data
+  useEffect(() => {
+    setTasks(normalizedTasks)
+  }, [normalizedTasks])
+
+  // Persist tasks with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (JSON.stringify(tasks) === JSON.stringify(normalizedTasks)) return
+      setData((current) => ({ ...current, tasks }))
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [tasks, normalizedTasks, setData])
 
   useEffect(() => {
     const loadGroupMembers = async () => {
@@ -1112,97 +1151,70 @@ export default function KanbanBoard({ groupId, pageId }: KanbanBoardProps) {
 
   return (
     <div className="flex h-full flex-col bg-neutral-50 dark:bg-neutral-950">
-      {/* Header */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+      {/* Header Compacto */}
+      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white">Quadro Kanban</h1>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Gerencie tarefas e projetos visualmente
-            </p>
+          <div className="flex items-center gap-4">
+            <h1 className="text-base font-semibold text-neutral-900 dark:text-white">Quadro Kanban</h1>
+            {/* Tabs inline */}
+            <div className="flex gap-1">
+              <button
+                onClick={() => setViewMode('board')}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  viewMode === 'board'
+                    ? 'bg-neutral-900 dark:bg-neutral-700 text-white'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                }`}
+              >
+                <Grid3x3 className="w-3 h-3 inline mr-1" />
+                Quadro
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-neutral-900 dark:bg-neutral-700 text-white'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                }`}
+              >
+                <List className="w-3 h-3 inline mr-1" />
+                Lista
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            {/* Stats inline compacto */}
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5 text-neutral-500" />
+                <span className="text-neutral-500 dark:text-neutral-400">Total:</span>
+                <span className="font-semibold text-neutral-900 dark:text-white">{stats.total}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                <span className="font-semibold text-green-600 dark:text-green-400">{stats.completed}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span className="font-semibold text-amber-600 dark:text-amber-400">{stats.inProgress}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                <span className="font-semibold text-red-600 dark:text-red-400">{stats.urgent}</span>
+              </div>
+            </div>
+            <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-700" />
             <button
               onClick={() => {
                 setEditingTask(undefined)
                 setDefaultStatus(undefined)
                 setTaskModalOpen(true)
               }}
-              className="px-3 py-1.5 text-sm bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 flex items-center gap-1.5"
+              className="px-2.5 py-1 text-xs bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 flex items-center gap-1"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3 h-3" />
               Nova
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <div className="flex px-4">
-          <button
-            onClick={() => setViewMode('board')}
-            className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
-              viewMode === 'board'
-                ? 'border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
-                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-            }`}
-          >
-            <Grid3x3 className="w-3.5 h-3.5 inline mr-1.5" />
-            Quadro
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
-              viewMode === 'list'
-                ? 'border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
-                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-            }`}
-          >
-            <List className="w-3.5 h-3.5 inline mr-1.5" />
-            Lista
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
-        <div className="grid grid-cols-4 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">Total</p>
-              <p className="text-lg font-semibold text-neutral-900 dark:text-white">{stats.total}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">Concluídas</p>
-              <p className="text-lg font-semibold text-neutral-900 dark:text-white">{stats.completed}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">Em Progresso</p>
-              <p className="text-lg font-semibold text-neutral-900 dark:text-white">{stats.inProgress}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">Urgente</p>
-              <p className="text-lg font-semibold text-neutral-900 dark:text-white">{stats.urgent}</p>
-            </div>
           </div>
         </div>
       </div>

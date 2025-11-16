@@ -31,8 +31,8 @@ export function usePageTemplateData<T extends Record<string, unknown>>(
 ) {
   const page = useWorkspaceStore(
     useCallback((state) => {
-      const group = state.workspace?.groups.find((g) => g.id === groupId);
-      return group?.pages.find((p) => p.id === pageId);
+      const group = state.workspace?.groups?.find((g) => g.id === groupId);
+      return group?.pages?.find((p) => p.id === pageId);
     }, [groupId, pageId]),
   );
   const updatePageData = useWorkspaceStore((state) => state.updatePageData);
@@ -43,7 +43,10 @@ export function usePageTemplateData<T extends Record<string, unknown>>(
 
   const resolvedData = useMemo(() => {
     if (page?.data && Object.keys(page.data as Record<string, unknown>).length > 0) {
-      return page.data as T;
+      return {
+        ...defaultData,
+        ...(page.data as T),
+      };
     }
 
     return defaultData;
@@ -107,4 +110,3 @@ export function usePageTemplateData<T extends Record<string, unknown>>(
     isSaving,
   };
 }
-
