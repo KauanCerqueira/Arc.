@@ -126,8 +126,8 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Production optimizations
-    if (!dev) {
+    // Production optimizations (client-side only to avoid breaking Next.js server runtime)
+    if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
         moduleIds: 'deterministic',
@@ -172,6 +172,14 @@ const nextConfig = {
           },
         },
       };
+    }
+
+    // Ensure correct global object in Node/SSR (avoid `self` ReferenceError)
+    if (isServer) {
+      config.output = {
+        ...config.output,
+        globalObject: 'globalThis',
+      }
     }
 
     // Ignore source maps in production for smaller bundle
