@@ -8,7 +8,7 @@ WORKDIR /src
 COPY . .
 
 # Restaura dependências (usa o caminho correto do .sln)
-RUN dotnet restore ./Arc.sln
+RUN dotnet restore ./Arc.API/Arc.API.csproj
 
 # Publica o projeto principal
 RUN dotnet publish ./Arc.API/Arc.API.csproj -c Release -o /app/out
@@ -29,4 +29,3 @@ COPY --from=build /app/out .
 
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Arc.API.dll"]
-

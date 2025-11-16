@@ -38,8 +38,11 @@ export default function LoginPage() {
         localStorage.removeItem("remember_me_email")
       }
 
-      // Redirect to workspace on success
-      router.push("/workspace")
+      // Pequeno delay para garantir que cookies sejam salvos antes do redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Redirect to workspace on success (hard reload to ensure cookies are read by middleware)
+      window.location.href = "/workspace"
     } catch (err: any) {
       setError(err.message || "Erro ao fazer login. Tente novamente.")
     } finally {

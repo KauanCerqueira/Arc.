@@ -12,7 +12,11 @@ export const cookieUtils = {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
 
-    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+    // Use Secure for HTTPS, SameSite=Lax for better compatibility
+    const isSecure = window.location.protocol === 'https:';
+    const secureFlag = isSecure ? ';Secure' : '';
+
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Lax${secureFlag}`;
   },
 
   /**

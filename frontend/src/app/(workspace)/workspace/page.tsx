@@ -23,7 +23,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { getPageIcon } from '../components/sidebar/pageIcons';
 
 export default function WorkspaceHome() {
-  const { workspace, getFavoritePages } = useWorkspaceStore();
+  const { workspace, getFavoritePages, isLoading, error, initializeWorkspace } = useWorkspaceStore();
+
+  // Auto-reload workspace if not loaded
+  useEffect(() => {
+    if (!workspace && !isLoading) {
+      console.log('🔄 Workspace não carregado, tentando carregar...');
+      initializeWorkspace();
+    }
+  }, [workspace, isLoading, initializeWorkspace]);
 
   const totalGroups = workspace?.groups.length || 0;
   const totalPages = workspace?.groups.reduce((sum, group) => sum + group.pages.length, 0) || 0;
@@ -121,12 +129,17 @@ export default function WorkspaceHome() {
     },
   ];
 
-  if (!workspace) {
+  if (isLoading || !workspace) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
           <div className="w-16 h-16 border-4 border-gray-300 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Carregando workspace...</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-2">Carregando workspace...</p>
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     );

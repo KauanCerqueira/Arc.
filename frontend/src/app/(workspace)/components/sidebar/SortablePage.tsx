@@ -56,6 +56,7 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
   }
 
   // Se collapsed, mostrar apenas o ícone
@@ -97,7 +98,7 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="relative group/page">
+    <div ref={setNodeRef} style={style} className={`relative group/page ${isDragging ? "shadow-2xl scale-105 rounded-lg bg-white dark:bg-slate-800" : ""}`}>
       {isEditing ? (
         <input
           type="text"
@@ -120,7 +121,7 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
           <div
             {...listeners}
             {...attributes}
-            className="cursor-grab active:cursor-grabbing opacity-0 group-hover/page:opacity-100 transition-opacity duration-200 hidden md:block"
+            className="cursor-grab active:cursor-grabbing opacity-40 group-hover/page:opacity-100 transition-opacity duration-200"
           >
             <GripVertical className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
           </div>
@@ -135,7 +136,22 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 flex-shrink-0" />
           )}
 
-          <div className="flex items-center gap-1 opacity-0 group-hover/page:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-0.5 opacity-50 group-hover/page:opacity-100 transition-opacity duration-200">
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                if (confirm(`Excluir "${page.name}"?`)) {
+                  deletePage(groupId, page.id)
+                  if (pathname.includes(page.id)) {
+                    router.push("/workspace")
+                  }
+                }
+              }}
+              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 group/delete"
+              title="Excluir página"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 group-hover/delete:text-red-600 dark:group-hover/delete:text-red-400" />
+            </button>
             <button
               ref={buttonRef}
               onClick={(e) => {
@@ -143,6 +159,7 @@ export function SortablePage({ page, groupId, pathname, collapsed }: SortablePag
                 setShowMenu(!showMenu)
               }}
               className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-md transition-all duration-200"
+              title="Mais opções"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>

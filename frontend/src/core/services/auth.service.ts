@@ -104,7 +104,7 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
       });
 
       // Atualizar tokens salvos
-      this.saveAuthData(response.data);
+      await this.saveAuthData(response.data);
 
       return response.data;
     } catch (error: any) {
@@ -117,7 +117,7 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
   /**
    * Save auth data to local storage and cookies
    */
-  saveAuthData(authResponse: AuthResponseDto, rememberMe: boolean = true): void {
+  async saveAuthData(authResponse: AuthResponseDto, rememberMe: boolean = true): Promise<void> {
     const userData = {
       userId: authResponse.userId,
       nome: authResponse.nome,
@@ -135,14 +135,30 @@ async register(data: RegisterRequestDto): Promise<AuthResponseDto> {
       localStorage.setItem('auth_refresh_token', authResponse.refreshToken);
     }
 
-    // Se "lembrar de mim" estiver ativo, salvar em cookies (30 dias)
-    if (rememberMe) {
-      cookieUtils.set('auth_token', authResponse.token, 30);
-      cookieUtils.set('auth_user', JSON.stringify(userData), 30);
-      cookieUtils.set('remember_me', 'true', 30);
-
+    // Salvar cookies via API route server-side para garantir que o middleware os veja
+    try {
+      await fetch('/api/auth/set-cookie', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: authResponse.token,
+          user: userData,
+          refreshToken: authResponse.refreshToken,
+          rememberMe,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to set server-side cookies:', error);
+      // Fallback to client-side cookies
+      cookieUtils.set('auth_token', authResponse.token, rememberMe ? 30 : 1);
+      cookieUtils.set('auth_user', JSON.stringify(userData), rememberMe ? 30 : 1);
+      if (rememberMe) {
+        cookieUtils.set('remember_me', 'true', 30);
+      }
       if (authResponse.refreshToken) {
-        cookieUtils.set('auth_refresh_token', authResponse.refreshToken, 30);
+        cookieUtils.set('auth_refresh_token', authResponse.refreshToken, rememberMe ? 30 : 1);
       }
     }
   }

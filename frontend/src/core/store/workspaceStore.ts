@@ -157,18 +157,24 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   // INICIALIZAR WORKSPACE
   // ============================================
   initializeWorkspace: async () => {
+    console.log('🔄 [WorkspaceStore] Inicializando workspace...');
     set({ isLoading: true, error: null });
     try {
       // Carrega todos os workspaces do usuário
+      console.log('📡 [WorkspaceStore] Buscando workspaces da API...');
       const apiWorkspaces = await workspaceService.getAllWorkspaces();
+      console.log('✅ [WorkspaceStore] Workspaces recebidos:', apiWorkspaces.length);
 
       if (apiWorkspaces.length === 0) {
         // Se não tiver nenhum, cria o primeiro
+        console.log('📝 [WorkspaceStore] Nenhum workspace encontrado, criando o primeiro...');
         const newWorkspace = await workspaceService.createWorkspace({
           nome: 'Meu Workspace',
         });
+        console.log('✅ [WorkspaceStore] Workspace criado:', newWorkspace.id);
         const apiWorkspaceFull = await workspaceService.getWorkspaceFull(newWorkspace.id);
         const workspace = convertApiToLocal(apiWorkspaceFull);
+        console.log('✅ [WorkspaceStore] Workspace carregado com sucesso:', workspace.name);
         set({
           workspace,
           workspaces: [workspace],
@@ -176,6 +182,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
           isLoading: false
         });
       } else {
+        console.log('📂 [WorkspaceStore] Carregando workspace existente...');
         // Pega o último workspace acessado do localStorage ou o primeiro
         const lastWorkspaceId = localStorage.getItem('lastWorkspaceId');
         const workspaceId = lastWorkspaceId && apiWorkspaces.find(w => w.id === lastWorkspaceId)
@@ -185,6 +192,9 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         const apiWorkspaceFull = await workspaceService.getWorkspaceFull(workspaceId);
         const workspace = convertApiToLocal(apiWorkspaceFull);
         const workspaces = apiWorkspaces.map(convertSimpleApiToLocal); // Usa convertSimpleApiToLocal para lista
+
+        console.log('✅ [WorkspaceStore] Workspace carregado:', workspace.name);
+        console.log('📊 [WorkspaceStore] Total de grupos:', workspace.groups.length);
 
         set({
           workspace,
@@ -196,7 +206,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         localStorage.setItem('lastWorkspaceId', workspace.id);
       }
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+      console.error('❌ [WorkspaceStore] Erro ao inicializar workspace:', error);
+      set({ error: error.message || 'Erro ao carregar workspace', isLoading: false });
     }
   },
 

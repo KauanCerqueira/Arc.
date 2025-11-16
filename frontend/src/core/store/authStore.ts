@@ -91,7 +91,7 @@ export const useAuthStore = create<AuthStore>()(
 
           // Save to localStorage and cookies (remember me = true by default)
           const rememberMe = (credentials as any).rememberMe !== false;
-          authService.saveAuthData(response, rememberMe);
+          await authService.saveAuthData(response, rememberMe);
 
           // Update store
           set({
@@ -133,7 +133,7 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.register(data);
 
           // Save to localStorage and cookies
-          authService.saveAuthData(response, true);
+          await authService.saveAuthData(response, true);
 
           // Update store
           set({

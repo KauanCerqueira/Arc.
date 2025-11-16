@@ -20,7 +20,10 @@ import {
   Link as LinkIcon,
   Eye,
   EyeOff,
-  ChevronDown,
+  Download,
+  Search,
+  MoreVertical,
+  Edit,
 } from 'lucide-react';
 import { usePageTemplateData } from '@/core/hooks/usePageTemplateData';
 import { WorkspaceTemplateComponentProps } from '@/core/types/workspace.types';
@@ -180,8 +183,8 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
   const [showTasks, setShowTasks] = useState(data.settings?.showTasks ?? true);
-  const [showFilters, setShowFilters] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -466,197 +469,171 @@ export default function CalendarTemplate({ groupId, pageId }: WorkspaceTemplateC
   const weekDays = getWeekDays(currentDate);
 
   return (
-    <div className="max-w-[1800px] mx-auto mt-8 md:mt-10">
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Main Calendar - 3 columns */}
-        <div className="xl:col-span-3">
-          <div className="bg-arc-secondary border border-arc rounded-2xl shadow-sm overflow-hidden">
-            {/* Header */}
-            <div className="p-6 border-b border-arc">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-3">
-                  <CalendarIcon className="w-6 h-6 text-[#6E62E5]" />
-                  <h2 className="text-2xl font-bold text-arc">
-                    {viewMode === 'week'
-                      ? `Semana de ${format(weekDays[0], 'dd/MM')} - ${format(weekDays[6], 'dd/MM')}`
-                      : `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-                  </h2>
-                  {isSaving && <span className="text-xs text-arc-muted animate-pulse">Salvando...</span>}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={viewMode === 'week' ? previousWeek : previousMonth}
-                    className="w-9 h-9 flex items-center justify-center hover:bg-arc-primary rounded-lg transition"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-arc" />
-                  </button>
-                  <button
-                    onClick={goToToday}
-                    className="px-4 py-2 text-sm font-medium text-arc hover:bg-arc-primary rounded-lg transition"
-                  >
-                    Hoje
-                  </button>
-                  <button
-                    onClick={viewMode === 'week' ? nextWeek : nextMonth}
-                    className="w-9 h-9 flex items-center justify-center hover:bg-arc-primary rounded-lg transition"
-                  >
-                    <ChevronRight className="w-5 h-5 text-arc" />
-                  </button>
-                </div>
-              </div>
-
-              {/* View Mode Selector */}
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 border border-arc rounded-lg p-1">
-                    <button
-                      onClick={() => setViewMode('month')}
-                      className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 transition-all ${
-                        viewMode === 'month'
-                          ? 'bg-[#6E62E5] text-white'
-                          : 'text-arc hover:bg-arc-primary'
-                      }`}
-                    >
-                      <Grid3X3 className="w-4 h-4" />
-                      <span className="hidden md:inline">Mês</span>
-                    </button>
-                    <button
-                      onClick={() => setViewMode('week')}
-                      className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 transition-all ${
-                        viewMode === 'week'
-                          ? 'bg-[#6E62E5] text-white'
-                          : 'text-arc hover:bg-arc-primary'
-                      }`}
-                    >
-                      <Clock className="w-4 h-4" />
-                      <span className="hidden md:inline">Semana</span>
-                    </button>
-                    <button
-                      onClick={() => setViewMode('agenda')}
-                      className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 transition-all ${
-                        viewMode === 'agenda'
-                          ? 'bg-[#6E62E5] text-white'
-                          : 'text-arc hover:bg-arc-primary'
-                      }`}
-                    >
-                      <List className="w-4 h-4" />
-                      <span className="hidden md:inline">Agenda</span>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => handleToggleTasks(!showTasks)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg border border-arc flex items-center gap-2 transition-all ${
-                      showTasks
-                        ? 'bg-[#6E62E5] text-white border-[#6E62E5]'
-                        : 'text-arc hover:bg-arc-primary'
-                    }`}
-                    title={showTasks ? 'Ocultar tarefas' : 'Mostrar tarefas'}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Tarefas</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openEventModal()}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[#6E62E5] text-white hover:bg-[#5E55D9] transition-all"
-                  >
-                    <Plus className="w-4 h-4" /> Novo evento
-                  </button>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="p-2 hover:bg-arc-primary rounded-lg transition"
-                    title="Filtros"
-                  >
-                    <Filter className="w-5 h-5 text-arc" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Filters (Collapsible) */}
-              {showFilters && (
-                <div className="mt-4 p-4 bg-arc-primary rounded-lg border border-arc space-y-3 animate-fade-in">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Buscar eventos..."
-                      className="flex-1 min-w-[200px] px-4 py-2 text-sm rounded-lg border border-arc bg-arc-secondary text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
-                    />
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="px-4 py-2 text-sm rounded-lg border border-arc bg-arc-secondary text-arc focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
-                    >
-                      <option value="all">Todas categorias</option>
-                      {CATEGORIES.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={exportIcs}
-                      className="px-4 py-2 text-sm font-medium rounded-lg border border-arc text-arc hover:bg-arc-tertiary transition"
-                      title="Exportar .ics"
-                    >
-                      Exportar .ics
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Calendar Views */}
-            <div className="p-6">
-              {viewMode === 'month' && (
-                <MonthView
-                  days={days}
-                  currentDate={currentDate}
-                  getEventsForDate={getEventsForDate}
-                  isToday={isToday}
-                  openEventModal={openEventModal}
-                />
-              )}
-
-              {viewMode === 'week' && (
-                <WeekView
-                  weekDays={weekDays}
-                  getEventsForDate={getEventsForDate}
-                  isToday={isToday}
-                  openEventModal={openEventModal}
-                />
-              )}
-
-              {viewMode === 'agenda' && (
-                <AgendaView
-                  upcomingEvents={upcomingEvents}
-                  deleteEvent={deleteEvent}
-                  openEventModal={openEventModal}
-                />
-              )}
-            </div>
+    <div className="flex h-full flex-col bg-neutral-50 dark:bg-neutral-950">
+      {/* Header */}
+      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white">Calendário</h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Organize eventos, reuniões e compromissos
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleToggleTasks(!showTasks)}
+              className={`px-3 py-1.5 text-sm rounded flex items-center gap-1.5 transition ${
+                showTasks
+                  ? 'bg-neutral-900 dark:bg-neutral-700 text-white'
+                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+              }`}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tarefas</span>
+            </button>
+            <button
+              onClick={() => openEventModal()}
+              className="px-3 py-1.5 text-sm bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Novo
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Right Sidebar - Mini Calendar & Upcoming */}
-        <div className="space-y-6">
-          <MiniCalendar
+      {/* Tabs */}
+      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex px-4">
+          <button
+            onClick={() => setViewMode('month')}
+            className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+              viewMode === 'month'
+                ? 'border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+            }`}
+          >
+            <Grid3X3 className="w-3.5 h-3.5 inline mr-1.5" />
+            Mês
+          </button>
+          <button
+            onClick={() => setViewMode('week')}
+            className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+              viewMode === 'week'
+                ? 'border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 inline mr-1.5" />
+            Semana
+          </button>
+          <button
+            onClick={() => setViewMode('agenda')}
+            className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+              viewMode === 'agenda'
+                ? 'border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+            }`}
+          >
+            <List className="w-3.5 h-3.5 inline mr-1.5" />
+            Agenda
+          </button>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={viewMode === 'week' ? previousWeek : previousMonth}
+              className="w-8 h-8 flex items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition"
+            >
+              <ChevronLeft className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+            </button>
+            <button
+              onClick={goToToday}
+              className="px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition"
+            >
+              Hoje
+            </button>
+            <button
+              onClick={viewMode === 'week' ? nextWeek : nextMonth}
+              className="w-8 h-8 flex items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition"
+            >
+              <ChevronRight className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+            </button>
+            <h2 className="text-base font-semibold text-neutral-900 dark:text-white ml-2">
+              {viewMode === 'week'
+                ? `Semana de ${format(weekDays[0], 'dd/MM')} - ${format(weekDays[6], 'dd/MM')}`
+                : `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar eventos..."
+                className="pl-9 pr-3 py-1.5 text-xs rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              />
+            </div>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
+            >
+              <option value="all">Todas</option>
+              {CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={exportIcs}
+              className="px-3 py-1.5 text-xs bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-1.5"
+              title="Exportar .ics"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Exportar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-4">
+        {viewMode === 'month' && (
+          <MonthView
+            days={days}
             currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            events={events}
-            tasks={showTasks ? tasks : []}
+            getEventsForDate={getEventsForDate}
+            isToday={isToday}
+            openEventModal={openEventModal}
           />
+        )}
 
-          <UpcomingEventsCard
+        {viewMode === 'week' && (
+          <WeekView
+            weekDays={weekDays}
+            getEventsForDate={getEventsForDate}
+            isToday={isToday}
+            openEventModal={openEventModal}
+          />
+        )}
+
+        {viewMode === 'agenda' && (
+          <AgendaView
             upcomingEvents={upcomingEvents}
             deleteEvent={deleteEvent}
             openEventModal={openEventModal}
+            menuOpenId={menuOpenId}
+            setMenuOpenId={setMenuOpenId}
           />
-        </div>
+        )}
       </div>
 
       {/* Event Modal */}
@@ -694,21 +671,21 @@ function MonthView({
   openEventModal: (date?: Date, event?: Event) => void;
 }) {
   return (
-    <>
+    <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
       {/* Day Names */}
-      <div className="grid grid-cols-7 mb-2">
+      <div className="grid grid-cols-7 border-b border-neutral-200 dark:border-neutral-800">
         {DAY_NAMES.map((day) => (
-          <div key={day} className="text-center text-xs font-semibold text-arc-muted py-2">
+          <div key={day} className="text-center text-xs font-semibold text-neutral-500 dark:text-neutral-400 py-3">
             {day}
           </div>
         ))}
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7">
         {days.map((day, index) => {
           if (day === null) {
-            return <div key={index} className="min-h-[100px]" />;
+            return <div key={index} className="min-h-[100px] border-r border-b border-neutral-100 dark:border-neutral-800" />;
           }
 
           const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
@@ -719,18 +696,16 @@ function MonthView({
             <button
               key={index}
               onClick={() => openEventModal(date)}
-              className={`min-h-[100px] p-2 rounded-lg transition-all text-left border ${
-                today
-                  ? 'bg-[#6E62E5] text-white border-[#6E62E5]'
-                  : 'bg-arc-primary hover:bg-arc-tertiary border-arc'
+              className={`min-h-[100px] p-2 text-left border-r border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors ${
+                today ? 'bg-neutral-100 dark:bg-neutral-800' : ''
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm font-semibold ${today ? 'text-white' : 'text-arc'}`}>
+                <span className={`text-sm font-semibold ${today ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 w-6 h-6 rounded-full flex items-center justify-center' : 'text-neutral-700 dark:text-neutral-300'}`}>
                   {day}
                 </span>
                 {dayEvents.length > 0 && (
-                  <span className={`text-[10px] ${today ? 'text-white/80' : 'text-arc-muted'}`}>
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
                     {dayEvents.length}
                   </span>
                 )}
@@ -747,9 +722,7 @@ function MonthView({
                         if (!event.isFromTask) openEventModal(date, event);
                       }}
                       className={`px-2 py-1 rounded text-[10px] font-medium flex items-center gap-1 border ${
-                        today
-                          ? 'bg-white/10 text-white border-white/20'
-                          : cat?.chip || 'bg-arc-secondary text-arc border-arc'
+                        cat?.chip || 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
                       } ${event.isFromTask ? 'opacity-70' : 'cursor-pointer hover:scale-105'}`}
                       title={`${event.time} · ${event.title}`}
                     >
@@ -760,7 +733,7 @@ function MonthView({
                   );
                 })}
                 {dayEvents.length > 2 && (
-                  <div className={`text-[10px] ${today ? 'text-white/80' : 'text-arc-muted'}`}>
+                  <div className="text-[10px] text-neutral-500 dark:text-neutral-400">
                     +{dayEvents.length - 2} mais
                   </div>
                 )}
@@ -769,7 +742,7 @@ function MonthView({
           );
         })}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -789,22 +762,22 @@ function WeekView({
   openEventModal: (date?: Date, event?: Event) => void;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
       <div className="min-w-[800px]">
         {/* Day Headers */}
-        <div className="grid grid-cols-8 gap-2 mb-2">
-          <div className="text-xs font-semibold text-arc-muted py-2">Horário</div>
+        <div className="grid grid-cols-8 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 py-3 px-3">Horário</div>
           {weekDays.map((day, index) => {
             const today = isToday(day);
             return (
               <div
                 key={index}
-                className={`text-center py-2 rounded-lg ${
-                  today ? 'bg-[#6E62E5] text-white' : 'bg-arc-primary text-arc'
+                className={`text-center py-3 border-l border-neutral-100 dark:border-neutral-800 ${
+                  today ? 'bg-neutral-100 dark:bg-neutral-800' : ''
                 }`}
               >
-                <div className="text-xs font-semibold">{DAY_NAMES[day.getDay()]}</div>
-                <div className={`text-lg font-bold ${today ? 'text-white' : 'text-arc'}`}>
+                <div className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">{DAY_NAMES[day.getDay()]}</div>
+                <div className={`text-lg font-bold ${today ? 'text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-300'}`}>
                   {day.getDate()}
                 </div>
               </div>
@@ -813,46 +786,44 @@ function WeekView({
         </div>
 
         {/* Time Grid */}
-        <div className="space-y-1">
-          {WEEK_HOURS.map((hour) => (
-            <div key={hour} className="grid grid-cols-8 gap-2">
-              <div className="text-xs text-arc-muted py-2 text-right pr-2">{hour}</div>
-              {weekDays.map((day, dayIndex) => {
-                const events = getEventsForDate(day).filter((e) => e.time.startsWith(hour.split(':')[0]));
-                return (
-                  <button
-                    key={dayIndex}
-                    onClick={() => openEventModal(day)}
-                    className="min-h-[60px] p-1 rounded-lg bg-arc-primary hover:bg-arc-tertiary border border-arc transition-all"
-                  >
-                    {events.map((event) => {
-                      const cat = event.category ? CATEGORY_STYLES[event.category] : null;
-                      return (
-                        <div
-                          key={event.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!event.isFromTask) openEventModal(day, event);
-                          }}
-                          className={`px-2 py-1 rounded text-[10px] font-medium mb-1 ${
-                            cat?.chip || 'bg-arc-secondary text-arc border-arc'
-                          } ${event.isFromTask ? 'opacity-70' : 'cursor-pointer'}`}
-                        >
-                          <div className="flex items-center gap-1">
-                            {cat && <span className={`w-1.5 h-1.5 rounded-full ${cat.dot}`} />}
-                            {event.isFromTask && <CheckSquare className="w-3 h-3" />}
-                            {event.googleMeetLink && <Video className="w-3 h-3" />}
-                          </div>
-                          <div className="truncate">{event.title}</div>
+        {WEEK_HOURS.map((hour) => (
+          <div key={hour} className="grid grid-cols-8 border-b border-neutral-100 dark:border-neutral-800">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 py-3 px-3 text-right">{hour}</div>
+            {weekDays.map((day, dayIndex) => {
+              const events = getEventsForDate(day).filter((e) => e.time.startsWith(hour.split(':')[0]));
+              return (
+                <button
+                  key={dayIndex}
+                  onClick={() => openEventModal(day)}
+                  className="min-h-[60px] p-1 border-l border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  {events.map((event) => {
+                    const cat = event.category ? CATEGORY_STYLES[event.category] : null;
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!event.isFromTask) openEventModal(day, event);
+                        }}
+                        className={`px-2 py-1 rounded text-[10px] font-medium mb-1 border ${
+                          cat?.chip || 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                        } ${event.isFromTask ? 'opacity-70' : 'cursor-pointer'}`}
+                      >
+                        <div className="flex items-center gap-1 mb-0.5">
+                          {cat && <span className={`w-1.5 h-1.5 rounded-full ${cat.dot}`} />}
+                          {event.isFromTask && <CheckSquare className="w-3 h-3" />}
+                          {event.googleMeetLink && <Video className="w-3 h-3" />}
                         </div>
-                      );
-                    })}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+                        <div className="truncate">{event.title}</div>
+                      </div>
+                    );
+                  })}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -866,23 +837,31 @@ function AgendaView({
   upcomingEvents,
   deleteEvent,
   openEventModal,
+  menuOpenId,
+  setMenuOpenId,
 }: {
   upcomingEvents: Event[];
   deleteEvent: (id: string) => void;
   openEventModal: (date?: Date, event?: Event) => void;
+  menuOpenId: string | null;
+  setMenuOpenId: (id: string | null) => void;
 }) {
   if (upcomingEvents.length === 0) {
     return (
-      <div className="text-center py-12">
-        <CalendarIcon className="w-16 h-16 mx-auto mb-4 text-arc-muted opacity-50" />
-        <h3 className="text-lg font-semibold text-arc mb-2">Nenhum evento cadastrado</h3>
-        <p className="text-sm text-arc-muted">Adicione eventos para vê-los aqui</p>
+      <div className="text-center py-16">
+        <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-neutral-300 dark:text-neutral-700" />
+        <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-1">
+          Nenhum evento cadastrado
+        </h3>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Adicione eventos para vê-los aqui
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {upcomingEvents.map((event) => {
         const cat = event.category ? CATEGORY_STYLES[event.category] : null;
         const eventDate = parseISO(event.date);
@@ -890,16 +869,16 @@ function AgendaView({
         return (
           <div
             key={event.id}
-            className={`p-4 rounded-xl border border-arc ${cat?.bg || 'bg-arc-primary'} hover:shadow-md transition-all group`}
+            className="relative border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors bg-white dark:bg-neutral-900"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   {cat && <span className={`w-3 h-3 rounded-full ${cat.dot}`} />}
-                  {event.isFromTask && <CheckSquare className="w-4 h-4 text-arc" />}
+                  {event.isFromTask && <CheckSquare className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />}
                   <button
                     onClick={() => !event.isFromTask && openEventModal(eventDate, event)}
-                    className="font-semibold text-arc hover:underline"
+                    className="font-medium text-neutral-900 dark:text-white hover:underline text-sm"
                   >
                     {event.title}
                   </button>
@@ -908,15 +887,15 @@ function AgendaView({
                       href={event.googleMeetLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 hover:bg-arc-primary rounded"
+                      className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded"
                       title="Entrar na reunião"
                     >
-                      <Video className="w-4 h-4 text-[#6E62E5]" />
+                      <Video className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
                     </a>
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-arc-muted flex-wrap">
+                <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400 flex-wrap">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
                     {format(eventDate, "dd 'de' MMMM", { locale: ptBR })} · {event.time}
@@ -931,182 +910,46 @@ function AgendaView({
                   {event.attendees && event.attendees.length > 0 && (
                     <span className="flex items-center gap-1">
                       <Users className="w-3.5 h-3.5" />
-                      {event.attendees.length} participante{event.attendees.length > 1 ? 's' : ''}
+                      {event.attendees.length}
                     </span>
                   )}
                 </div>
 
                 {event.description && (
-                  <p className="text-sm text-arc-muted mt-2">{event.description}</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-2">{event.description}</p>
                 )}
               </div>
 
               {!event.isFromTask && (
-                <button
-                  onClick={() => deleteEvent(event.id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setMenuOpenId(menuOpenId === event.id ? null : event.id)}
+                    className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  {menuOpenId === event.id && (
+                    <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg z-10">
+                      <button
+                        onClick={() => { openEventModal(eventDate, event); setMenuOpenId(null); }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-2"
+                      >
+                        <Edit className="w-3.5 h-3.5" /> Editar
+                      </button>
+                      <button
+                        onClick={() => { deleteEvent(event.id); setMenuOpenId(null); }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 text-red-600 flex items-center gap-2"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Excluir
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
         );
       })}
-    </div>
-  );
-}
-
-// ===========================================
-// MINI CALENDAR COMPONENT
-// ===========================================
-
-function MiniCalendar({
-  currentDate,
-  setCurrentDate,
-  events,
-  tasks,
-}: {
-  currentDate: Date;
-  setCurrentDate: (date: Date) => void;
-  events: Event[];
-  tasks: Task[];
-}) {
-  const [miniDate, setMiniDate] = useState(new Date());
-  const days = getDaysInMonth(miniDate);
-
-  const hasEvent = (day: number) => {
-    const dateStr = formatDateString(miniDate.getFullYear(), miniDate.getMonth(), day);
-    return events.some((e) => e.date === dateStr) || tasks.some((t) => t.dueDate === dateStr);
-  };
-
-  const isSelected = (day: number) => {
-    return (
-      day === currentDate.getDate() &&
-      miniDate.getMonth() === currentDate.getMonth() &&
-      miniDate.getFullYear() === currentDate.getFullYear()
-    );
-  };
-
-  return (
-    <div className="bg-arc-secondary border border-arc rounded-xl p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-arc">
-          {MONTH_NAMES[miniDate.getMonth()]} {miniDate.getFullYear()}
-        </h3>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setMiniDate(new Date(miniDate.getFullYear(), miniDate.getMonth() - 1))}
-            className="p-1 hover:bg-arc-primary rounded"
-          >
-            <ChevronLeft className="w-4 h-4 text-arc" />
-          </button>
-          <button
-            onClick={() => setMiniDate(new Date(miniDate.getFullYear(), miniDate.getMonth() + 1))}
-            className="p-1 hover:bg-arc-primary rounded"
-          >
-            <ChevronRight className="w-4 h-4 text-arc" />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {DAY_NAMES.map((day) => (
-          <div key={day} className="text-center text-[10px] font-semibold text-arc-muted py-1">
-            {day[0]}
-          </div>
-        ))}
-        {days.map((day, index) =>
-          day === null ? (
-            <div key={index} />
-          ) : (
-            <button
-              key={index}
-              onClick={() => {
-                setCurrentDate(new Date(miniDate.getFullYear(), miniDate.getMonth(), day));
-                setMiniDate(new Date(miniDate.getFullYear(), miniDate.getMonth(), day));
-              }}
-              className={`aspect-square text-xs rounded-lg transition-all relative ${
-                isSelected(day)
-                  ? 'bg-[#6E62E5] text-white'
-                  : hasEvent(day)
-                  ? 'bg-arc-primary text-arc font-semibold hover:bg-arc-tertiary'
-                  : 'text-arc hover:bg-arc-primary'
-              }`}
-            >
-              {day}
-              {hasEvent(day) && !isSelected(day) && (
-                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#6E62E5]" />
-              )}
-            </button>
-          )
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ===========================================
-// UPCOMING EVENTS CARD
-// ===========================================
-
-function UpcomingEventsCard({
-  upcomingEvents,
-  deleteEvent,
-  openEventModal,
-}: {
-  upcomingEvents: Event[];
-  deleteEvent: (id: string) => void;
-  openEventModal: (date?: Date, event?: Event) => void;
-}) {
-  return (
-    <div className="bg-arc-secondary border border-arc rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-arc mb-4 flex items-center gap-2">
-        <Clock className="w-4 h-4 text-[#6E62E5]" />
-        Próximos eventos
-      </h3>
-
-      {upcomingEvents.length === 0 ? (
-        <div className="text-xs text-arc-muted text-center py-6">Nenhum evento próximo</div>
-      ) : (
-        <div className="space-y-2">
-          {upcomingEvents.slice(0, 5).map((event) => {
-            const cat = event.category ? CATEGORY_STYLES[event.category] : null;
-            const eventDate = parseISO(event.date);
-
-            return (
-              <div key={event.id} className="p-3 bg-arc-primary rounded-lg border border-arc hover:shadow-sm transition group">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      {cat && <span className={`w-2 h-2 rounded-full ${cat.dot}`} />}
-                      {event.isFromTask && <CheckSquare className="w-3 h-3 text-arc" />}
-                      {event.googleMeetLink && <Video className="w-3 h-3 text-[#6E62E5]" />}
-                      <button
-                        onClick={() => !event.isFromTask && openEventModal(eventDate, event)}
-                        className="text-xs font-medium text-arc hover:underline truncate"
-                      >
-                        {event.title}
-                      </button>
-                    </div>
-                    <div className="text-[10px] text-arc-muted">
-                      {format(eventDate, 'dd/MM')} · {event.time}
-                    </div>
-                  </div>
-                  {!event.isFromTask && (
-                    <button
-                      onClick={() => deleteEvent(event.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-500" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
@@ -1138,60 +981,60 @@ function EventModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-arc-secondary rounded-2xl w-full max-w-2xl shadow-2xl border border-arc max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-900 rounded-lg w-full max-w-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-arc sticky top-0 bg-arc-secondary z-10">
+        <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-arc">
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
               {isEditing ? 'Editar Evento' : 'Novo Evento'}
               {selectedDay && ` - ${format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}`}
             </h3>
-            <button onClick={onClose} className="p-2 hover:bg-arc-primary rounded-lg transition">
-              <X className="w-5 h-5 text-arc" />
+            <button onClick={onClose} className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition">
+              <X className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-arc mb-2">Título *</label>
+            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Título *</label>
             <input
               type="text"
               value={event.title}
               onChange={(e) => setEvent({ ...event, title: e.target.value })}
               placeholder="Nome do evento"
               autoFocus
-              className="w-full px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
+              className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
             />
           </div>
 
           {/* Time Range */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-arc mb-2">Início</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Início</label>
               <input
                 type="time"
                 value={event.time}
                 onChange={(e) => setEvent({ ...event, time: e.target.value })}
-                className="w-full px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-arc mb-2">Fim (opcional)</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Fim (opcional)</label>
               <input
                 type="time"
                 value={event.endTime}
                 onChange={(e) => setEvent({ ...event, endTime: e.target.value })}
-                className="w-full px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
               />
             </div>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-arc mb-2">Categoria</label>
+            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Categoria</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => {
                 const active = event.category === c.id;
@@ -1201,10 +1044,10 @@ function EventModal({
                     key={c.id}
                     type="button"
                     onClick={() => setEvent({ ...event, category: c.id })}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
+                    className={`px-3 py-1.5 rounded text-xs font-medium border transition-all ${
                       active
-                        ? `${style.chip} ring-2 ring-offset-2 ring-[#6E62E5] ring-offset-arc-secondary`
-                        : 'bg-arc-primary text-arc border-arc hover:bg-arc-tertiary'
+                        ? style.chip
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                     }`}
                   >
                     {c.label}
@@ -1216,8 +1059,8 @@ function EventModal({
 
           {/* Google Meet */}
           <div>
-            <label className="block text-sm font-medium text-arc mb-2 flex items-center gap-2">
-              <Video className="w-4 h-4 text-[#6E62E5]" />
+            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center gap-1.5">
+              <Video className="w-3.5 h-3.5" />
               Google Meet
             </label>
             <div className="flex gap-2">
@@ -1226,15 +1069,15 @@ function EventModal({
                 value={event.googleMeetLink}
                 onChange={(e) => setEvent({ ...event, googleMeetLink: e.target.value })}
                 placeholder="https://meet.google.com/..."
-                className="flex-1 px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
+                className="flex-1 px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
               />
               <button
                 type="button"
                 onClick={onGenerateMeetLink}
-                className="px-4 py-3 bg-[#6E62E5] hover:bg-[#5E55D9] text-white rounded-xl font-medium transition-all flex items-center gap-2"
+                className="px-3 py-2 text-xs bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 flex items-center gap-1"
                 title="Gerar link do Meet"
               >
-                <Video className="w-4 h-4" />
+                <Video className="w-3.5 h-3.5" />
                 Gerar
               </button>
             </div>
@@ -1242,8 +1085,8 @@ function EventModal({
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-arc mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-arc-muted" />
+            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5" />
               Local
             </label>
             <input
@@ -1251,35 +1094,35 @@ function EventModal({
               value={event.location}
               onChange={(e) => setEvent({ ...event, location: e.target.value })}
               placeholder="Adicionar local"
-              className="w-full px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-[#6E62E5]"
+              className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-arc mb-2">Descrição</label>
+            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Descrição</label>
             <textarea
               value={event.description}
               onChange={(e) => setEvent({ ...event, description: e.target.value })}
               placeholder="Adicione detalhes sobre o evento"
-              rows={4}
-              className="w-full px-4 py-3 border border-arc rounded-xl bg-arc-primary text-arc placeholder-arc-muted focus:outline-none focus:ring-2 focus:ring-[#6E62E5] resize-none"
+              rows={3}
+              className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 resize-none"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-arc flex gap-3">
+        <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 text-arc hover:bg-arc-primary rounded-xl transition font-medium"
+            className="flex-1 px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition"
           >
             Cancelar
           </button>
           <button
             onClick={onSave}
             disabled={!event.title.trim()}
-            className="flex-1 px-4 py-3 bg-[#6E62E5] text-white rounded-xl hover:bg-[#5E55D9] transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 text-sm bg-neutral-900 dark:bg-neutral-700 text-white rounded hover:bg-neutral-800 dark:hover:bg-neutral-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isEditing ? 'Salvar' : 'Criar Evento'}
           </button>

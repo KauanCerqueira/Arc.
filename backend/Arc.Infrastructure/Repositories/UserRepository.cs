@@ -16,9 +16,11 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
+        // Normalize email to lowercase for case-insensitive comparison
+        // This allows the database index to be used efficiently
+        var normalizedEmail = email.ToLower();
         return await _context.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
     }
 
     public async Task<User?> GetByIdAsync(Guid id)
@@ -44,8 +46,10 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> EmailExistsAsync(string email)
     {
+        // Normalize email to lowercase for case-insensitive comparison
+        var normalizedEmail = email.ToLower();
         return await _context.Users
-            .AnyAsync(u => u.Email.ToLower() == email.ToLower());
+            .AnyAsync(u => u.Email == normalizedEmail);
     }
 
     public async Task UpdateAsync(User user)
