@@ -1137,9 +1137,9 @@ export default function WorkoutTemplate({ groupId, pageId }: WorkspaceTemplateCo
 
 function DashboardTab({ metrics, activePlan, todayWorkout, data, startWorkout, setActiveTab, setShowPlanModal }: any) {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard
           label="Treinos Total"
           value={metrics.totalWorkouts}
@@ -1171,7 +1171,7 @@ function DashboardTab({ metrics, activePlan, todayWorkout, data, startWorkout, s
       </div>
 
       {/* Secondary Metrics */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <MetricCard
           label="Volume Médio"
           value={`${Math.round(metrics.avgVolume)} kg`}
@@ -1195,16 +1195,16 @@ function DashboardTab({ metrics, activePlan, todayWorkout, data, startWorkout, s
       {/* Active Plan */}
       {activePlan ? (
         <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
-            <div className="flex items-center justify-between">
+          <div className="p-3 sm:p-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Plano Ativo</h3>
-              <span className={`px-2 py-0.5 text-xs bg-${getDifficultyColor(activePlan.difficulty)}-100 dark:bg-${getDifficultyColor(activePlan.difficulty)}-900/30 text-${getDifficultyColor(activePlan.difficulty)}-700 dark:text-${getDifficultyColor(activePlan.difficulty)}-300 rounded`}>
+              <span className={`px-2 py-0.5 text-xs bg-${getDifficultyColor(activePlan.difficulty)}-100 dark:bg-${getDifficultyColor(activePlan.difficulty)}-900/30 text-${getDifficultyColor(activePlan.difficulty)}-700 dark:text-${getDifficultyColor(activePlan.difficulty)}-300 rounded whitespace-nowrap`}>
                 {getDifficultyLabel(activePlan.difficulty)}
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{activePlan.description}</p>
           </div>
-          <div className="p-4 grid grid-cols-3 gap-3">
+          <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {activePlan.days.map((day: DayWorkout) => {
               const dayName = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"][day.dayNumber]
               return (
@@ -1252,10 +1252,10 @@ function DashboardTab({ metrics, activePlan, todayWorkout, data, startWorkout, s
       {/* Recent PRs */}
       {data.personalRecords && data.personalRecords.length > 0 && (
         <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="p-3 sm:p-4 border-b border-neutral-200 dark:border-neutral-800">
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Records Recentes</h3>
           </div>
-          <div className="p-4 space-y-2">
+          <div className="p-3 sm:p-4 space-y-2">
             {data.personalRecords.slice(-5).reverse().map((pr: PersonalRecord) => (
               <div key={pr.id} className="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded">
                 <div>
@@ -1282,8 +1282,8 @@ function DashboardTab({ metrics, activePlan, todayWorkout, data, startWorkout, s
 function WorkoutTodayTab({ todayWorkout, startWorkout, setActiveTab }: any) {
   if (!todayWorkout) {
     return (
-      <div className="p-6">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-8 text-center">
+      <div className="p-3 sm:p-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-6 sm:p-8 text-center">
           <Calendar className="w-12 h-12 text-neutral-400 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">Dia de Descanso</h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
@@ -1301,8 +1301,8 @@ function WorkoutTodayTab({ todayWorkout, startWorkout, setActiveTab }: any) {
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-4">
+    <div className="p-3 sm:p-6 space-y-4">
+      <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 sm:p-4">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">{todayWorkout.dayName}</h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
           {todayWorkout.exercises.length} exercícios programados
@@ -1313,8 +1313,8 @@ function WorkoutTodayTab({ todayWorkout, startWorkout, setActiveTab }: any) {
             const mg = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)
             return (
               <div key={exercise.id} className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium text-neutral-900 dark:text-white">
                       {idx + 1}. {exercise.exerciseName}
                     </span>
@@ -1322,7 +1322,7 @@ function WorkoutTodayTab({ todayWorkout, startWorkout, setActiveTab }: any) {
                       {exercise.sets.length} séries
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded bg-${mg?.color}-100 dark:bg-${mg?.color}-900/30 text-${mg?.color}-700 dark:text-${mg?.color}-300`}>
+                  <span className={`text-xs px-2 py-0.5 rounded bg-${mg?.color}-100 dark:bg-${mg?.color}-900/30 text-${mg?.color}-700 dark:text-${mg?.color}-300 whitespace-nowrap flex-shrink-0`}>
                     {mg?.name}
                   </span>
                 </div>
@@ -1347,8 +1347,8 @@ function PlansTab({ plans, activePlanId, setActivePlan, deletePlan, setShowPlanM
   const safePlans = plans || []
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Meus Planos</h2>
         <button
           onClick={() => setShowPlanModal(true)}
@@ -1384,23 +1384,23 @@ function PlansTab({ plans, activePlanId, setActivePlan, deletePlan, setShowPlanM
                     : "border-neutral-200 dark:border-neutral-800"
                 }`}
               >
-                <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                <div className="p-3 sm:p-4 border-b border-neutral-200 dark:border-neutral-800">
+                  <div className="flex items-start justify-between mb-2 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{plan.name}</h3>
                         {plan.id === activePlanId && (
-                          <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded whitespace-nowrap">
                             Ativo
                           </span>
                         )}
-                        <span className={`text-xs px-2 py-0.5 bg-${diffColor}-100 dark:bg-${diffColor}-900/30 text-${diffColor}-700 dark:text-${diffColor}-300 rounded`}>
+                        <span className={`text-xs px-2 py-0.5 bg-${diffColor}-100 dark:bg-${diffColor}-900/30 text-${diffColor}-700 dark:text-${diffColor}-300 rounded whitespace-nowrap`}>
                           {getDifficultyLabel(plan.difficulty)}
                         </span>
                       </div>
                       <p className="text-xs text-neutral-500 dark:text-neutral-400">{plan.description}</p>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-shrink-0">
                       {plan.id !== activePlanId && (
                         <button
                           onClick={() => setActivePlan(plan.id)}
@@ -1419,7 +1419,7 @@ function PlansTab({ plans, activePlanId, setActivePlan, deletePlan, setShowPlanM
                   </div>
                 </div>
 
-                <div className="p-4 grid grid-cols-3 gap-2">
+                <div className="p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {plan.days.map((day: DayWorkout) => {
                     const dayName = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"][day.dayNumber]
                     return (
@@ -1462,8 +1462,8 @@ function ExercisesTab({ exercises }: { exercises: ExerciseLibraryItem[] }) {
     : exercises.filter(e => e.muscleGroup === filter)
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-base font-semibold text-neutral-900 dark:text-white">
           Biblioteca de Exercícios
         </h2>
@@ -1479,7 +1479,7 @@ function ExercisesTab({ exercises }: { exercises: ExerciseLibraryItem[] }) {
         </select>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredExercises.map(exercise => {
           const mg = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)
           return (
@@ -1514,7 +1514,7 @@ function HistoryTab({ sessions, plans }: any) {
   )
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-3 sm:p-6 space-y-4">
       <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Histórico de Treinos</h2>
 
       {sortedSessions.length === 0 ? (
@@ -1524,43 +1524,45 @@ function HistoryTab({ sessions, plans }: any) {
         </div>
       ) : (
         <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Data</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Treino</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Duração</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Volume</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">RPE</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {sortedSessions.map((session: WorkoutSession) => {
-                const plan = safePlans.find((p: WeeklyPlan) => p.id === session.planId)
-                const day = plan?.days.find((d: DayWorkout) => d.id === session.dayId)
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
+                <tr>
+                  <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Data</th>
+                  <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Treino</th>
+                  <th className="hidden sm:table-cell px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Duração</th>
+                  <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Volume</th>
+                  <th className="hidden md:table-cell px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">RPE</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {sortedSessions.map((session: WorkoutSession) => {
+                  const plan = safePlans.find((p: WeeklyPlan) => p.id === session.planId)
+                  const day = plan?.days.find((d: DayWorkout) => d.id === session.dayId)
 
-                return (
-                  <tr key={session.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300">
-                      {new Date(session.date).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-900 dark:text-white font-medium">
-                      {day?.dayName || "Desconhecido"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
-                      {Math.round((session.duration || 0) / 60)} min
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right font-medium">
-                      {session.totalVolume?.toLocaleString()} kg
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
-                      {session.avgRPE ? session.avgRPE.toFixed(1) : "-"}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                  return (
+                    <tr key={session.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                      <td className="px-3 sm:px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300">
+                        {new Date(session.date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                      </td>
+                      <td className="px-3 sm:px-4 py-3 text-xs text-neutral-900 dark:text-white font-medium">
+                        {day?.dayName || "Desconhecido"}
+                      </td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
+                        {Math.round((session.duration || 0) / 60)} min
+                      </td>
+                      <td className="px-3 sm:px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right font-medium">
+                        {session.totalVolume?.toLocaleString()} kg
+                      </td>
+                      <td className="hidden md:table-cell px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
+                        {session.avgRPE ? session.avgRPE.toFixed(1) : "-"}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -1569,45 +1571,47 @@ function HistoryTab({ sessions, plans }: any) {
 
 function ProgressTab({ measurements, personalRecords, addMeasurement, updateMeasurement, deleteMeasurement }: any) {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Personal Records */}
       <div>
         <h2 className="text-base font-semibold text-neutral-900 dark:text-white mb-4">Records Pessoais</h2>
 
         {personalRecords && personalRecords.length > 0 ? (
           <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Exercício</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Peso</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Reps</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">1RM</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Data</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {personalRecords.map((pr: PersonalRecord) => (
-                  <tr key={pr.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                    <td className="px-4 py-3 text-xs text-neutral-900 dark:text-white font-medium">
-                      {pr.exerciseName}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
-                      {pr.weight} kg
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
-                      {pr.reps}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-amber-600 font-bold text-right">
-                      {pr.oneRepMax} kg
-                    </td>
-                    <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 text-right">
-                      {new Date(pr.date).toLocaleDateString("pt-BR")}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
+                  <tr>
+                    <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-neutral-700 dark:text-neutral-300">Exercício</th>
+                    <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Peso</th>
+                    <th className="hidden sm:table-cell px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Reps</th>
+                    <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">1RM</th>
+                    <th className="hidden md:table-cell px-4 py-2 text-right text-xs font-medium text-neutral-700 dark:text-neutral-300">Data</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                  {personalRecords.map((pr: PersonalRecord) => (
+                    <tr key={pr.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                      <td className="px-3 sm:px-4 py-3 text-xs text-neutral-900 dark:text-white font-medium">
+                        {pr.exerciseName}
+                      </td>
+                      <td className="px-3 sm:px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
+                        {pr.weight} kg
+                      </td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 text-right">
+                        {pr.reps}
+                      </td>
+                      <td className="px-3 sm:px-4 py-3 text-xs text-amber-600 font-bold text-right">
+                        {pr.oneRepMax} kg
+                      </td>
+                      <td className="hidden md:table-cell px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 text-right">
+                        {new Date(pr.date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : (
           <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-8 text-center">
@@ -1619,7 +1623,7 @@ function ProgressTab({ measurements, personalRecords, addMeasurement, updateMeas
 
       {/* Body Measurements */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
           <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Medidas Corporais</h2>
           <button
             onClick={addMeasurement}
@@ -1653,7 +1657,7 @@ function ProgressTab({ measurements, personalRecords, addMeasurement, updateMeas
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {[
                       { key: "weight", label: "Peso (kg)" },
                       { key: "bodyFat", label: "Gordura (%)" },
@@ -1713,7 +1717,7 @@ function ToolsTab() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Ferramentas</h2>
 
       {/* 1RM Calculator */}
@@ -1791,21 +1795,21 @@ function ToolsTab() {
 
 function ActiveWorkoutTab({ selectedDay, currentWorkout, completeSet, updateSetValue, setSelectedDay, finishWorkout }: any) {
   return (
-    <div className="p-6 space-y-4">
-      <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-4">
+    <div className="p-3 sm:p-6 space-y-4">
+      <div className="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 sm:p-4">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">{selectedDay.dayName}</h2>
 
         <div className="space-y-4">
           {currentWorkout.map((exercise: WorkoutExercise, idx: number) => {
             const mg = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)
             return (
-              <div key={exercise.id} className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
+              <div key={exercise.id} className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-3 gap-2">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
                       {idx + 1}. {exercise.exerciseName}
                     </h3>
-                    <span className={`text-xs px-2 py-0.5 mt-1 inline-block rounded bg-${mg?.color}-100 dark:bg-${mg?.color}-900/30 text-${mg?.color}-700 dark:text-${mg?.color}-300`}>
+                    <span className={`text-xs px-2 py-0.5 mt-1 inline-block rounded bg-${mg?.color}-100 dark:bg-${mg?.color}-900/30 text-${mg?.color}-700 dark:text-${mg?.color}-300 whitespace-nowrap`}>
                       {mg?.name}
                     </span>
                   </div>
@@ -1880,7 +1884,7 @@ function ActiveWorkoutTab({ selectedDay, currentWorkout, completeSet, updateSetV
           })}
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setSelectedDay(null)}
             className="flex-1 px-4 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded hover:bg-neutral-50 dark:hover:bg-neutral-800 transition font-medium text-neutral-900 dark:text-white"
