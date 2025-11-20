@@ -1059,7 +1059,7 @@ export default function NutritionTemplate({ groupId, pageId }: WorkspaceTemplate
                         <select
                           value={calcTdeeGender}
                           onChange={e => {
-                            setCalcTdeeGender(e.target.value)
+                            setCalcTdeeGender(e.target.value as 'male' | 'female' | 'other')
                             updateProfile({ gender: e.target.value as any })
                           }}
                           className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-black text-black dark:text-white"
@@ -1074,7 +1074,7 @@ export default function NutritionTemplate({ groupId, pageId }: WorkspaceTemplate
                       <select
                         value={calcTdeeActivity}
                         onChange={e => {
-                          setCalcTdeeActivity(e.target.value)
+                          setCalcTdeeActivity(e.target.value as 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active')
                           updateProfile({ activityLevel: e.target.value as any })
                         }}
                         className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-black text-black dark:text-white"
@@ -1141,7 +1141,7 @@ export default function NutritionTemplate({ groupId, pageId }: WorkspaceTemplate
                       <select
                         value={calcMacrosGoal}
                         onChange={e => {
-                          setCalcMacrosGoal(e.target.value)
+                          setCalcMacrosGoal(e.target.value as 'lose_weight' | 'maintain' | 'gain_muscle' | 'gain_weight')
                           updateProfile({ goal: e.target.value as any })
                         }}
                         className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-black text-black dark:text-white"
@@ -1217,7 +1217,7 @@ export default function NutritionTemplate({ groupId, pageId }: WorkspaceTemplate
                         <label className="block text-sm font-semibold text-black dark:text-white mb-2">Sexo</label>
                         <select
                           value={calcIdealGender}
-                          onChange={e => setCalcIdealGender(e.target.value)}
+                          onChange={e => setCalcIdealGender(e.target.value as 'male' | 'female' | 'other')}
                           className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-black text-black dark:text-white"
                         >
                           <option value="male">Masculino</option>
