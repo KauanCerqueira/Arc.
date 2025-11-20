@@ -44,7 +44,9 @@ import {
   StickyNote,
   Cloud,
   MapPin,
-  Flag
+  Flag,
+  Trophy,
+  Droplet
 } from 'lucide-react';
 import {
   AreaChart,
@@ -2872,12 +2874,13 @@ export default function DashboardTemplate({ groupId, pageId }: DashboardTemplate
                           {upcomingEvents.map((event: any, index: number) => {
                             const eventDate = new Date(event.date);
                             const diffDays = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                            const typeConfig = {
+                            const typeConfigMap: Record<string, { icon: any; color: string }> = {
                               milestone: { icon: Target, color: 'text-blue-600 dark:text-blue-400' },
                               meeting: { icon: Users, color: 'text-purple-600 dark:text-purple-400' },
                               release: { icon: Zap, color: 'text-green-600 dark:text-green-400' },
                               event: { icon: Flame, color: 'text-orange-600 dark:text-orange-400' },
-                            }[event.type] || { icon: CalendarIcon, color: 'text-gray-600 dark:text-gray-400' };
+                            };
+                            const typeConfig = typeConfigMap[event.type] || { icon: CalendarIcon, color: 'text-gray-600 dark:text-gray-400' };
                             const EventIcon = typeConfig.icon;
 
                             return (
@@ -2911,12 +2914,13 @@ export default function DashboardTemplate({ groupId, pageId }: DashboardTemplate
                             const eventDate = new Date(event.date);
                             const diffDays = Math.floor((now.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24));
                             const timeAgo = diffDays === 0 ? 'Hoje' : diffDays === 1 ? '1d atrás' : `${diffDays}d atrás`;
-                            const typeConfig = {
+                            const typeConfigMap: Record<string, { icon: any; color: string }> = {
                               milestone: { icon: Target, color: 'text-blue-600 dark:text-blue-400' },
                               meeting: { icon: Users, color: 'text-purple-600 dark:text-purple-400' },
                               release: { icon: Zap, color: 'text-green-600 dark:text-green-400' },
                               event: { icon: Flame, color: 'text-orange-600 dark:text-orange-400' },
-                            }[event.type] || { icon: CalendarIcon, color: 'text-gray-600 dark:text-gray-400' };
+                            };
+                            const typeConfig = typeConfigMap[event.type] || { icon: CalendarIcon, color: 'text-gray-600 dark:text-gray-400' };
                             const EventIcon = typeConfig.icon;
 
                             return (
@@ -3274,8 +3278,960 @@ export default function DashboardTemplate({ groupId, pageId }: DashboardTemplate
               );
             })()}
 
-            {/* Cards 14-23: Outros templates */}
-            {['study', 'workout', 'nutrition', 'mindmap', 'flowchart', 'focus', 'business-budget', 'budget', 'blank'].map(templateName => {
+            {/* Card 14: Study - 2x1 Invertido (maior na direita) */}
+            {(() => {
+              const studyPages = workspace.groups.flatMap(g =>
+                g.pages.filter(p => p.template === 'study').map(page => ({
+                  ...page,
+                  groupId: g.id,
+                  groupName: g.name
+                }))
+              );
+
+              if (studyPages.length === 0) return null;
+
+              // Agregar dados de todas as páginas de estudo
+              const allSessions = studyPages.flatMap(p => p.data?.sessions || []);
+              const allSubjects = studyPages.flatMap(p => p.data?.subjects || []);
+              const allGoals = studyPages.flatMap(p => p.data?.goals || []);
+
+              const totalSessions = allSessions.length;
+              const totalMinutes = allSessions.reduce((sum: number, s: any) => sum + (s.durationMinutes || 0), 0);
+              const totalHours = Math.floor(totalMinutes / 60);
+
+              // Streak (maior streak entre as páginas)
+              const streaks = studyPages.map(p => p.data?.streak || 0);
+              const maxStreak = Math.max(...streaks, 0);
+
+              // Matérias mais estudadas (top 4)
+              const subjectTimes: { [key: string]: number } = {};
+              allSessions.forEach((s: any) => {
+                if (s.subject) {
+                  subjectTimes[s.subject] = (subjectTimes[s.subject] || 0) + (s.durationMinutes || 0);
+                }
+              });
+              const topSubjects = Object.entries(subjectTimes)
+                .sort(([, a], [, b]) => (b as number) - (a as number))
+                .slice(0, 4);
+
+              // Metas ativas
+              const activeGoals = allGoals.filter((g: any) => !g.completed);
+              const completedGoals = allGoals.filter((g: any) => g.completed);
+
+              // Sessões completadas vs totais
+              const completedSessions = allSessions.filter((s: any) => s.completed).length;
+
+              const firstStudyPage = studyPages[0];
+              const studyLink = `/workspace/${firstStudyPage.groupId}/${firstStudyPage.id}`;
+
+              // Se não tiver nenhuma sessão
+              if (totalSessions === 0) {
+                return (
+                  <div className="col-span-full bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-gray-900 dark:text-white" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Estudo</h3>
+                      </div>
+                      <span className="text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">{studyPages.length}p</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" />
+                      <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Nenhuma sessão de estudo</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Comece sua jornada de estudos</p>
+                      <Link href={studyLink}>
+                        <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          Iniciar Estudo
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Card Esquerdo: Estatísticas - Menor */}
+                  <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Estudo</h3>
+                      </div>
+                      <span className="text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">{studyPages.length}p</span>
+                    </div>
+
+                    {/* Total de horas */}
+                    <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-1">Total Estudado</p>
+                      <p className="text-4xl font-black text-blue-700 dark:text-blue-300">{totalHours}h</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{totalMinutes % 60}min</p>
+                    </div>
+
+                    {/* Métricas */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">Sessões</span>
+                        </div>
+                        <span className="text-xl font-black text-green-700 dark:text-green-300">{completedSessions}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                        <div className="flex items-center gap-2">
+                          <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">Sequência</span>
+                        </div>
+                        <span className="text-xl font-black text-orange-700 dark:text-orange-300">{maxStreak} dias</span>
+                      </div>
+                    </div>
+
+                    {/* Resumo de metas */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-green-800">
+                        <p className="text-xs text-green-600 dark:text-green-400 font-semibold mb-1">Metas Ativas</p>
+                        <p className="text-2xl font-black text-green-700 dark:text-green-300">{activeGoals.length}</p>
+                      </div>
+                      <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mb-1">Matérias</p>
+                        <p className="text-2xl font-black text-purple-700 dark:text-purple-300">{Object.keys(subjectTimes).length}</p>
+                      </div>
+                    </div>
+
+                    <Link href={studyLink} className="mt-6 block">
+                      <button className="w-full py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-900 rounded-lg transition-colors flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-800">
+                        Ver Estudo
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                  </div>
+
+                  {/* Card Direito: Matérias e Metas - Maior */}
+                  <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Matérias e Metas</h3>
+                    </div>
+
+                    {/* Matérias */}
+                    {topSubjects.length > 0 ? (
+                      <div className="mb-6">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <Brain className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          Mais Estudadas
+                        </p>
+                        <div className="space-y-3">
+                          {topSubjects.slice(0, 3).map(([subject, minutes], index) => {
+                            const hours = Math.floor((minutes as number) / 60);
+                            const mins = (minutes as number) % 60;
+                            const percentage = Math.round(((minutes as number) / totalMinutes) * 100);
+                            return (
+                              <div key={index} className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{subject}</span>
+                                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{hours}h {mins}m</span>
+                                </div>
+                                <div className="w-full h-2 bg-purple-200 dark:bg-purple-950 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-purple-500 dark:bg-purple-400 rounded-full"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{percentage}% do tempo total</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-6 mb-6 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                        <Brain className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-2" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma matéria ainda</p>
+                      </div>
+                    )}
+
+                    {/* Metas Ativas */}
+                    {activeGoals.length > 0 ? (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <Target className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          Metas em Progresso
+                        </p>
+                        <div className="space-y-3">
+                          {activeGoals.slice(0, 3).map((goal: any, index: number) => {
+                            const targetMinutes = (goal.targetHours || 0) * 60;
+                            const progress = targetMinutes > 0 ? Math.round((goal.currentMinutes / targetMinutes) * 100) : 0;
+                            return (
+                              <div key={index} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-white truncate flex-1">{goal.name}</span>
+                                  <span className="text-xs font-bold text-green-600 dark:text-green-400 ml-2">{progress}%</span>
+                                </div>
+                                <div className="w-full h-2 bg-green-200 dark:bg-green-950 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-green-500 dark:bg-green-400 rounded-full"
+                                    style={{ width: `${Math.min(progress, 100)}%` }}
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  {Math.floor(goal.currentMinutes / 60)}h de {goal.targetHours}h
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-6 bg-gray-50 dark:bg-slate-900 rounded-xl">
+                        <Target className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-2" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma meta ativa</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Card 15: Workout - 3x1 */}
+            {(() => {
+              const workoutPages = workspace.groups.flatMap(g =>
+                g.pages.filter(p => p.template === 'workout').map(page => ({
+                  ...page,
+                  groupId: g.id,
+                  groupName: g.name
+                }))
+              );
+
+              if (workoutPages.length === 0) return null;
+
+              // Agregar dados
+              const allSessions = workoutPages.flatMap(p => p.data?.sessions || []);
+              const allMeasurements = workoutPages.flatMap(p => p.data?.measurements || []);
+              const allRecords = workoutPages.flatMap(p => p.data?.personalRecords || []);
+              const allPlans = workoutPages.flatMap(p => p.data?.weeklyPlans || []);
+
+              const totalSessions = allSessions.length;
+              const completedSessions = allSessions.filter((s: any) => s.completed).length;
+
+              // Volume total (soma de peso x reps de todos os sets)
+              const totalVolume = allSessions.reduce((sum: number, session: any) => {
+                const sessionVolume = (session.exercises || []).reduce((exSum: number, ex: any) => {
+                  const exerciseVolume = (ex.sets || []).reduce((setSum: number, set: any) => {
+                    return setSum + ((set.weight || 0) * (set.reps || 0));
+                  }, 0);
+                  return exSum + exerciseVolume;
+                }, 0);
+                return sum + sessionVolume;
+              }, 0);
+
+              // Duração total
+              const totalDuration = allSessions.reduce((sum: number, s: any) => sum + (s.duration || 0), 0);
+              const totalHours = Math.floor(totalDuration / 60);
+
+              // Última medição
+              const sortedMeasurements = [...allMeasurements].sort((a: any, b: any) =>
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+              );
+              const latestMeasurement = sortedMeasurements[0];
+              const previousMeasurement = sortedMeasurements[1];
+
+              // Calcular mudanças
+              const weightChange = latestMeasurement && previousMeasurement
+                ? (latestMeasurement.weight || 0) - (previousMeasurement.weight || 0)
+                : 0;
+
+              const muscleMassChange = latestMeasurement && previousMeasurement
+                ? (latestMeasurement.muscleMass || 0) - (previousMeasurement.muscleMass || 0)
+                : 0;
+
+              // Grupos musculares mais treinados
+              const muscleGroupCount: { [key: string]: number } = {};
+              allSessions.forEach((session: any) => {
+                (session.exercises || []).forEach((ex: any) => {
+                  const group = ex.muscleGroup || 'outros';
+                  muscleGroupCount[group] = (muscleGroupCount[group] || 0) + 1;
+                });
+              });
+
+              const muscleGroupLabels: { [key: string]: string } = {
+                chest: 'Peito',
+                back: 'Costas',
+                shoulders: 'Ombros',
+                biceps: 'Bíceps',
+                triceps: 'Tríceps',
+                legs: 'Pernas',
+                glutes: 'Glúteos',
+                abs: 'Abdômen',
+                cardio: 'Cardio',
+                'full-body': 'Corpo todo'
+              };
+
+              const topMuscleGroups = Object.entries(muscleGroupCount)
+                .sort(([, a], [, b]) => (b as number) - (a as number))
+                .slice(0, 5);
+
+              // Recordes recentes (últimos 30 dias)
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              const recentRecords = allRecords
+                .filter((r: any) => new Date(r.date) > thirtyDaysAgo)
+                .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .slice(0, 3);
+
+              // Planos ativos
+              const activePlans = allPlans.filter((p: any) => p.active);
+
+              const firstWorkoutPage = workoutPages[0];
+              const workoutLink = `/workspace/${firstWorkoutPage.groupId}/${firstWorkoutPage.id}`;
+
+              // Se não tiver nenhuma sessão
+              if (totalSessions === 0) {
+                return (
+                  <div className="col-span-full bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Dumbbell className="w-5 h-5 text-gray-900 dark:text-white" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Treino</h3>
+                      </div>
+                      <span className="text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">{workoutPages.length}p</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Dumbbell className="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" />
+                      <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Nenhum treino registrado</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Comece sua jornada fitness</p>
+                      <Link href={workoutLink}>
+                        <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          Iniciar Treino
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Card 1: Estatísticas de Treino */}
+                  <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <Dumbbell className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Treinos</h3>
+                      </div>
+                      <span className="text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">{workoutPages.length}p</span>
+                    </div>
+
+                    {/* Volume total */}
+                    <div className="mb-6 p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl border border-red-200 dark:border-red-800">
+                      <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-1">Volume Total</p>
+                      <p className="text-3xl font-black text-red-700 dark:text-red-300">{(totalVolume / 1000).toFixed(1)}K</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">kg levantados</p>
+                    </div>
+
+                    {/* Métricas */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">Sessões</span>
+                        </div>
+                        <span className="text-xl font-black text-green-700 dark:text-green-300">{completedSessions}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">Tempo</span>
+                        </div>
+                        <span className="text-xl font-black text-blue-700 dark:text-blue-300">{totalHours}h</span>
+                      </div>
+                    </div>
+
+                    {/* Planos ativos */}
+                    {activePlans.length > 0 && (
+                      <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Target className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">Planos Ativos</span>
+                          </div>
+                          <span className="text-lg font-black text-purple-700 dark:text-purple-300">{activePlans.length}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 2: Progresso Físico */}
+                  <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Progresso</h3>
+                      </div>
+                    </div>
+
+                    {latestMeasurement ? (
+                      <>
+                        {/* Peso atual */}
+                        <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-green-800">
+                          <p className="text-xs text-green-600 dark:text-green-400 font-semibold mb-1">Peso Atual</p>
+                          <div className="flex items-end gap-2">
+                            <p className="text-3xl font-black text-green-700 dark:text-green-300">{latestMeasurement.weight?.toFixed(1) || '-'}</p>
+                            <span className="text-lg text-green-600 dark:text-green-400 font-semibold mb-1">kg</span>
+                          </div>
+                          {weightChange !== 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              {weightChange > 0 ? (
+                                <ArrowUpCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <ArrowDownCircle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                              )}
+                              <span className={`text-xs font-bold ${weightChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {Math.abs(weightChange).toFixed(1)}kg
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Composição corporal */}
+                        <div className="space-y-3">
+                          {latestMeasurement.bodyFat !== undefined && (
+                            <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">Gordura Corporal</span>
+                              <span className="text-xl font-black text-yellow-700 dark:text-yellow-300">{latestMeasurement.bodyFat}%</span>
+                            </div>
+                          )}
+
+                          {latestMeasurement.muscleMass !== undefined && (
+                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-semibold text-gray-900 dark:text-white">Massa Muscular</span>
+                                <span className="text-xl font-black text-blue-700 dark:text-blue-300">{latestMeasurement.muscleMass}kg</span>
+                              </div>
+                              {muscleMassChange !== 0 && (
+                                <div className="flex items-center gap-1">
+                                  {muscleMassChange > 0 ? (
+                                    <TrendingUp className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                  ) : (
+                                    <TrendingDown className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                  )}
+                                  <span className={`text-xs font-bold ${muscleMassChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {muscleMassChange > 0 ? '+' : ''}{muscleMassChange.toFixed(1)}kg
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Medidas */}
+                          {(latestMeasurement.chest || latestMeasurement.waist || latestMeasurement.biceps) && (
+                            <div className="pt-3 border-t border-gray-200 dark:border-slate-800">
+                              <p className="text-xs font-bold text-gray-900 dark:text-white mb-2">Medidas (cm)</p>
+                              <div className="grid grid-cols-3 gap-2 text-xs">
+                                {latestMeasurement.chest && (
+                                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-900 rounded">
+                                    <p className="text-gray-600 dark:text-gray-400">Peito</p>
+                                    <p className="font-bold text-gray-900 dark:text-white">{latestMeasurement.chest}</p>
+                                  </div>
+                                )}
+                                {latestMeasurement.waist && (
+                                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-900 rounded">
+                                    <p className="text-gray-600 dark:text-gray-400">Cintura</p>
+                                    <p className="font-bold text-gray-900 dark:text-white">{latestMeasurement.waist}</p>
+                                  </div>
+                                )}
+                                {latestMeasurement.biceps && (
+                                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-900 rounded">
+                                    <p className="text-gray-600 dark:text-gray-400">Bíceps</p>
+                                    <p className="font-bold text-gray-900 dark:text-white">{latestMeasurement.biceps}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <Activity className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-2" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma medição registrada</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 3: Grupos Musculares & Recordes */}
+                  <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Performance</h3>
+                      </div>
+                    </div>
+
+                    {/* Grupos musculares mais treinados */}
+                    {topMuscleGroups.length > 0 && (
+                      <div className="mb-6">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Grupos Mais Treinados</p>
+                        <div className="space-y-2">
+                          {topMuscleGroups.slice(0, 4).map(([group, count], index) => {
+                            const total = Object.values(muscleGroupCount).reduce((a: any, b: any) => a + b, 0);
+                            const percentage = Math.round(((count as number) / total) * 100);
+                            return (
+                              <div key={index}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{muscleGroupLabels[group] || group}</span>
+                                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{count}x</span>
+                                </div>
+                                <div className="w-full h-2 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-orange-500 dark:bg-orange-400 rounded-full"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recordes recentes */}
+                    {recentRecords.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          Recordes Recentes
+                        </p>
+                        <div className="space-y-2">
+                          {recentRecords.map((record: any, index: number) => {
+                            const daysAgo = Math.floor((new Date().getTime() - new Date(record.date).getTime()) / (1000 * 60 * 60 * 24));
+                            return (
+                              <div key={index} className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{record.exerciseName}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">{record.weight}kg × {record.reps} reps</p>
+                                  </div>
+                                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400 whitespace-nowrap ml-2">
+                                    {daysAgo === 0 ? 'Hoje' : `${daysAgo}d`}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total de recordes */}
+                    {allRecords.length > 0 && (
+                      <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">Total de PRs</span>
+                          <span className="text-xl font-black text-yellow-700 dark:text-yellow-300">{allRecords.length}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <Link href={workoutLink} className="mt-4 block">
+                      <button className="w-full py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-900 rounded-lg transition-colors flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-800">
+                        Ver Treinos
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Card 16: Nutrition - Full Width Horizontal */}
+            {(() => {
+              const nutritionPages = workspace.groups.flatMap(g =>
+                g.pages.filter(p => p.template === 'nutrition').map(page => ({
+                  ...page,
+                  groupId: g.id,
+                  groupName: g.name
+                }))
+              );
+
+              if (nutritionPages.length === 0) return null;
+
+              // Agregar dados de todas as páginas de nutrição
+              const today = new Date().toISOString().slice(0, 10);
+              const allMeals = nutritionPages.flatMap(p =>
+                (p.data?.currentDate === today ? p.data?.meals || [] : [])
+              );
+
+              // Pegar metas (usar a primeira página como referência)
+              const goals = nutritionPages[0]?.data?.goals || {
+                calories: 2000,
+                protein: 150,
+                carbs: 200,
+                fats: 65,
+                water: 2000
+              };
+
+              // Calcular totais consumidos hoje
+              const consumed = allMeals.reduce((acc: any, meal: any) => {
+                const mealTotals = (meal.foods || []).reduce((mAcc: any, food: any) => ({
+                  calories: mAcc.calories + (food.calories || 0),
+                  protein: mAcc.protein + (food.protein || 0),
+                  carbs: mAcc.carbs + (food.carbs || 0),
+                  fats: mAcc.fats + (food.fats || 0)
+                }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+                return {
+                  calories: acc.calories + mealTotals.calories,
+                  protein: acc.protein + mealTotals.protein,
+                  carbs: acc.carbs + mealTotals.carbs,
+                  fats: acc.fats + mealTotals.fats
+                };
+              }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+              // Água consumida hoje
+              const waterIntake = nutritionPages.flatMap(p =>
+                (p.data?.waterIntake || []).filter((w: any) => w.date === today)
+              );
+              const totalWater = waterIntake.reduce((sum: number, w: any) => sum + (w.amount || 0), 0);
+
+              // Percentuais
+              const caloriesPercent = Math.round((consumed.calories / goals.calories) * 100);
+              const proteinPercent = Math.round((consumed.protein / goals.protein) * 100);
+              const carbsPercent = Math.round((consumed.carbs / goals.carbs) * 100);
+              const fatsPercent = Math.round((consumed.fats / goals.fats) * 100);
+              const waterPercent = Math.round((totalWater / goals.water) * 100);
+
+              const firstNutritionPage = nutritionPages[0];
+              const nutritionLink = `/workspace/${firstNutritionPage.groupId}/${firstNutritionPage.id}`;
+
+              return (
+                <div className="col-span-full bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Apple className="w-5 h-5 text-lime-600 dark:text-lime-400" />
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Nutrição</h3>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 px-2 py-1 rounded">{nutritionPages.length}p</span>
+                      <Link href={nutritionLink}>
+                        <button className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1">
+                          Ver Nutrição
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Layout Horizontal */}
+                  <div className="grid grid-cols-5 gap-4">
+                    {/* Calorias - Principal */}
+                    <div className="bg-gradient-to-br from-lime-50 to-green-50 dark:from-lime-900/20 dark:to-green-900/20 rounded-xl p-4 border border-lime-200 dark:border-lime-800">
+                      <p className="text-xs text-lime-600 dark:text-lime-400 font-semibold mb-2">Calorias</p>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl font-black text-lime-700 dark:text-lime-300">
+                          {Math.round(consumed.calories)}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">/ {goals.calories}</span>
+                      </div>
+                      <div className="h-2 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            caloriesPercent > 100 ? 'bg-red-500' : 'bg-lime-500'
+                          }`}
+                          style={{ width: `${Math.min(caloriesPercent, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right font-bold">
+                        {caloriesPercent}%
+                      </p>
+                    </div>
+
+                    {/* Proteínas */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2">Proteínas</p>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl font-black text-blue-700 dark:text-blue-300">{Math.round(consumed.protein)}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">g</span>
+                      </div>
+                      <div className="h-2 bg-blue-200 dark:bg-blue-950 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(proteinPercent, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right font-bold">
+                        {proteinPercent}%
+                      </p>
+                    </div>
+
+                    {/* Carboidratos */}
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
+                      <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mb-2">Carboidratos</p>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl font-black text-amber-700 dark:text-amber-300">{Math.round(consumed.carbs)}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">g</span>
+                      </div>
+                      <div className="h-2 bg-amber-200 dark:bg-amber-950 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(carbsPercent, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right font-bold">
+                        {carbsPercent}%
+                      </p>
+                    </div>
+
+                    {/* Gorduras */}
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mb-2">Gorduras</p>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl font-black text-purple-700 dark:text-purple-300">{Math.round(consumed.fats)}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">g</span>
+                      </div>
+                      <div className="h-2 bg-purple-200 dark:bg-purple-950 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-purple-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(fatsPercent, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right font-bold">
+                        {fatsPercent}%
+                      </p>
+                    </div>
+
+                    {/* Água */}
+                    <div className="bg-cyan-50 dark:bg-cyan-900/20 rounded-xl p-4 border border-cyan-200 dark:border-cyan-800">
+                      <div className="flex items-center gap-1 mb-2">
+                        <Droplet className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                        <p className="text-xs text-cyan-600 dark:text-cyan-400 font-semibold">Água</p>
+                      </div>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl font-black text-cyan-700 dark:text-cyan-300">{totalWater}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">ml</span>
+                      </div>
+                      <div className="h-2 bg-cyan-200 dark:bg-cyan-950 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-cyan-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(waterPercent, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right font-bold">
+                        {waterPercent}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Card 17: Business Budget - Full Width 1x1 */}
+            {(() => {
+              const businessBudgetPages = workspace.groups.flatMap(g =>
+                g.pages.filter(p => p.template === 'business-budget').map(page => ({
+                  ...page,
+                  groupId: g.id,
+                  groupName: g.name
+                }))
+              );
+
+              if (businessBudgetPages.length === 0) return null;
+
+              // Agregar dados de todas as páginas de orçamento empresarial
+              const allExpenses = businessBudgetPages.flatMap(p => p.data?.expenses || []);
+              const allRevenues = businessBudgetPages.flatMap(p => p.data?.revenues || []);
+              const allGoals = businessBudgetPages.flatMap(p => p.data?.goals || []);
+              const allDepartmentBudgets = businessBudgetPages.flatMap(p => p.data?.departmentBudgets || []);
+
+              // Calcular métricas
+              const totalRevenue = allRevenues.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+              const totalExpenses = allExpenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+              const netProfit = totalRevenue - totalExpenses;
+              const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+              // Despesas mensais (burn rate)
+              const now = new Date();
+              const currentMonth = now.getMonth();
+              const currentYear = now.getFullYear();
+              const monthlyExpenses = allExpenses.filter((e: any) => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+              });
+              const burnRate = monthlyExpenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+
+              // Saldo inicial e runway
+              const initialBalance = businessBudgetPages[0]?.data?.initialBalance || 0;
+              const currentBalance = initialBalance + netProfit;
+              const runway = burnRate > 0 ? currentBalance / burnRate : 999;
+
+              // Orçamento por departamento
+              const totalAllocated = allDepartmentBudgets.reduce((sum: number, d: any) => sum + (d.allocated || 0), 0);
+              const totalSpent = allDepartmentBudgets.reduce((sum: number, d: any) => sum + (d.spent || 0), 0);
+              const budgetUtilization = totalAllocated > 0 ? (totalSpent / totalAllocated) * 100 : 0;
+
+              // Metas
+              const activeGoals = allGoals.filter((g: any) => g.status !== 'completed');
+              const completedGoals = allGoals.filter((g: any) => g.status === 'completed');
+              const criticalGoals = allGoals.filter((g: any) => g.priority === 'critical' && g.status !== 'completed');
+
+              const firstBusinessBudgetPage = businessBudgetPages[0];
+              const businessBudgetLink = `/workspace/${firstBusinessBudgetPage.groupId}/${firstBusinessBudgetPage.id}`;
+
+              return (
+                <div className="col-span-full bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Orçamento Empresarial</h3>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded">{businessBudgetPages.length}p</span>
+                      <Link href={businessBudgetLink}>
+                        <button className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1">
+                          Ver Orçamento
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Grid de Métricas Principais */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {/* Receita Total */}
+                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Receita Total</p>
+                      </div>
+                      <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
+                        R$ {(totalRevenue / 1000).toFixed(1)}k
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {allRevenues.length} fontes
+                      </p>
+                    </div>
+
+                    {/* Despesas Totais */}
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <p className="text-xs text-red-600 dark:text-red-400 font-semibold">Despesas</p>
+                      </div>
+                      <p className="text-2xl font-black text-red-700 dark:text-red-300">
+                        R$ {(totalExpenses / 1000).toFixed(1)}k
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {allExpenses.length} itens
+                      </p>
+                    </div>
+
+                    {/* Lucro Líquido */}
+                    <div className={`bg-gradient-to-br rounded-xl p-4 border ${
+                      netProfit >= 0
+                        ? 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800'
+                        : 'from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className={`w-4 h-4 ${netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`} />
+                        <p className={`text-xs font-semibold ${netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                          Lucro Líquido
+                        </p>
+                      </div>
+                      <p className={`text-2xl font-black ${netProfit >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-orange-700 dark:text-orange-300'}`}>
+                        R$ {(netProfit / 1000).toFixed(1)}k
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Margem: {profitMargin.toFixed(1)}%
+                      </p>
+                    </div>
+
+                    {/* Burn Rate */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Flame className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">Burn Rate</p>
+                      </div>
+                      <p className="text-2xl font-black text-purple-700 dark:text-purple-300">
+                        R$ {(burnRate / 1000).toFixed(1)}k
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        por mês
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Grid de Métricas Secundárias */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {/* Saldo Atual */}
+                    <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">Saldo Atual</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white">
+                        R$ {(currentBalance / 1000).toFixed(0)}k
+                      </p>
+                    </div>
+
+                    {/* Runway */}
+                    <div className={`rounded-lg p-4 border ${
+                      runway > 12
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        : runway > 6
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    }`}>
+                      <p className={`text-xs font-semibold mb-2 ${
+                        runway > 12 ? 'text-green-600 dark:text-green-400'
+                        : runway > 6 ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-red-600 dark:text-red-400'
+                      }`}>Runway</p>
+                      <p className={`text-xl font-black ${
+                        runway > 12 ? 'text-green-700 dark:text-green-300'
+                        : runway > 6 ? 'text-yellow-700 dark:text-yellow-300'
+                        : 'text-red-700 dark:text-red-300'
+                      }`}>
+                        {runway > 99 ? '99+' : runway.toFixed(0)} m
+                      </p>
+                    </div>
+
+                    {/* Orçamento Utilizado */}
+                    <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800">
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mb-2">Orçamento Usado</p>
+                      <p className="text-xl font-black text-indigo-700 dark:text-indigo-300">
+                        {budgetUtilization.toFixed(0)}%
+                      </p>
+                    </div>
+
+                    {/* Metas Ativas */}
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                      <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mb-2">Metas Ativas</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-xl font-black text-amber-700 dark:text-amber-300">
+                          {activeGoals.length}
+                        </p>
+                        {criticalGoals.length > 0 && (
+                          <span className="text-xs text-red-600 dark:text-red-400 font-bold">
+                            ({criticalGoals.length} críticas)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Metas Completas */}
+                    <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-4 border border-teal-200 dark:border-teal-800">
+                      <p className="text-xs text-teal-600 dark:text-teal-400 font-semibold mb-2">Metas Completas</p>
+                      <p className="text-xl font-black text-teal-700 dark:text-teal-300">
+                        {completedGoals.length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Cards 18-23: Outros templates */}
+            {['mindmap', 'flowchart', 'focus', 'budget', 'blank'].map(templateName => {
               const pages = workspace.groups.flatMap(g => g.pages.filter(p => p.template === templateName));
               if (pages.length === 0) return null;
 

@@ -3874,11 +3874,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.API\\Arc.API.csproj",
+      "projectUniqueName": "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj",
       "projectName": "Arc.API",
-      "projectPath": "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.API\\Arc.API.csproj",
+      "projectPath": "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj",
       "packagesPath": "C:\\Users\\conta\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.API\\obj\\",
+      "outputPath": "C:\\Reps\\Arc\\backend\\Arc.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3900,11 +3900,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.Application\\Arc.Application.csproj": {
-              "projectPath": "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.Application\\Arc.Application.csproj"
+            "C:\\Reps\\Arc\\backend\\Arc.Application\\Arc.Application.csproj": {
+              "projectPath": "C:\\Reps\\Arc\\backend\\Arc.Application\\Arc.Application.csproj"
             },
-            "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.Infrastructure\\Arc.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\conta\\OneDrive\\Documentos\\Reps\\Arc\\Arc\\backend\\Arc.Infrastructure\\Arc.Infrastructure.csproj"
+            "C:\\Reps\\Arc\\backend\\Arc.Infrastructure\\Arc.Infrastructure.csproj": {
+              "projectPath": "C:\\Reps\\Arc\\backend\\Arc.Infrastructure\\Arc.Infrastructure.csproj"
             }
           }
         }
