@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useWorkspaceStore } from '@/core/store/workspaceStore';
+import notificationsService from '@/core/services/notifications.service';
 
 export type Notification = {
   id: string;
@@ -17,6 +18,15 @@ export type Notification = {
 
 export function useNotifications() {
   const { workspace } = useWorkspaceStore();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Escutar mudanças no serviço de notificações
+  useEffect(() => {
+    const cleanup = notificationsService.onUpdate(() => {
+      setRefreshKey(k => k + 1);
+    });
+    return cleanup;
+  }, []);
 
   const notifications = useMemo((): Notification[] => {
     if (!workspace) return [];
@@ -242,7 +252,10 @@ export function useNotifications() {
     };
   }, [notifications]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Calcular notificações não lidas usando o serviço (com refreshKey para forçar recálculo)
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !notificationsService.isRead(n.id) && !notificationsService.isArchived(n.id)).length;
+  }, [notifications, refreshKey]);
 
   return {
     notifications,

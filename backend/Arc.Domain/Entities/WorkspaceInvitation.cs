@@ -14,6 +14,9 @@ public class WorkspaceInvitation
     public DateTime ExpiresAt { get; set; }
     public DateTime? RespondedAt { get; set; }
     public string? InvitationToken { get; set; }
+    public int? MaxUses { get; set; }  // Null = unlimited
+    public int CurrentUses { get; set; }
+    public bool IsActive { get; set; }
 
     // Navigation properties
     public Workspace? Workspace { get; set; }
@@ -25,6 +28,26 @@ public class WorkspaceInvitation
         CreatedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddDays(7);
         Status = InvitationStatus.Pending;
-        InvitationToken = Guid.NewGuid().ToString("N");
+        InvitationToken = GenerateToken();
+        CurrentUses = 0;
+        IsActive = true;
+    }
+
+    private static string GenerateToken()
+    {
+        // Generate a URL-safe token
+        return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace("+", "")
+            .Replace("/", "")
+            .Replace("=", "")
+            .Substring(0, 22);
+    }
+
+    public bool CanBeUsed()
+    {
+        if (!IsActive) return false;
+        if (DateTime.UtcNow > ExpiresAt) return false;
+        if (MaxUses.HasValue && CurrentUses >= MaxUses.Value) return false;
+        return true;
     }
 }

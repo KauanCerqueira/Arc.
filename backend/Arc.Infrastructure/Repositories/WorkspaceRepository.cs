@@ -30,20 +30,43 @@ public class WorkspaceRepository : IWorkspaceRepository
 
     public async Task<List<Workspace>> GetAllByUserIdAsync(Guid userId)
     {
-        return await _context.Workspaces
+        // Retorna workspaces onde o usuário é OWNER OU MEMBER
+        var ownedWorkspaces = _context.Workspaces
             .AsNoTracking()
-            .Where(w => w.UserId == userId && w.Ativo)
+            .Where(w => w.UserId == userId && w.Ativo);
+
+        var memberWorkspaces = _context.WorkspaceMembers
+            .AsNoTracking()
+            .Where(wm => wm.UserId == userId && wm.IsActive)
+            .Select(wm => wm.Workspace!)
+            .Where(w => w != null && w.Ativo);
+
+        var allWorkspaces = await ownedWorkspaces
+            .Union(memberWorkspaces)
             .OrderByDescending(w => w.AtualizadoEm)
             .ToListAsync();
+
+        return allWorkspaces;
     }
 
     public async Task<Workspace?> GetWithGroupsAndPagesAsync(Guid userId, Guid workspaceId)
     {
-        return await _context.Workspaces
+        // Verifica se o usuário é owner OU member do workspace
+        var workspace = await _context.Workspaces
             .AsNoTracking()
             .Include(w => w.Groups.OrderBy(g => g.Posicao))
                 .ThenInclude(g => g.Pages.OrderBy(p => p.Posicao))
-            .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId && w.Ativo);
+            .FirstOrDefaultAsync(w => w.Id == workspaceId && w.Ativo);
+
+        if (workspace == null)
+            return null;
+
+        // Verificar se o usuário tem acesso (é owner OU é member)
+        var isOwner = workspace.UserId == userId;
+        var isMember = await _context.WorkspaceMembers
+            .AnyAsync(wm => wm.WorkspaceId == workspaceId && wm.UserId == userId && wm.IsActive);
+
+        return (isOwner || isMember) ? workspace : null;
     }
 
     public async Task<Workspace> CreateAsync(Workspace workspace)

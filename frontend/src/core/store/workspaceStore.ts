@@ -84,6 +84,7 @@ const convertSimpleApiToLocal = (apiWorkspace: any): Workspace => {
     id: apiWorkspace.id,
     name: apiWorkspace.nome,
     ownerId: apiWorkspace.userId,
+    icon: apiWorkspace.icone,
     groups: [], // WorkspaceDto não inclui groups
     settings: {
       theme: apiWorkspace.settings.theme as 'light' | 'dark',
@@ -104,6 +105,7 @@ const convertApiToLocal = (apiWorkspace: any): Workspace => {
     id: apiWorkspace.id,
     name: apiWorkspace.nome,
     ownerId: apiWorkspace.userId,
+    icon: apiWorkspace.icone,
     groups: apiWorkspace.groups.map((g: any) => ({
       id: g.id,
       name: g.nome,

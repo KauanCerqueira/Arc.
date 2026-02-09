@@ -53,18 +53,40 @@ public class TeamService : ITeamService
         var members = await _memberRepository.GetByWorkspaceIdAsync(workspaceId);
         var invitations = await _invitationRepository.GetByWorkspaceIdAsync(workspaceId);
 
-        var memberDtos = members.Select(m => new WorkspaceMemberDto
+        // Criar lista de membros incluindo o owner
+        var memberDtos = new List<WorkspaceMemberDto>();
+
+        // Adicionar o owner primeiro
+        var owner = await _userRepository.GetByIdAsync(workspace.UserId);
+        if (owner != null)
+        {
+            memberDtos.Add(new WorkspaceMemberDto
+            {
+                Id = Guid.NewGuid(), // Owner não tem registro em workspace_members
+                UserId = owner.Id,
+                UserName = $"{owner.Nome} {owner.Sobrenome}".Trim(),
+                UserEmail = owner.Email,
+                UserIcon = owner.Icone,
+                Role = TeamRole.Owner,
+                JoinedAt = workspace.CriadoEm,
+                LastAccessAt = null,
+                IsActive = true
+            });
+        }
+
+        // Adicionar outros membros
+        memberDtos.AddRange(members.Select(m => new WorkspaceMemberDto
         {
             Id = m.Id,
             UserId = m.UserId,
-            UserName = $"{m.User?.Nome} {m.User?.Sobrenome}",
+            UserName = $"{m.User?.Nome} {m.User?.Sobrenome}".Trim(),
             UserEmail = m.User?.Email ?? "",
             UserIcon = m.User?.Icone,
             Role = m.Role,
             JoinedAt = m.JoinedAt,
             LastAccessAt = m.LastAccessAt,
             IsActive = m.IsActive
-        }).ToList();
+        }));
 
         var invitationDtos = invitations
             .Where(i => i.Status == InvitationStatus.Pending)
@@ -88,7 +110,7 @@ public class TeamService : ITeamService
             WorkspaceName = workspace.Nome,
             Type = workspace.Type,
             MaxMembers = workspace.MaxMembers,
-            CurrentMembers = memberDtos.Count + 1, // +1 pelo owner
+            CurrentMembers = memberDtos.Count, // Já inclui o owner
             Members = memberDtos,
             PendingInvitations = invitationDtos
         };
@@ -303,6 +325,13 @@ public class TeamService : ITeamService
         var workspace = await _workspaceRepository.GetByIdAsync(invitation.WorkspaceId);
         if (workspace == null)
             throw new Exception("Workspace não encontrado");
+
+        // Verificar se o usuário já é membro do workspace
+        var isOwner = workspace.UserId == userId;
+        var isMember = await _memberRepository.IsUserMemberAsync(workspace.Id, userId);
+
+        if (isOwner || isMember)
+            throw new Exception("Você já é membro deste workspace");
 
         // Verificar se não excede o limite
         var currentCount = await _memberRepository.GetMemberCountAsync(workspace.Id);

@@ -288,6 +288,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.ExpiresAt).HasColumnName("expires_at").IsRequired();
             entity.Property(e => e.RespondedAt).HasColumnName("responded_at");
             entity.Property(e => e.InvitationToken).HasColumnName("invitation_token").HasMaxLength(100);
+            entity.Property(e => e.MaxUses).HasColumnName("max_uses");
+            entity.Property(e => e.CurrentUses).HasColumnName("current_uses").IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").IsRequired();
 
             entity.HasOne(e => e.Workspace)
                 .WithMany(w => w.Invitations)
@@ -302,6 +305,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.WorkspaceId);
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.InvitationToken).IsUnique();
+            entity.HasIndex(e => e.IsActive);
         });
 
         modelBuilder.Entity<GroupPermission>(entity =>

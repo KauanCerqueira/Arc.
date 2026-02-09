@@ -13,6 +13,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
+using Arc.Application.Interfaces.Storage;
+using Arc.Infrastructure.Services.Storage;
+using Arc.Infrastructure.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== BANCO DE DADOS =====
@@ -41,6 +45,7 @@ builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+builder.Services.AddScoped<WorkspaceInviteService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IPageService, PageService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
@@ -97,8 +102,12 @@ builder.Services.AddScoped<INotesService, NotesService>();
 builder.Services.AddScoped<ITimelineService, TimelineService>();
 builder.Services.AddScoped<IWorkoutService, WorkoutService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
-builder.Services.AddScoped<IPersonalBudgetService, PersonalBudgetService>();
-builder.Services.AddScoped<IBusinessBudgetService, BusinessBudgetService>();
+
+// ===== MEDIATR & SIGNALR & STORAGE =====
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Arc.Application.EventHandlers.TaskCreatedHandler).Assembly));
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IRealTimeService, SignalRRealTimeService>();
+builder.Services.AddScoped<IStorageService, LocalStorageService>();
 
 // ===== AUTENTICAÇÃO JWT =====
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -127,7 +136,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ===== CONTROLLERS =====
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Permite conversão case-insensitive de strings para enums
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // ===== SWAGGER =====
 builder.Services.AddEndpointsApiExplorer();
@@ -224,10 +238,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("DynamicCorsPolicy", policy =>
     {
         policy
-            .SetIsOriginAllowed(_ => true) // ✅ Permite qualquer origem dinamicamente
+            .WithOrigins(
+                "http://localhost:3000", // Frontend Next.js
+                "https://localhost:3000",
+                "http://localhost:5000", // Backend
+                "https://localhost:5001"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials(); // se estiver usando cookies/token no header
+            .AllowCredentials();
     });
 });
 
@@ -257,12 +276,10 @@ app.UseCors("DynamicCorsPolicy");
 
 // Desabilitar HttpsRedirection em desenvolvimento para evitar problemas com CORS
 if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
 // Rate Limiting
 app.UseIpRateLimiting();
+
+app.UseStaticFiles(); // Servir arquivos de upload
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -275,5 +292,6 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 });
 
 app.MapControllers();
+app.MapHub<ArcHub>("/hubs/arc");
 
 app.Run();

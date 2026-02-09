@@ -25,10 +25,19 @@ public class WorkspaceInvitationRepository : IWorkspaceInvitationRepository
 
     public async Task<WorkspaceInvitation?> GetByTokenAsync(string token)
     {
-        return await _context.WorkspaceInvitations
-            .Include(i => i.Workspace)
-            .Include(i => i.InvitedByUser)
-            .FirstOrDefaultAsync(i => i.InvitationToken == token);
+        try
+        {
+            return await _context.WorkspaceInvitations
+                .Include(i => i.Workspace)
+                .Include(i => i.InvitedByUser)
+                .FirstOrDefaultAsync(i => i.InvitationToken == token);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // Fallback: buscar sem includes se houver erro de substring
+            return await _context.WorkspaceInvitations
+                .FirstOrDefaultAsync(i => i.InvitationToken == token);
+        }
     }
 
     public async Task<IEnumerable<WorkspaceInvitation>> GetByWorkspaceIdAsync(Guid workspaceId)

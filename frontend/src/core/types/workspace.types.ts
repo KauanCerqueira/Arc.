@@ -102,10 +102,44 @@ export type Workspace = {
   id: string;
   name: string;
   ownerId: string;
+  icon?: string;
   groups: Group[];
   settings: WorkspaceSettings;
   createdAt: Date;
   updatedAt: Date;
+};
+
+// ============================================
+// WORKSPACE MEMBER & ROLES
+// ============================================
+export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export type WorkspaceMember = {
+  userId: string;
+  workspaceId: string;
+  role: WorkspaceRole;
+  userName: string;
+  userEmail: string;
+  userIcon?: string;
+  joinedAt: Date;
+};
+
+// ============================================
+// WORKSPACE INVITE
+// ============================================
+export type WorkspaceInvite = {
+  id: string;
+  workspaceId: string;
+  workspaceName: string;
+  token: string;
+  role: WorkspaceRole;
+  createdById: string;
+  createdByName: string;
+  expiresAt?: Date;
+  maxUses?: number;
+  currentUses: number;
+  isActive: boolean;
+  createdAt: Date;
 };
 
 // ============================================
