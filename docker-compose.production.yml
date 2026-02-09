@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: arc-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arcdb}
+      POSTGRES_USER: ${POSTGRES_USER:-arcuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - arc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arcuser} -d ${POSTGRES_DB:-arcdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend .NET 8 API
+  backend:
+    image: ghcr.io/kauancerqueira/arc/backend:latest
+    container_name: arc-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database Connection
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-arcdb};Username=${POSTGRES_USER:-arcuser};Password=${POSTGRES_PASSWORD}"
+      
+      # JWT Configuration
+      Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
+      Jwt__Issuer: ${JWT_ISSUER:-Arc.API}
+      Jwt__Audience: ${JWT_AUDIENCE:-Arc.Client}
+      Jwt__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES:-43200}
+      Jwt__RefreshTokenExpirationDays: ${JWT_REFRESH_EXPIRATION_DAYS:-90}
+      
+      # CORS Configuration
+      CORS__AllowedOrigins__0: ${FRONTEND_URL:?FRONTEND_URL is required}
+      CORS__AllowedOrigins__1: ${FRONTEND_URL_2:-http://localhost:3000}
+      
+      # Application Settings
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: "http://+:8080"
+      
+      # Rate Limiting
+      RateLimit__General: ${RATE_LIMIT_GENERAL:-100}
+      RateLimit__Login: ${RATE_LIMIT_LOGIN:-5}
+      RateLimit__Register: ${RATE_LIMIT_REGISTER:-3}
+      
+    ports:
+      - "8080:8080"
+    networks:
+      - arc-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  arc-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
