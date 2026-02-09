@@ -6,28 +6,36 @@ type QA = { q: string; a: string }
 
 const faqs: QA[] = [
   {
-    q: "O arc. é grátis?",
-    a: "Sim. O plano Free inclui 1 workspace, 3 projetos e 100MB. Você pode evoluir para Individual ou Team quando quiser.",
+    q: "Por que tá de graça? Qual a pegadinha?",
+    a: "Nenhuma. Estamos em beta e queremos crescer junto com você. Primeiros 1.000 nunca pagam. Nem hoje, nem daqui 5 anos. É assim mesmo. Early adopters ganham tudo de graça pra sempre. Deal?",
   },
   {
-    q: "Como funciona o plano anual?",
-    a: "Você paga uma vez, economiza ~17% em relação ao mensal e mantém todos os recursos do plano escolhido durante 12 meses.",
+    q: "Vão pedir meu cartão escondido?",
+    a: "Não. Só email. Zero cartão. Zero cobrança surpresa. Zero joguinho de trial fake que renova sozinho. 100% grátis significa 100% grátis.",
   },
   {
-    q: "Posso usar com meu time?",
-    a: "Sim. O plano Team inclui até 10 membros por workspace, permissões granulares e recursos de colaboração.",
+    q: "Demora quanto pra começar? 1 semana tipo Notion?",
+    a: "2 minutos. Cronômetro na mão. Cadastro → escolhe template → já era, tá produzindo. Zero configuração. Enquanto você termina de ler isso, dá pra criar 3 workspaces.",
   },
   {
-    q: "Meus dados estão seguros?",
-    a: "Seguimos boas práticas de segurança, criptografia em trânsito e backups regulares. Você mantém controle total do que compartilha.",
+    q: "Meus dados tão seguros ou vão vazar?",
+    a: "Criptografia E2E, código open source (audite você mesmo), LGPD/GDPR compliant. Não vendemos seus dados. Nunca. Simples assim.",
   },
   {
-    q: "Consigo migrar de outras ferramentas?",
-    a: "Você pode organizar seus conteúdos importando tabelas/CSV e reconstruindo páginas com nossos templates prontos.",
+    q: "Sério que é mais rápido que Notion?",
+    a: "Muito. Notion demora 1 semana pra configurar direito (ou você gasta R$ 97 num template). Aqui: 2 minutos. Tudo pronto. Menos blá-blá, mais resultado. 3x mais velocidade segundo nossa galera.",
   },
   {
-    q: "Preciso configurar algo?",
-    a: "Quase nada. Escolha um template, crie um workspace e convide o time. O resto já vem pronto para uso.",
+    q: "E quando sair da beta? Vão me cobrar?",
+    a: "Se você entrar agora: NUNCA. Early adopters mantêm tudo grátis. Pra sempre. E pros que entrarem depois? R$ 15-20/mês (vs R$ 70+ da concorrência). Preço justo, sem exploração. Nosso foco é comunidade, não sugar seu dinheiro.",
+  },
+  {
+    q: "Por que não tem paywall escondendo features?",
+    a: "Porque a gente não é filho da p*ta. Simples assim. Tudo liberado. Se um dia cobrarmos, será pelo workspace, não por feature. Quer colaboração? Tem. Quer API? Tem. Sem frescura de 'upgrade pra desbloquear'.",
+  },
+  {
+    q: "Como eu participo da comunidade?",
+    a: "Discord ativo (tire dúvidas, compartilhe workflows), GitHub aberto (vote em features, reporte bugs), updates semanais públicos. Sua opinião molda o produto. Não é marketing: bugs consertados em 12h, features votadas pela galera entram no roadmap.",
   },
 ]
 

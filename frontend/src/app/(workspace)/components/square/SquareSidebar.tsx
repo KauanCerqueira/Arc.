@@ -40,6 +40,149 @@ import {
   Zap,
   Trash2,
   MoreVertical,
+  Target,
+  TrendingUp,
+  Award,
+  Heart,
+  Sparkles,
+  Flame,
+  Coffee,
+  Code,
+  Lightbulb,
+  Database,
+  BookOpen,
+  Aperture,
+  Palette,
+  Trophy,
+  Medal,
+  Flag,
+  TrendingDown,
+  BarChart,
+  PieChart,
+  LineChart,
+  Building2,
+  Store,
+  Warehouse,
+  Factory,
+  School,
+  GraduationCap,
+  Book,
+  Library,
+  Pencil,
+  Pen,
+  Feather,
+  Mic,
+  Music,
+  Video,
+  Image,
+  Film,
+  Radio,
+  Headphones,
+  Gamepad2,
+  Gift,
+  ShoppingCart,
+  ShoppingBag,
+  DollarSign,
+  Package,
+  Plane,
+  Car,
+  Bike,
+  Truck,
+  Ship,
+  Map,
+  MapPin,
+  Compass,
+  Globe,
+  Leaf,
+  Trees as Tree,
+  Flower2,
+  Sprout,
+  CloudRain,
+  CloudSnow,
+  Droplet,
+  Waves,
+  Wind,
+  Umbrella,
+  Bug,
+  Bird,
+  Cat,
+  Dog,
+  Fish,
+  Hammer,
+  Wrench,
+  Scissors,
+  Ruler,
+  PaintBucket,
+  Lock,
+  Unlock,
+  Key,
+  Shield as ShieldIcon,
+  ShieldCheck,
+  Bookmark,
+  Files,
+  FolderOpen,
+  Inbox,
+  Download,
+  Square,
+  Triangle,
+  Diamond,
+  Gem,
+  Box,
+  Hexagon,
+  Octagon,
+  Crown,
+  Terminal,
+  Cpu,
+  Server,
+  HardDrive,
+  Cloud,
+  CloudUpload,
+  CloudDownload,
+  Wifi,
+  Bluetooth,
+  Smartphone,
+  Tablet,
+  Laptop,
+  Monitor as MonitorIcon,
+  Keyboard,
+  Mouse,
+  Printer,
+  Camera,
+  GitBranch,
+  GitCommit,
+  Github,
+  Gitlab,
+  Figma,
+  Dribbble,
+  MessageSquare,
+  MessageCircle,
+  Send,
+  Phone,
+  Smile,
+  Laugh,
+  ThumbsUp,
+  Share2,
+  Twitter,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Pizza,
+  Cake,
+  Wine,
+  Beer,
+  Utensils,
+  Home,
+  Dumbbell,
+  HeartPulse,
+  Stethoscope,
+  Pill,
+  Sun,
+  Moon,
+  Archive,
+  Clock,
+  UsersRound,
+  Brain,
 } from "lucide-react";
 import { getPageIcon } from "@/app/(workspace)/components/sidebar/pageIcons";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -52,6 +195,170 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/DropdownMenu";
+
+// Mapeamento de ícones do workspace
+const WORKSPACE_ICON_MAP: Record<string, any> = {
+  'briefcase': Briefcase,
+  'target': Target,
+  'trophy': Trophy,
+  'medal': Medal,
+  'award': Award,
+  'flag': Flag,
+  'trending-up': TrendingUp,
+  'trending-down': TrendingDown,
+  'bar-chart': BarChart,
+  'pie-chart': PieChart,
+  'line-chart': LineChart,
+  'building': Building,
+  'building2': Building2,
+  'store': Store,
+  'warehouse': Warehouse,
+  'factory': Factory,
+  'code': Code,
+  'terminal': Terminal,
+  'cpu': Cpu,
+  'server': Server,
+  'database': Database,
+  'cloud': Cloud,
+  'cloud-upload': CloudUpload,
+  'cloud-download': CloudDownload,
+  'hard-drive': HardDrive,
+  'zap': Zap,
+  'wifi': Wifi,
+  'bluetooth': Bluetooth,
+  'smartphone': Smartphone,
+  'tablet': Tablet,
+  'laptop': Laptop,
+  'monitor': MonitorIcon,
+  'keyboard': Keyboard,
+  'mouse': Mouse,
+  'printer': Printer,
+  'git-branch': GitBranch,
+  'git-commit': GitCommit,
+  'github': Github,
+  'gitlab': Gitlab,
+  'palette': Palette,
+  'aperture': Aperture,
+  'layers': Layers,
+  'camera': Camera,
+  'video': Video,
+  'film': Film,
+  'image': Image,
+  'music': Music,
+  'mic': Mic,
+  'headphones': Headphones,
+  'radio': Radio,
+  'feather': Feather,
+  'pen': Pen,
+  'pencil': Pencil,
+  'paintbucket': PaintBucket,
+  'figma': Figma,
+  'dribbble': Dribbble,
+  'book': BookOpen,
+  'book-closed': Book,
+  'library': Library,
+  'graduation-cap': GraduationCap,
+  'school': School,
+  'lightbulb': Lightbulb,
+  'brain': Brain,
+  'heart': Heart,
+  'star': Star,
+  'sparkles': Sparkles,
+  'users': Users,
+  'user': Users,
+  'users-round': UsersRound,
+  'message-square': MessageSquare,
+  'message-circle': MessageCircle,
+  'mail': Mail,
+  'send': Send,
+  'phone': Phone,
+  'smile': Smile,
+  'laugh': Laugh,
+  'thumbs-up': ThumbsUp,
+  'share': Share2,
+  'twitter': Twitter,
+  'facebook': Facebook,
+  'instagram': Instagram,
+  'linkedin': Linkedin,
+  'youtube': Youtube,
+  'coffee': Coffee,
+  'pizza': Pizza,
+  'cake': Cake,
+  'wine': Wine,
+  'beer': Beer,
+  'utensils': Utensils,
+  'home': Home,
+  'gamepad': Gamepad2,
+  'gift': Gift,
+  'dumbbell': Dumbbell,
+  'heart-pulse': HeartPulse,
+  'stethoscope': Stethoscope,
+  'pill': Pill,
+  'shopping-cart': ShoppingCart,
+  'shopping-bag': ShoppingBag,
+  'credit-card': CreditCard,
+  'dollar': DollarSign,
+  'package': Package,
+  'plane': Plane,
+  'car': Car,
+  'bike': Bike,
+  'truck': Truck,
+  'ship': Ship,
+  'map': Map,
+  'map-pin': MapPin,
+  'compass': Compass,
+  'globe': Globe,
+  'leaf': Leaf,
+  'tree': Tree,
+  'flower': Flower2,
+  'sprout': Sprout,
+  'sun': Sun,
+  'moon': Moon,
+  'cloud-rain': CloudRain,
+  'cloud-snow': CloudSnow,
+  'droplet': Droplet,
+  'waves': Waves,
+  'wind': Wind,
+  'umbrella': Umbrella,
+  'bug': Bug,
+  'bird': Bird,
+  'cat': Cat,
+  'dog': Dog,
+  'fish': Fish,
+  'hammer': Hammer,
+  'wrench': Wrench,
+  'scissors': Scissors,
+  'ruler': Ruler,
+  'lock': Lock,
+  'unlock': Unlock,
+  'key': Key,
+  'shield': ShieldIcon,
+  'bell': Bell,
+  'clock': Clock,
+  'calendar': CalendarIcon,
+  'bookmark': Bookmark,
+  'tag': Tag,
+  'paperclip': Paperclip,
+  'archive': Archive,
+  'trash': Trash2,
+  'file': FileText,
+  'files': Files,
+  'folder': Folder,
+  'folder-open': FolderOpen,
+  'inbox': Inbox,
+  'download': Download,
+  'circle': Circle,
+  'square': Square,
+  'triangle': Triangle,
+  'diamond': Diamond,
+  'gem': Gem,
+  'box': Box,
+  'hexagon': Hexagon,
+  'octagon': Octagon,
+  'rocket': Rocket,
+  'flame': Flame,
+  'crown': Crown,
+};
 
 type SidebarPage = {
   id: string;
@@ -166,7 +473,7 @@ function SquarePageItem({
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const ok = window.confirm(`Excluir "${page.name}"?`);
+    const ok = window.confirm(`excluir "${page.name}"?`);
     if (ok) {
       await onDeletePage(groupId, page.id);
     }
@@ -193,7 +500,7 @@ function SquarePageItem({
             onMouseDown={(e) => e.stopPropagation()}
             onClick={handleFavorite}
             className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
-            title={page.favorite ? "Desfavoritar" : "Favoritar"}
+            title={page.favorite ? "desfavoritar." : "favoritar."}
           >
             <Star
               className={`w-3.5 h-3.5 ${
@@ -205,7 +512,7 @@ function SquarePageItem({
             onMouseDown={(e) => e.stopPropagation()}
             onClick={handleDelete}
             className="p-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30"
-            title="Excluir página"
+            title="excluir página."
           >
             <Trash2 className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           </button>
@@ -379,6 +686,9 @@ export default function SquareSidebar({
   }, [editingGroupId]);
   const totalPages = workspace?.groups.reduce((sum, g) => sum + g.pages.length, 0) || 0;
 
+  // Obter o ícone do workspace
+  const WorkspaceIcon = workspace?.icon ? WORKSPACE_ICON_MAP[workspace.icon] || Briefcase : Briefcase;
+
   return (
     <aside
       className={[
@@ -402,79 +712,92 @@ export default function SquareSidebar({
 
         {/* Brand + workspace switcher */}
         <div className="px-4 pt-1 pb-2">
-          <div className={["flex items-center", sidebarCollapsed ? "justify-center" : "justify-start"].join(" ") }>
+          <div className={["flex items-center gap-2", sidebarCollapsed ? "justify-center" : "justify-between"].join(" ") }>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 h-auto p-0 hover:bg-transparent min-w-0">
-                  <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-sm shadow flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                    SU
+                <button className="flex items-center gap-2 h-auto p-0 hover:opacity-70 transition-opacity min-w-0">
+                  <div className="w-8 h-8 rounded-lg border-2 border-gray-900 dark:border-white bg-gray-900 dark:bg-white flex items-center justify-center text-white dark:text-gray-900 flex-shrink-0">
+                    <WorkspaceIcon className="w-4 h-4" />
                   </div>
                   {!sidebarCollapsed && (
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="font-semibold text-gray-900 dark:text-white truncate max-w-[11rem]">
-                        {workspace?.name || "Workspace"}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-bold text-gray-900 dark:text-white truncate text-sm">
+                        {workspace?.name || "workspace"}
                       </span>
-                      <ChevronDown className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                     </div>
                   )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="start">
-                <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-                {workspaces.map(w => (
-                  <DropdownMenuItem key={w.id} onClick={() => switchWorkspace(w.id)}>
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-sm shadow flex items-center justify-center text-white text-xs font-semibold">
-                        {w.name.slice(0,2).toUpperCase()}
+                <DropdownMenuLabel className="text-xs text-gray-500 dark:text-gray-400">workspaces</DropdownMenuLabel>
+                {workspaces.map(w => {
+                  const WIcon = w.icon ? WORKSPACE_ICON_MAP[w.icon] || Briefcase : Briefcase;
+                  return (
+                    <DropdownMenuItem
+                      key={w.id}
+                      onClick={() => switchWorkspace(w.id)}
+                      className={w.id === workspace?.id ? "bg-gray-100 dark:bg-slate-800" : ""}
+                    >
+                      <div className="flex items-center gap-3 w-full">
+                        <div className={`w-7 h-7 rounded-lg border flex items-center justify-center ${
+                          w.id === workspace?.id
+                          ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                          : "border-gray-300 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400"
+                        }`}>
+                          <WIcon className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium flex-1">{w.name}</span>
                       </div>
-                      <span className="font-medium">{w.name}</span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                    </DropdownMenuItem>
+                  );
+                })}
                 <DropdownMenuSeparator />
                 {workspace && (
                   <Link href="/workspace/settings" onClick={onClose}>
                     <DropdownMenuItem>
                       <Settings className="w-4 h-4" />
-                      <span>Configurações</span>
+                      <span>configurações.</span>
                     </DropdownMenuItem>
                   </Link>
                 )}
                 <DropdownMenuSeparator />
                 <Link href="/workspace/create" onClick={onClose}>
                   <DropdownMenuItem>
-                    <Plus className="w-4 h-4" />
-                    <span>Criar workspace</span>
+                    <div className="w-7 h-7 rounded-lg border-2 border-gray-900 dark:border-white bg-gray-900 dark:bg-white flex items-center justify-center">
+                      <Plus className="w-4 h-4 text-white dark:text-gray-900" />
+                    </div>
+                    <span>criar workspace.</span>
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
 
             {/* Theme Toggle */}
-            <ThemeToggle />
+            {!sidebarCollapsed && <ThemeToggle />}
           </div>
 
           {/* Quick stats */}
           {!sidebarCollapsed && workspace && (
             <div className="mt-3 text-xs text-arc-muted flex items-center gap-3">
-              <span><strong>{workspace.groups.length}</strong> grupos</span>
+              <span><strong>{workspace.groups.length}</strong> grupos.</span>
               <span className="w-px h-4 bg-arc-border inline-block" />
-              <span><strong>{totalPages}</strong> páginas</span>
+              <span><strong>{totalPages}</strong> páginas.</span>
             </div>
           )}
 
           {/* Search (sem suggestions por enquanto) */}
-          <div className="mt-4 relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-            <input
-              type="search"
-              placeholder="Search anything"
-              className="pl-8 pr-10 text-xs h-8 w-full rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-slate-700"
-            />
-            {!sidebarCollapsed && (
+          {!sidebarCollapsed && (
+            <div className="mt-4 relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+              <input
+                type="search"
+                placeholder="buscar"
+                className="pl-8 pr-10 text-xs h-8 w-full rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-slate-700"
+              />
               <kbd className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded px-1 text-xs">/</kbd>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -492,10 +815,10 @@ export default function SquareSidebar({
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
               sidebarCollapsed ? "justify-center" : "",
             ].join(" ")}
-            title={sidebarCollapsed ? "Notificações" : ""}
+            title={sidebarCollapsed ? "notificações." : ""}
           >
             <Bell className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">Notificações</span>}
+            {!sidebarCollapsed && <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">notificações.</span>}
             {!sidebarCollapsed && unreadCount > 0 && (
               <span className="bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">{unreadCount}</span>
             )}
@@ -505,16 +828,16 @@ export default function SquareSidebar({
             href="/workspace"
             onClick={onClose}
             className={[
-              "flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
+              "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
               pathname === "/workspace"
-                ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm dark:shadow-[inset_0_-1px_0_rgba(255,255,255,0.04)]"
+                ? "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white"
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
               sidebarCollapsed ? "justify-center" : "",
             ].join(" ")}
-            title={sidebarCollapsed ? "InÃ­cio" : ""}
+            title={sidebarCollapsed ? "início" : ""}
           >
             <LayoutGrid className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Início</span>}
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">início</span>}
           </Link>
 
           <Link
@@ -527,10 +850,10 @@ export default function SquareSidebar({
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
               sidebarCollapsed ? "justify-center" : "",
             ].join(" ")}
-            title={sidebarCollapsed ? "ConfiguraÃ§Ãµes" : ""}
+            title={sidebarCollapsed ? "configurações." : ""}
           >
             <Settings className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Configurações</span>}
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">configurações.</span>}
           </Link>
 
           <Link
@@ -543,10 +866,10 @@ export default function SquareSidebar({
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50",
               sidebarCollapsed ? "justify-center" : "",
             ].join(" ")}
-            title={sidebarCollapsed ? "Integrações" : ""}
+            title={sidebarCollapsed ? "integrações." : ""}
           >
             <Zap className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Integrações</span>}
+            {!sidebarCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">integrações.</span>}
           </Link>
         </div>
 
@@ -559,7 +882,7 @@ export default function SquareSidebar({
                 className="flex items-center gap-2 px-2 py-1.5 mb-1 w-full text-left"
               >
                 <Star className="w-4 h-4 text-gray-900 dark:text-gray-100 fill-current" />
-                <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Favoritos</span>
+                <span className="text-xs font-bold text-gray-900 dark:text-white">favoritos.</span>
                 <div className="flex-1 h-px bg-gray-200 dark:bg-slate-800"></div>
                 <ChevronDown className={["w-3 h-3 transition-transform", favoritesExpanded ? "rotate-0" : "-rotate-90"].join(" ")} />
               </button>
@@ -594,12 +917,12 @@ export default function SquareSidebar({
         <div className="mt-4">
           <div className="flex items-center justify-between px-2 mb-1">
             {!sidebarCollapsed && (
-              <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Grupos</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">grupos.</span>
             )}
             <button
               onClick={() => onAddGroup && onAddGroup()}
               className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800"
-              title="Adicionar grupo"
+              title="adicionar grupo."
             >
               <Plus className="w-4 h-4 text-gray-500" />
             </button>
@@ -642,19 +965,19 @@ export default function SquareSidebar({
                             className="block px-2 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-slate-800 rounded"
                             onClick={onClose}
                           >
-                            Gerenciar grupo
+                            gerenciar grupo.
                           </Link>
                           <button
                             className="w-full text-left px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                             onClick={async () => {
-                              const ok = window.confirm('Deseja excluir este grupo?');
+                              const ok = window.confirm('deseja excluir este grupo?');
                               if (ok) {
                                 const fn = useWorkspaceStore.getState().deleteGroup;
                                 if (fn) await fn(group.id);
                               }
                             }}
                           >
-                            Excluir grupo
+                            excluir grupo.
                           </button>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -684,7 +1007,7 @@ export default function SquareSidebar({
                       onClick={() => onAddPage && onAddPage(group.id)}
                       className="mt-1 mb-2 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Nova página
+                      <Plus className="w-3.5 h-3.5" /> nova página.
                     </button>
                   </div>
                 )}

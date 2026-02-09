@@ -1,10 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/shared/components/ui/Button"
-import { Badge } from "@/shared/components/ui/Badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Check,
   ExternalLink,
@@ -21,7 +17,12 @@ import {
   RefreshCw,
   Shield,
   AlertCircle,
-  Workflow
+  Workflow,
+  Loader2,
+  Sparkles,
+  Globe,
+  Link as LinkIcon,
+  Activity
 } from "lucide-react"
 import GoogleIntegration from "./components/GoogleIntegration"
 import GitHubIntegration from "./components/GitHubIntegration"
@@ -108,238 +109,304 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Integrações & Automações</h1>
-        <p className="text-muted-foreground">
-          Conecte o Arc com suas ferramentas favoritas e automatize seu fluxo de trabalho
-        </p>
-      </div>
+    <div className="min-h-screen bg-white dark:bg-slate-950">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
 
-      {/* Main Tabs */}
-      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "integrations" | "automations")} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="integrations" className="gap-2">
-            <Zap className="w-4 h-4" />
-            Integrações
-          </TabsTrigger>
-          <TabsTrigger value="automations" className="gap-2">
-            <Workflow className="w-4 h-4" />
-            Automações
-          </TabsTrigger>
-        </TabsList>
-
-        {/* TAB: Integrações */}
-        <TabsContent value="integrations" className="mt-6">
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Disponíveis</p>
-                <p className="text-2xl font-bold">{availableIntegrations.length}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
+        {/* HERO SECTION */}
+        <div className="mb-12 lg:mb-16">
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="inline-flex px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full">
+                conectividade
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-6">
+              Conecte tudo.<br />Automatize tudo.
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+              Integre suas ferramentas favoritas e crie automações poderosas para otimizar seu fluxo de trabalho.
+            </p>
+          </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Em breve</p>
-                <p className="text-2xl font-bold">{comingSoonCount}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
+          {/* Quick Info Pills */}
+          <div className="flex flex-wrap gap-3 mb-8">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm font-bold">{availableIntegrations.length} Disponíveis</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{integrations.length}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                <Settings className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
+            <div className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 dark:border-slate-800 rounded-full">
+              <Workflow className="w-3.5 h-3.5 text-gray-900 dark:text-white" />
+              <span className="text-sm font-bold text-gray-900 dark:text-white">{automationStats?.totalAutomations || 0} Automações</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 dark:border-slate-800 rounded-full">
+              <Activity className="w-3.5 h-3.5 text-gray-900 dark:text-white" />
+              <span className="text-sm font-bold text-gray-900 dark:text-white">{automationStats?.enabledAutomations || 0} Ativas</span>
+            </div>
+          </div>
 
-      {/* Filters */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="productivity">Produtividade</TabsTrigger>
-          <TabsTrigger value="development">Desenvolvimento</TabsTrigger>
-          <TabsTrigger value="communication">Comunicação</TabsTrigger>
-          <TabsTrigger value="automation">Automação</TabsTrigger>
-        </TabsList>
-      </Tabs>
+          {/* Tabs Navigation */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide border-b-2 border-gray-200 dark:border-slate-800">
+            {[
+              { id: "integrations", name: "Integrações", icon: Zap },
+              { id: "automations", name: "Automações", icon: Workflow },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = mainTab === tab.id;
 
-      {/* Integration Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredIntegrations.map((integration) => {
-          const IntegrationComponent = integration.component
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setMainTab(tab.id as any)}
+                  className={`
+                    flex items-center gap-2 px-5 py-3 rounded-t-lg font-bold text-sm whitespace-nowrap transition-all duration-200 border-b-2
+                    ${isActive
+                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-transparent hover:bg-gray-100 dark:hover:bg-slate-900'
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={2.5} />
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-          return (
-            <Card key={integration.id} className="relative overflow-hidden">
-              {integration.status === "coming-soon" && (
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary">Em breve</Badge>
-                </div>
-              )}
-
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-1.5 flex-shrink-0">
-                    <img
-                      src={integration.icon}
-                      alt={integration.name}
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-xl mb-1">{integration.name}</CardTitle>
-                    <CardDescription>{integration.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                {/* Features */}
-                <div className="mb-4">
-                  <p className="text-sm font-medium mb-2">Recursos:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {integration.features.map((feature) => (
-                      <Badge key={feature} variant="outline" className="text-xs">
-                        {feature}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Integration Component or Coming Soon */}
-                {integration.status === "available" && IntegrationComponent ? (
-                  <IntegrationComponent />
-                ) : (
-                  <div className="flex items-center justify-center py-8 text-center">
-                    <div>
-                      <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Esta integração estará disponível em breve
-                      </p>
+        {/* MAIN CONTENT */}
+        <div className="pb-12">{mainTab === "integrations" ? (
+            /* TAB: INTEGRAÇÕES */
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">{/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center">
+                      <Check className="w-7 h-7 text-green-600 dark:text-green-400" strokeWidth={2.5} />
                     </div>
                   </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {availableIntegrations.length}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Disponíveis</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                      <Sparkles className="w-7 h-7 text-blue-600 dark:text-blue-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {comingSoonCount}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Em breve</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center">
+                      <LinkIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {integrations.length}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total</p>
+                </div>
+              </div>
+
+              {/* Category Filters */}
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {[
+                  { id: "all", name: "Todas" },
+                  { id: "productivity", name: "Produtividade" },
+                  { id: "development", name: "Desenvolvimento" },
+                  { id: "communication", name: "Comunicação" },
+                  { id: "automation", name: "Automação" },
+                ].map((category) => {
+                  const isActive = activeTab === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setActiveTab(category.id)}
+                      className={`
+                        px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-200
+                        ${isActive
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'bg-white dark:bg-slate-950 text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-slate-800 hover:border-gray-400 dark:hover:border-slate-600'
+                        }
+                      `}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Integration Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredIntegrations.map((integration) => {
+                  const IntegrationComponent = integration.component
+
+                  return (
+                    <div key={integration.id} className="relative bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-gray-400 dark:hover:border-slate-600 transition-all duration-200">
+                      {integration.status === "coming-soon" && (
+                        <div className="absolute top-6 right-6 z-10">
+                          <span className="inline-flex px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-full">
+                            Em breve
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Header */}
+                      <div className="p-8 border-b-2 border-gray-200 dark:border-slate-800">
+                        <div className="flex items-start gap-4">
+                          <div className="w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-slate-900 p-2 flex-shrink-0 border-2 border-gray-200 dark:border-slate-800">
+                            <img
+                              src={integration.icon}
+                              alt={integration.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">
+                              {integration.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {integration.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-8">
+                        {/* Features */}
+                        <div className="mb-6">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-wide">Recursos</p>
+                          <div className="flex flex-wrap gap-2">
+                            {integration.features.map((feature) => (
+                              <span
+                                key={feature}
+                                className="px-3 py-1.5 text-xs font-bold bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-800 rounded-lg"
+                              >
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Integration Component or Coming Soon */}
+                        {integration.status === "available" && IntegrationComponent ? (
+                          <IntegrationComponent />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-xl">
+                            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-900 flex items-center justify-center mb-4">
+                              <Sparkles className="w-8 h-8 text-gray-400 dark:text-gray-600" strokeWidth={2.5} />
+                            </div>
+                            <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                              Disponível em breve
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+
+            /* TAB: AUTOMAÇÕES */
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Stats de Automações */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center">
+                      <Workflow className="w-7 h-7 text-purple-600 dark:text-purple-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {automationStats?.totalAutomations || 0}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center">
+                      <Check className="w-7 h-7 text-green-600 dark:text-green-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {automationStats?.enabledAutomations || 0}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ativas</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                      <RefreshCw className="w-7 h-7 text-blue-600 dark:text-blue-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {automationStats?.runningAutomations || 0}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Em execução</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-950 border-2 border-gray-200 dark:border-slate-800 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                      <Zap className="w-7 h-7 text-orange-600 dark:text-orange-400" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {automationStats?.totalItemsProcessed || 0}
+                  </div>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Processados</p>
+                </div>
+              </div>
+
+              {/* Automation Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {loadingAvailable ? (
+                  <div className="col-span-2 flex flex-col items-center justify-center py-20">
+                    <div className="relative w-16 h-16 mb-6">
+                      <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-slate-700 opacity-20"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-gray-900 dark:border-white border-t-transparent animate-spin"></div>
+                    </div>
+                    <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Carregando automações</p>
+                  </div>
+                ) : automationsWithConfig.length === 0 ? (
+                  <div className="col-span-2 flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-950 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-2xl">
+                    <div className="w-24 h-24 rounded-2xl bg-gray-100 dark:bg-slate-900 flex items-center justify-center mb-6">
+                      <Workflow className="w-12 h-12 text-gray-400 dark:text-gray-600" strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-3">
+                      Nenhuma automação disponível
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      As automações estarão disponíveis em breve.
+                    </p>
+                  </div>
+                ) : (
+                  automationsWithConfig.map(({ definition, automation }) => (
+                    <AutomationCard
+                      key={definition.type}
+                      definition={definition}
+                      automation={automation}
+                      onConfigure={handleConfigureAutomation}
+                    />
+                  ))
                 )}
-              </CardContent>
-            </Card>
-          )
-        })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-        </TabsContent>
-
-        {/* TAB: Automações */}
-        <TabsContent value="automations" className="mt-6">
-          {/* Stats de Automações */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-2xl font-bold">{automationStats?.totalAutomations || 0}</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                    <Workflow className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ativas</p>
-                    <p className="text-2xl font-bold">{automationStats?.enabledAutomations || 0}</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Em execução</p>
-                    <p className="text-2xl font-bold">{automationStats?.runningAutomations || 0}</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <RefreshCw className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Itens processados</p>
-                    <p className="text-2xl font-bold">{automationStats?.totalItemsProcessed || 0}</p>
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Automation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {loadingAvailable ? (
-              <div className="col-span-2 text-center py-12">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                <p className="text-muted-foreground">Carregando automações...</p>
-              </div>
-            ) : automationsWithConfig.length === 0 ? (
-              <div className="col-span-2 text-center py-12">
-                <Workflow className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">Nenhuma automação disponível</h3>
-                <p className="text-sm text-muted-foreground">
-                  As automações estarão disponíveis em breve.
-                </p>
-              </div>
-            ) : (
-              automationsWithConfig.map(({ definition, automation }) => (
-                <AutomationCard
-                  key={definition.type}
-                  definition={definition}
-                  automation={automation}
-                  onConfigure={handleConfigureAutomation}
-                />
-              ))
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
 
       {/* Modal de Configuração */}
       {selectedAutomation && (

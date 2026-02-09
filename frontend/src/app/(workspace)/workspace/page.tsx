@@ -50,6 +50,7 @@ import {
   ReferenceLine,
   ReferenceArea
 } from 'recharts';
+import { DashboardGrid } from '@/features/dashboard/components/DashboardGrid';
 import { useWorkspaceStore } from '@/core/store/workspaceStore';
 
 // ===== TEMPLATE CONFIGS =====
@@ -146,20 +147,61 @@ const aggregatePageStats = (page: any) => {
   };
 };
 
+// Frases estáticas motivacionais
+const STATIC_PHRASES = [
+  'Planeje com clareza.',
+  'Priorize o essencial.',
+  'Avance com confiança.',
+  'Entregue com foco.',
+  'Organize sem fricção.',
+  'Foco no que importa.'
+];
+
 export default function WorkspaceDashboard() {
-  const { workspace, isLoading, initializeWorkspace } = useWorkspaceStore();
+  const { workspace, isLoading, initializeWorkspace, loadWorkspace } = useWorkspaceStore();
   const [timeOfDay, setTimeOfDay] = useState("");
   const [activeCardView, setActiveCardView] = useState(0);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isPhraseFading, setIsPhraseFading] = useState(false);
+  const [searchParams] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search);
+    }
+    return new URLSearchParams();
+  });
 
   useEffect(() => {
+    const workspaceIdFromUrl = searchParams.get('id');
+
     if (!workspace && !isLoading) {
-      initializeWorkspace();
+      if (workspaceIdFromUrl) {
+        // Se tem ID na URL, carregar esse workspace específico
+        console.log('📍 Loading workspace from URL:', workspaceIdFromUrl);
+        loadWorkspace(workspaceIdFromUrl);
+        // Salvar no localStorage para próximas vezes
+        localStorage.setItem('lastWorkspaceId', workspaceIdFromUrl);
+      } else {
+        // Senão, inicializar normalmente
+        initializeWorkspace();
+      }
     }
+
     const hour = new Date().getHours();
     if (hour < 12) setTimeOfDay("Bom dia");
     else if (hour < 18) setTimeOfDay("Boa tarde");
     else setTimeOfDay("Boa noite");
-  }, [workspace, isLoading, initializeWorkspace]);
+  }, [workspace, isLoading, initializeWorkspace, loadWorkspace, searchParams]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsPhraseFading(true);
+      setTimeout(() => {
+        setPhraseIndex((prev) => prev + 1);
+        setIsPhraseFading(false);
+      }, 300);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const stats = useMemo(() => {
     if (!workspace) return null;
@@ -252,6 +294,38 @@ export default function WorkspaceDashboard() {
       allPagesStats
     };
   }, [workspace]);
+
+  // Gera frases dinâmicas baseadas nas estatísticas
+  const heroPhrases = useMemo(() => {
+    const phrases: string[] = [];
+
+    if (stats) {
+      // Frases baseadas em contexto
+      if (stats.totalPending > 0) {
+        phrases.push(`${stats.totalPending} tarefa${stats.totalPending > 1 ? 's' : ''} aguardando você.`);
+      }
+      if (stats.totalUrgent > 0) {
+        phrases.push(`${stats.totalUrgent} item${stats.totalUrgent > 1 ? 's urgentes' : ' urgente'} hoje.`);
+      }
+      if (stats.totalCompleted > 0) {
+        phrases.push(`${stats.totalCompleted} tarefa${stats.totalCompleted > 1 ? 's concluídas' : ' concluída'}!`);
+      }
+      if (stats.upcomingEvents.length > 0) {
+        phrases.push(`${stats.upcomingEvents.length} evento${stats.upcomingEvents.length > 1 ? 's' : ''} próximo${stats.upcomingEvents.length > 1 ? 's' : ''}.`);
+      }
+      if (stats.overallProgress > 70) {
+        phrases.push('Excelente progresso hoje!');
+      }
+      if (stats.totalPages > 0) {
+        phrases.push(`${stats.totalPages} página${stats.totalPages > 1 ? 's' : ''} ativa${stats.totalPages > 1 ? 's' : ''}.`);
+      }
+    }
+
+    // Adiciona frases estáticas no mix
+    phrases.push(...STATIC_PHRASES);
+
+    return phrases;
+  }, [stats]);
 
   const dailySummary = useMemo(() => {
     if (!stats) {
@@ -758,15 +832,27 @@ export default function WorkspaceDashboard() {
             {/* Left: Hero Text */}
             <div className="lg:col-span-3 flex flex-col">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-3">
-                {timeOfDay} — {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {timeOfDay} - {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
-              <h1 className="text-6xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.9] text-gray-900 dark:text-white mb-10">
-                organize.
-                <br />
-                foque.
-                <br />
-                <span className="text-gray-500 dark:text-gray-400">entregue.</span>
-              </h1>
+              <div className="mb-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-flex px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full">
+                    painel diário
+                  </span>
+                </div>
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-gray-900 dark:text-white h-[200px] sm:h-[240px] lg:h-[280px] flex items-center">
+                  <span
+                    className={`inline-block transition-opacity duration-300 ${
+                      isPhraseFading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    {heroPhrases[phraseIndex % heroPhrases.length]}
+                  </span>
+                </h1>
+                <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+                  Organize seu dia sem fricção: visão, ritmo e entrega em um só lugar.
+                </p>
+              </div>
 
               {/* Quick Stats Pills */}
               <div className="flex flex-wrap gap-3 mb-8">
@@ -862,6 +948,11 @@ export default function WorkspaceDashboard() {
             </div>
 
           </div>
+        </div>
+
+        {/* MODULAR DASHBOARD */}
+        <div className="mb-12 lg:mb-16">
+          <DashboardGrid />
         </div>
 
         {/* METRICS INLINE */}

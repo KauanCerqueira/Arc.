@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { useNotifications } from "@/core/hooks/useNotifications"
 import { useAuthStore } from "@/core/store/authStore"
+import notificationsService from "@/core/services/notifications.service"
 import {
   Check,
   Filter,
@@ -26,16 +27,9 @@ import {
   Mail,
   MailOpen,
   Settings,
-  Pin,
-  Share2
+  Pin
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/Button"
-
-type LocalReadMap = Record<string, boolean>
-type LocalPinMap = Record<string, boolean>
-type LocalArchiveMap = Record<string, boolean>
-type Reaction = { likes: number; dislikes: number; self: "like" | "dislike" | null }
-type Comment = { id: string; author: string; avatar?: string; text: string; at: Date }
 
 interface NotificationFilter {
   type: "all" | "unread" | "read" | "pinned" | "archived"
@@ -75,29 +69,34 @@ export default function NotificationsInboxPage() {
     dateRange: "all"
   })
 
-  // Local state management
-  const [localRead, setLocalRead] = useState<LocalReadMap>({})
-  const [localPinned, setLocalPinned] = useState<LocalPinMap>({})
-  const [localArchived, setLocalArchived] = useState<LocalArchiveMap>({})
+  // State management
   const [deleted, setDeleted] = useState<Set<string>>(new Set())
-
-  // Comments and reactions
   const [commentDraft, setCommentDraft] = useState<string>("")
-  const [comments, setComments] = useState<Record<string, Comment[]>>({})
-  const [reactions, setReactions] = useState<Record<string, Reaction>>({})
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  // Helper functions usando o service
+  const isRead = (id: string) => notificationsService.isRead(id)
+  const isPinned = (id: string) => notificationsService.isPinned(id)
+  const isArchived = (id: string) => notificationsService.isArchived(id)
+  const getReactions = (id: string) => notificationsService.getReactions(id)
+  const getComments = (id: string) => notificationsService.getComments(id)
 
   // Filter notifications
   const filtered = notifications
     .filter((n) => !deleted.has(n.id))
     .filter((n) => {
-      // Archive filter
-      if (filter.type === "archived" && !localArchived[n.id]) return false
-      if (filter.type !== "archived" && localArchived[n.id]) return false
+      const archived = isArchived(n.id)
+      const read = isRead(n.id)
+      const pinned = isPinned(n.id)
 
-      // Type filter
-      if (filter.type === "unread" && isRead(n.id)) return false
-      if (filter.type === "read" && !isRead(n.id)) return false
-      if (filter.type === "pinned" && !localPinned[n.id]) return false
+      // Archive filter
+      if (filter.type === "archived" && !archived) return false
+      if (filter.type !== "archived" && archived) return false
+
+      // Type filter - "all" mostra todas (lidas e não lidas)
+      if (filter.type === "unread" && read) return false
+      if (filter.type === "read" && !read) return false
+      if (filter.type === "pinned" && !pinned) return false
 
       // Priority filter
       if (filter.priority !== "all" && n.priority !== filter.priority) return false
@@ -125,8 +124,8 @@ export default function NotificationsInboxPage() {
     })
     .sort((a, b) => {
       // Pinned first
-      if (localPinned[a.id] && !localPinned[b.id]) return -1
-      if (!localPinned[a.id] && localPinned[b.id]) return 1
+      if (isPinned(a.id) && !isPinned(b.id)) return -1
+      if (!isPinned(a.id) && isPinned(b.id)) return 1
 
       // Then by timestamp
       return b.timestamp.getTime() - a.timestamp.getTime()
@@ -138,106 +137,72 @@ export default function NotificationsInboxPage() {
     if (!selectedId && filtered.length > 0) setSelectedId(filtered[0].id)
   }, [filtered.length, selectedId])
 
-  // State management functions
-  const isRead = (id: string) => localRead[id] || false
-  const isPinned = (id: string) => localPinned[id] || false
-  const isArchived = (id: string) => localArchived[id] || false
+  // Action functions usando o service
+  const markAsRead = (id: string) => {
+    notificationsService.markAsRead(id)
+    setRefreshKey(k => k + 1)
+  }
 
-  const markAsRead = (id: string) => setLocalRead((m) => ({ ...m, [id]: true }))
-  const markAsUnread = (id: string) => setLocalRead((m) => ({ ...m, [id]: false }))
-  const togglePin = (id: string) => setLocalPinned((m) => ({ ...m, [id]: !m[id] }))
-  const toggleArchive = (id: string) => setLocalArchived((m) => ({ ...m, [id]: !m[id] }))
-  const deleteNotification = (id: string) => setDeleted((s) => new Set([...s, id]))
+  const markAsUnread = (id: string) => {
+    notificationsService.markAsUnread(id)
+    setRefreshKey(k => k + 1)
+  }
+
+  const togglePin = (id: string) => {
+    notificationsService.togglePin(id)
+    setRefreshKey(k => k + 1)
+  }
+
+  const toggleArchive = (id: string) => {
+    notificationsService.toggleArchive(id)
+    setRefreshKey(k => k + 1)
+  }
+
+  const deleteNotification = (id: string) => {
+    setDeleted((s) => new Set([...s, id]))
+  }
 
   const markAllAsRead = () => {
-    const newRead: LocalReadMap = {}
-    filtered.forEach(n => { newRead[n.id] = true })
-    setLocalRead(prev => ({ ...prev, ...newRead }))
+    notificationsService.bulkMarkAsRead(filtered.map(n => n.id))
+    setRefreshKey(k => k + 1)
   }
 
-  // Priority colors and icons
+  // Priority colors and icons (cores mais sutis para combinar com o site)
   const priorityConfig: Record<string, { color: string; bgColor: string; label: string }> = {
-    critical: { color: "text-red-600 dark:text-red-400", bgColor: "bg-red-100 dark:bg-red-900/30", label: "Crítico" },
-    high: { color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/30", label: "Alto" },
-    medium: { color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/30", label: "Médio" },
-    low: { color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-100 dark:bg-gray-800", label: "Baixo" },
+    critical: { color: "text-red-700 dark:text-red-300", bgColor: "bg-red-50 dark:bg-red-950/20", label: "Crítico" },
+    high: { color: "text-orange-700 dark:text-orange-300", bgColor: "bg-orange-50 dark:bg-orange-950/20", label: "Alto" },
+    medium: { color: "text-blue-700 dark:text-blue-300", bgColor: "bg-blue-50 dark:bg-blue-950/20", label: "Médio" },
+    low: { color: "text-gray-700 dark:text-gray-300", bgColor: "bg-gray-50 dark:bg-gray-900/20", label: "Baixo" },
   }
 
-  // Reactions
+  // Reactions usando o service
   const toggleReaction = (id: string, kind: "like" | "dislike") => {
-    setReactions((r) => {
-      const current: Reaction = r[id] || { likes: 0, dislikes: 0, self: null }
-      let { likes, dislikes, self } = current
-
-      if (kind === "like") {
-        if (self === "like") {
-          likes -= 1
-          self = null
-        } else {
-          likes += 1
-          if (self === "dislike") dislikes -= 1
-          self = "like"
-        }
-      } else {
-        if (self === "dislike") {
-          dislikes -= 1
-          self = null
-        } else {
-          dislikes += 1
-          if (self === "like") likes -= 1
-          self = "dislike"
-        }
-      }
-
-      return { ...r, [id]: { likes: Math.max(0, likes), dislikes: Math.max(0, dislikes), self } }
-    })
+    notificationsService.toggleReaction(id, kind)
+    setRefreshKey(k => k + 1)
   }
 
-  // Comments
+  // Comments usando o service
   const submitComment = (id: string) => {
     const text = commentDraft.trim()
     if (!text) return
 
-    const newComment: Comment = {
-      id: `${Date.now()}`,
+    notificationsService.addComment(id, {
       author: `${user?.nome || "Você"} ${user?.sobrenome || ""}`.trim(),
       avatar: user?.icone || undefined,
       text,
-      at: new Date()
-    }
+    })
 
-    setComments((c) => ({ ...c, [id]: [...(c[id] || []), newComment] }))
     setCommentDraft("")
+    setRefreshKey(k => k + 1)
   }
 
   const deleteComment = (notifId: string, commentId: string) => {
-    setComments((c) => ({
-      ...c,
-      [notifId]: (c[notifId] || []).filter(com => com.id !== commentId)
-    }))
-  }
-
-  // Share notification
-  const shareNotification = (notification: any) => {
-    const text = `${notification.title}\n\n${notification.message}\n\nVer mais: ${window.location.origin}/workspace/group/${notification.groupId}/page/${notification.pageId}`
-
-    if (navigator.share) {
-      navigator.share({
-        title: notification.title,
-        text: notification.message,
-        url: `${window.location.origin}/workspace/group/${notification.groupId}/page/${notification.pageId}`
-      }).catch(() => {
-        navigator.clipboard.writeText(text)
-        alert("Link copiado para a área de transferência!")
-      })
-    } else {
-      navigator.clipboard.writeText(text)
-      alert("Notificação copiada para a área de transferência!")
-    }
+    notificationsService.deleteComment(notifId, commentId)
+    setRefreshKey(k => k + 1)
   }
 
   // Stats
-  const unreadCount = filtered.filter(n => !isRead(n.id)).length
+  const unreadCount = notifications.filter(n => !isRead(n.id) && !deleted.has(n.id) && !isArchived(n.id)).length
   const pinnedCount = filtered.filter(n => isPinned(n.id)).length
   const archivedCount = notifications.filter(n => isArchived(n.id) && !deleted.has(n.id)).length
 
@@ -248,11 +213,18 @@ export default function NotificationsInboxPage() {
         {/* Header */}
         <div className="sticky top-0 z-10 bg-arc-primary px-4 py-3 border-b border-arc">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-arc flex items-center gap-2">
+            <h2 className="text-lg font-extrabold text-arc flex items-center gap-2">
               <Bell className="w-5 h-5" />
               Notificações
             </h2>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilter({ ...filter, type: filter.type === "archived" ? "all" : "archived" })}
+                className={`p-2 rounded-md transition-colors ${filter.type === "archived" ? 'bg-arc-secondary' : 'hover:bg-arc-secondary'}`}
+                title={filter.type === "archived" ? "Ver todas" : "Ver arquivadas"}
+              >
+                <Archive className="w-4 h-4" />
+              </button>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
@@ -279,7 +251,7 @@ export default function NotificationsInboxPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar notificações..."
-              className="pl-9 pr-3 h-9 w-full rounded-lg border border-arc bg-arc-secondary text-sm outline-none focus:ring-2 focus:ring-purple-500"
+              className="pl-9 pr-3 h-9 w-full rounded-lg border border-arc bg-arc-secondary text-sm outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
             />
           </div>
 
@@ -287,11 +259,11 @@ export default function NotificationsInboxPage() {
           {showFilters && (
             <div className="mt-3 p-3 bg-arc-secondary rounded-lg space-y-3 border border-arc">
               <div>
-                <label className="text-xs font-medium text-arc-muted mb-1 block">Tipo</label>
+                <label className="text-xs font-bold text-arc-muted mb-1 block uppercase tracking-wide">Tipo</label>
                 <select
                   value={filter.type}
                   onChange={(e) => setFilter({ ...filter, type: e.target.value as any })}
-                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
                 >
                   <option value="all">Todas</option>
                   <option value="unread">Não lidas</option>
@@ -302,11 +274,11 @@ export default function NotificationsInboxPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-arc-muted mb-1 block">Prioridade</label>
+                <label className="text-xs font-bold text-arc-muted mb-1 block uppercase tracking-wide">Prioridade</label>
                 <select
                   value={filter.priority}
                   onChange={(e) => setFilter({ ...filter, priority: e.target.value as any })}
-                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
                 >
                   <option value="all">Todas</option>
                   <option value="critical">Crítico</option>
@@ -317,11 +289,11 @@ export default function NotificationsInboxPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-arc-muted mb-1 block">Período</label>
+                <label className="text-xs font-bold text-arc-muted mb-1 block uppercase tracking-wide">Período</label>
                 <select
                   value={filter.dateRange}
                   onChange={(e) => setFilter({ ...filter, dateRange: e.target.value as any })}
-                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-2 py-1.5 text-sm rounded-md border border-arc bg-arc-primary outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
                 >
                   <option value="all">Todo período</option>
                   <option value="today">Hoje</option>
@@ -371,7 +343,7 @@ export default function NotificationsInboxPage() {
                     className={[
                       "w-full text-left px-3 py-3 rounded-lg border transition-all",
                       selectedId === n.id
-                        ? "bg-arc-secondary border-purple-500 shadow-sm"
+                        ? "bg-arc-secondary border-gray-900 dark:border-white shadow-sm"
                         : "border-arc hover:bg-arc-secondary hover:shadow-sm",
                       !read && "font-semibold"
                     ].join(" ")}
@@ -383,7 +355,7 @@ export default function NotificationsInboxPage() {
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <span className={`text-sm truncate ${!read ? 'font-semibold' : 'font-medium'} text-arc`}>
+                          <span className={`text-sm truncate ${!read ? 'font-extrabold' : 'font-bold'} text-arc`}>
                             {n.title}
                           </span>
                           <span className="text-xs text-arc-muted whitespace-nowrap flex-shrink-0">
@@ -398,7 +370,7 @@ export default function NotificationsInboxPage() {
                             {config.label}
                           </span>
                           {pinned && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-300 flex items-center gap-1">
                               <Pin className="w-3 h-3" />
                               Fixada
                             </span>
@@ -440,7 +412,7 @@ export default function NotificationsInboxPage() {
                     {formatDate(selected.timestamp)}
                   </span>
                 </div>
-                <h1 className="text-2xl font-bold text-arc mb-1">{selected.title}</h1>
+                <h1 className="text-2xl font-extrabold text-arc mb-1">{selected.title}</h1>
                 <p className="text-sm text-arc-muted flex items-center gap-1">
                   <User className="w-3.5 h-3.5" />
                   {selected.pageName}
@@ -454,14 +426,6 @@ export default function NotificationsInboxPage() {
                   title={isPinned(selected.id) ? "Desafixar" : "Fixar"}
                 >
                   <Pin className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => shareNotification(selected)}
-                  className="p-2 rounded-lg border border-arc hover:bg-arc-secondary transition-colors"
-                  title="Compartilhar"
-                >
-                  <Share2 className="w-4 h-4" />
                 </button>
 
                 <button
@@ -512,26 +476,26 @@ export default function NotificationsInboxPage() {
             <div className="flex items-center gap-3 pt-4 border-t border-arc">
               <button
                 className={`inline-flex items-center gap-2 text-sm rounded-lg px-3 py-2 border transition-colors ${
-                  reactions[selected.id]?.self === 'like'
-                    ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-400'
+                  getReactions(selected.id).userReaction === 'like'
+                    ? 'bg-green-50 dark:bg-green-950/20 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300'
                     : 'border-arc hover:bg-arc-secondary'
                 }`}
                 onClick={() => toggleReaction(selected.id, 'like')}
               >
                 <ThumbsUp className="w-4 h-4" />
-                <span className="font-medium">{reactions[selected.id]?.likes ?? 0}</span>
+                <span className="font-medium">{getReactions(selected.id).likes}</span>
               </button>
 
               <button
                 className={`inline-flex items-center gap-2 text-sm rounded-lg px-3 py-2 border transition-colors ${
-                  reactions[selected.id]?.self === 'dislike'
-                    ? 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-400'
+                  getReactions(selected.id).userReaction === 'dislike'
+                    ? 'bg-red-50 dark:bg-red-950/20 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300'
                     : 'border-arc hover:bg-arc-secondary'
                 }`}
                 onClick={() => toggleReaction(selected.id, 'dislike')}
               >
                 <ThumbsDown className="w-4 h-4" />
-                <span className="font-medium">{reactions[selected.id]?.dislikes ?? 0}</span>
+                <span className="font-medium">{getReactions(selected.id).dislikes}</span>
               </button>
 
               <Link
@@ -545,14 +509,14 @@ export default function NotificationsInboxPage() {
 
             {/* Comentários */}
             <div className="mt-8 pt-6 border-t border-arc space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-arc">
+              <div className="flex items-center gap-2 text-sm font-extrabold text-arc">
                 <MessageCircle className="w-5 h-5" />
-                Comentários ({(comments[selected.id] || []).length})
+                Comentários ({getComments(selected.id).length})
               </div>
 
               {/* Lista de comentários */}
               <div className="space-y-4">
-                {(comments[selected.id] || []).map((c) => (
+                {getComments(selected.id).map((c) => (
                   <div key={c.id} className="flex items-start gap-3 p-3 bg-arc-secondary rounded-lg border border-arc">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                       {c.avatar ? (
@@ -564,11 +528,11 @@ export default function NotificationsInboxPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-sm font-medium text-arc">{c.author}</span>
+                        <span className="text-sm font-bold text-arc">{c.author}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-arc-muted flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {timeAgo(c.at)}
+                            {timeAgo(new Date(c.timestamp))}
                           </span>
                           <button
                             onClick={() => deleteComment(selected.id, c.id)}
@@ -584,7 +548,7 @@ export default function NotificationsInboxPage() {
                   </div>
                 ))}
 
-                {(comments[selected.id] || []).length === 0 && (
+                {getComments(selected.id).length === 0 && (
                   <div className="text-center py-6 text-sm text-arc-muted">
                     Nenhum comentário ainda. Seja o primeiro a comentar!
                   </div>
@@ -593,7 +557,7 @@ export default function NotificationsInboxPage() {
 
               {/* Caixa de novo comentário */}
               <div className="bg-arc-secondary border border-arc rounded-lg p-4">
-                <label className="text-sm font-medium text-arc mb-2 block">
+                <label className="text-sm font-bold text-arc mb-2 block">
                   Adicionar comentário
                 </label>
                 <textarea

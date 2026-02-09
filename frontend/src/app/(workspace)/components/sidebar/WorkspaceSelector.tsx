@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronDown, Plus, Check, Briefcase, Sparkles } from "lucide-react"
+import { ChevronDown, Plus, Check, Briefcase } from "lucide-react"
 
 interface WorkspaceSelectorProps {
   currentWorkspace: any
@@ -39,10 +39,10 @@ export function WorkspaceSelector({
       <div className="workspace-selector px-2 pb-2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="w-full h-10 flex items-center justify-center rounded-lg bg-gray-800 dark:bg-slate-800 text-gray-300 hover:bg-gray-700 dark:hover:bg-slate-700 transition-colors duration-200"
+          className="w-full h-10 flex items-center justify-center rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-80 transition-opacity duration-200 border-2 border-gray-900 dark:border-white font-black text-xs"
           title={currentWorkspace?.name || "Workspace"}
         >
-          <Briefcase className="w-4 h-4" />
+          {currentWorkspace?.name?.slice(0,2).toUpperCase() || "W"}
         </button>
 
         {showMenu && (
@@ -50,8 +50,8 @@ export function WorkspaceSelector({
             <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
             <div className="absolute left-full ml-2 top-0 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
               <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-800">
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Workspaces
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  workspaces.
                 </p>
               </div>
 
@@ -69,16 +69,16 @@ export function WorkspaceSelector({
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50"
                     }`}
                   >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-semibold text-xs ${
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs border-2 ${
                       workspace.id === currentWorkspace?.id
-                        ? "bg-gray-700 dark:bg-slate-700 text-white"
-                        : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400"
+                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
+                        : "bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-slate-700"
                     }`}>
-                      {workspace.name?.charAt(0).toUpperCase() || "W"}
+                      {workspace.name?.slice(0,2).toUpperCase() || "W"}
                     </div>
                     <span className="flex-1 truncate font-medium">{workspace.name}</span>
                     {workspace.id === currentWorkspace?.id && (
-                      <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-900 dark:bg-white"></div>
                     )}
                   </button>
                 ))}
@@ -92,10 +92,10 @@ export function WorkspaceSelector({
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors font-medium"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-gray-700 dark:bg-slate-700 flex items-center justify-center">
-                    <Plus className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 rounded-lg bg-gray-900 dark:bg-white border-2 border-gray-900 dark:border-white flex items-center justify-center">
+                    <Plus className="w-4 h-4 text-white dark:text-gray-900" />
                   </div>
-                  <span>Novo Workspace</span>
+                  <span>criar workspace.</span>
                 </button>
               </div>
             </div>
@@ -111,12 +111,12 @@ export function WorkspaceSelector({
         onClick={() => setShowMenu(!showMenu)}
         className="w-full bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg p-2.5 flex items-center gap-2.5 transition-colors duration-200 border border-gray-200 dark:border-slate-700"
       >
-        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-          <Briefcase className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        <div className="w-8 h-8 rounded-lg bg-gray-900 dark:bg-white border-2 border-gray-900 dark:border-white flex items-center justify-center flex-shrink-0 text-white dark:text-gray-900 font-black text-xs">
+          {currentWorkspace?.name?.charAt(0).toUpperCase() || "W"}
         </div>
         <div className="flex-1 text-left min-w-0">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-            {currentWorkspace?.name || "Meu Workspace"}
+          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            {currentWorkspace?.name || "workspace"}
           </p>
         </div>
         <ChevronDown
@@ -131,8 +131,8 @@ export function WorkspaceSelector({
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
           <div className="absolute left-3 right-3 top-full mt-1 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-gray-200 dark:border-slate-800 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-800">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Meus Workspaces
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                workspaces.
               </p>
             </div>
 
@@ -150,16 +150,16 @@ export function WorkspaceSelector({
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50"
                   }`}
                 >
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-semibold text-xs ${
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs border-2 ${
                     workspace.id === currentWorkspace?.id
-                      ? "bg-gray-700 dark:bg-slate-700 text-white"
-                      : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400"
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
+                      : "bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-slate-700"
                   }`}>
-                    {workspace.name?.charAt(0).toUpperCase() || "W"}
+                    {workspace.name?.slice(0,2).toUpperCase() || "W"}
                   </div>
                   <span className="flex-1 truncate font-medium">{workspace.name}</span>
                   {workspace.id === currentWorkspace?.id && (
-                    <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-900 dark:bg-white"></div>
                   )}
                 </button>
               ))}
@@ -173,10 +173,10 @@ export function WorkspaceSelector({
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors font-medium"
               >
-                <div className="w-7 h-7 rounded-lg bg-gray-700 dark:bg-slate-700 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-white" />
+                <div className="w-7 h-7 rounded-lg bg-gray-900 dark:bg-white border-2 border-gray-900 dark:border-white flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-white dark:text-gray-900" />
                 </div>
-                <span>Criar Novo Workspace</span>
+                <span>criar workspace.</span>
               </button>
             </div>
           </div>

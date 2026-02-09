@@ -1,9 +1,10 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { Bell } from "lucide-react"
 import { useNotifications } from "@/core/hooks/useNotifications"
+import notificationsService from "@/core/services/notifications.service"
 
 interface NotificationsPanelProps {
   showNotifications: boolean
@@ -14,7 +15,23 @@ export default function NotificationsPanel({
   showNotifications,
   setShowNotifications,
 }: NotificationsPanelProps) {
-  const { notifications, unreadCount, hasCritical } = useNotifications()
+  const { notifications, hasCritical } = useNotifications()
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  // Escutar mudanças no serviço de notificações
+  useEffect(() => {
+    const cleanup = notificationsService.onUpdate(() => {
+      setRefreshKey(k => k + 1)
+    })
+    return cleanup
+  }, [])
+
+  // Calcular notificações não lidas usando o serviço (com refreshKey para forçar recálculo)
+  const unreadNotifications = useMemo(() => {
+    return notifications.filter(n => !notificationsService.isRead(n.id) && !notificationsService.isArchived(n.id))
+  }, [notifications, refreshKey])
+
+  const unreadCount = unreadNotifications.length
   const isSmallBadge = unreadCount > 0 && unreadCount < 10
 
   const [notifDragOffset, setNotifDragOffset] = useState(0)
@@ -72,10 +89,14 @@ export default function NotificationsPanel({
               <h3 className="font-bold text-gray-900 dark:text-gray-100">
                 Notificações {unreadCount > 0 && `(${unreadCount})`}
               </h3>
-              {notifications.length > 0 && (
-                <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                  Marcar todas como lidas
-                </button>
+              {unreadCount > 0 && (
+                <Link
+                  href="/notifications"
+                  onClick={() => setShowNotifications(false)}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Ver todas
+                </Link>
               )}
             </div>
 
@@ -93,7 +114,7 @@ export default function NotificationsPanel({
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 dark:divide-slate-800">
-                  {notifications.slice(0, 20).map((notification) => (
+                  {unreadNotifications.slice(0, 20).map((notification) => (
                     <Link
                       key={notification.id}
                       href={`/workspace/group/${notification.groupId}/page/${notification.pageId}`}
@@ -138,11 +159,15 @@ export default function NotificationsPanel({
             </div>
 
             {/* Footer */}
-            {notifications.length > 20 && (
+            {notifications.length > 0 && (
               <div className="p-3 border-t border-gray-200 dark:border-slate-800 text-center">
-                <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                  Ver todas as notificações ({notifications.length})
-                </button>
+                <Link
+                  href="/notifications"
+                  onClick={() => setShowNotifications(false)}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Ver todas as notificações {notifications.length > 20 && `(${notifications.length})`}
+                </Link>
               </div>
             )}
           </div>
