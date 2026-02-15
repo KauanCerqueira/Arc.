@@ -41,6 +41,9 @@ const nextConfig = {
     },
   },
 
+  // Turbopack config (required in Next.js 16 when webpack config is present)
+  turbopack: {},
+
   // Modularize imports for better tree-shaking
   modularizeImports: {
     'lucide-react': {
