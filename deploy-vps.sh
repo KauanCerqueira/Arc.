@@ -102,7 +102,7 @@ fi
 print_step "Baixando arquivos de configuração do GitHub..."
 
 # URL do repositório
-REPO_URL="https://raw.githubusercontent.com/KauanCerqueira/Arc/main"
+REPO_URL="https://raw.githubusercontent.com/KauanCerqueira/Arc./main"
 
 # Baixar docker-compose
 curl -fsSL "$REPO_URL/docker-compose.production.yml" -o $COMPOSE_FILE || {

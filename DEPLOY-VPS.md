@@ -21,7 +21,7 @@ ssh root@209.50.228.235
 
 ```bash
 # Baixar o script
-curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc/main/deploy-vps.sh -o deploy-vps.sh
+curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc./main/deploy-vps.sh -o deploy-vps.sh
 
 # Dar permissão de execução
 chmod +x deploy-vps.sh
@@ -70,10 +70,10 @@ cd /root/arc-app
 
 ```bash
 # Docker Compose
-curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc/main/docker-compose.production.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc./main/docker-compose.production.yml -o docker-compose.yml
 
 # Variáveis de ambiente
-curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc/main/.env.production -o .env
+curl -fsSL https://raw.githubusercontent.com/KauanCerqueira/Arc./main/.env.production -o .env
 ```
 
 ### 4. Configurar variáveis de ambiente
