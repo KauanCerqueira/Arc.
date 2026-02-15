@@ -400,3 +400,174 @@ html {
 .dark .text-gray-900 { color: var(--arc-white) !important; }
 .dark .border-slate-600 { border-color: var(--color-border) !important; }
 .dark .border-gray-200 { border-color: var(--color-border) !important; }
+
+/* ============================================
+   LANDING PAGE — Designflo-inspired Utilities
+   ============================================ */
+
+/* Technical Grid Background */
+.technical-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  opacity: 0.35;
+  mask-image: linear-gradient(to bottom, transparent 5%, black 40%, black 70%, transparent 95%);
+}
+
+/* Vertical structure lines */
+.structure-lines {
+  max-width: 1400px;
+}
+.structure-lines > div {
+  background-color: var(--color-border);
+  opacity: 0.3;
+}
+
+/* Scroll-reveal animation */
+@keyframes revealUp {
+  0% { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.reveal {
+  animation: revealUp 0.7s ease-out both;
+}
+.reveal-d1 { animation-delay: 0.1s; }
+.reveal-d2 { animation-delay: 0.2s; }
+.reveal-d3 { animation-delay: 0.3s; }
+.reveal-d4 { animation-delay: 0.4s; }
+.reveal-d5 { animation-delay: 0.5s; }
+
+/* Marquee infinite scroll */
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  gap: 3rem;
+  width: max-content;
+  animation: marqueeScroll 35s linear infinite;
+}
+
+/* Spotlight card hover effect */
+.spotlight-grid {
+  --mouse-x: -1000px;
+  --mouse-y: -1000px;
+}
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(110, 98, 229, 0.06), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+}
+.spotlight-grid:hover .spotlight-card::after {
+  opacity: 1;
+}
+
+/* Shiny CTA button with rotating border */
+@property --cta-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.shiny-cta {
+  --cta-angle: 0deg;
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 1rem 2.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--bg-primary);
+  background:
+    linear-gradient(var(--color-text), var(--color-text)) padding-box,
+    conic-gradient(from var(--cta-angle), transparent 0%, rgba(110, 98, 229, 0.4) 10%, var(--arc-violet) 20%, rgba(110, 98, 229, 0.4) 30%, transparent 40%) border-box;
+  border: 1px solid transparent;
+  cursor: pointer;
+  isolation: isolate;
+  animation: ctaSpin 3s linear infinite;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+@keyframes ctaSpin { to { --cta-angle: 360deg; } }
+.shiny-cta:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 24px rgba(110, 98, 229, 0.3);
+}
+
+/* Noise texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 100;
+  mix-blend-mode: multiply;
+}
+.dark body::before {
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+}
+
+/* Wall / 3D infinite scroll */
+.wall-container {
+  perspective: 2000px;
+  transform-style: preserve-3d;
+}
+.wall-grid {
+  transform: rotateY(-16deg) rotateX(8deg) rotateZ(-1deg) scale(1.05);
+  transform-style: preserve-3d;
+}
+@keyframes wallScrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@keyframes wallScrollDown {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+.wall-col-up { animation: wallScrollUp 45s linear infinite; }
+.wall-col-down { animation: wallScrollDown 45s linear infinite; }
+
+.wall-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.wall-card:hover {
+  border-color: var(--arc-violet);
+  transform: translateZ(16px);
+  box-shadow: var(--shadow-strong);
+}
+
+/* Pipeline connecting line shimmer */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+.pipeline-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Magnetic button (JS-powered, CSS fallback) */
+.magnetic-btn {
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Status dot pulse */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.status-pulse {
+  animation: statusPulse 2s ease-in-out infinite;
+}

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj": {}
+    "C:\\Reps\\Arc\\backend\\Arc.Api\\Arc.Api.csproj": {}
   },
   "projects": {
-    "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj": {
+    "C:\\Reps\\Arc\\backend\\Arc.Api\\Arc.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj",
-        "projectName": "Arc.API",
-        "projectPath": "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj",
+        "projectUniqueName": "C:\\Reps\\Arc\\backend\\Arc.Api\\Arc.Api.csproj",
+        "projectName": "Arc.Api",
+        "projectPath": "C:\\Reps\\Arc\\backend\\Arc.Api\\Arc.Api.csproj",
         "packagesPath": "C:\\Users\\conta\\.nuget\\packages\\",
-        "outputPath": "C:\\Reps\\Arc\\backend\\Arc.API\\obj\\",
+        "outputPath": "C:\\Reps\\Arc\\backend\\Arc.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -108,7 +108,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -208,7 +208,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -280,7 +280,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -374,7 +374,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

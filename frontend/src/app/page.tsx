@@ -1,1511 +1,916 @@
-﻿import Link from "next/link"
+﻿"use client"
+
+import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useRef } from "react"
 import {
   ArrowRight,
   Zap,
   Shield,
   Users,
   Folder,
-  FileText,
-  Star,
-  Activity,
-  TrendingUp,
-  CheckCircle,
-  Sparkles,
   Target,
   Code2,
-  Palette,
   BarChart3,
   Rocket,
-  Database,
-  Workflow,
   GitBranch,
   Globe,
-  Lock,
-  CreditCard,
-  QrCode,
+  Heart,
+  Github,
+  MessageCircle,
+  Layout,
+  CheckCircle,
+  Timer,
+  Wallet,
+  BookOpen,
+  Dumbbell,
+  FileText,
+  BarChart2,
+  Brain,
+  Bug,
+  Table2,
+  FolderKanban,
+  Map,
+  Repeat,
+  Clock,
+  StickyNote,
+  File,
+  Columns3,
   Calendar,
-  Percent,
+  Linkedin,
+  Mail,
+  Server,
+  Database,
+  HardDrive,
+  Coffee,
 } from "lucide-react"
 
-import TemplatesShowcase from "@/app/components/TemplatesShowcase"
-import Faq from "@/app/components/Faq"
 import RotatingText from "@/app/components/RotatingText"
 
+/* ─── template data (mirrors TemplatesShowcase.tsx) ─── */
+const templateCards = [
+  { id: "kanban", icon: Columns3, name: "kanban.", desc: "sprints, bugs e fluxo contínuo." },
+  { id: "tasks", icon: CheckCircle, name: "tasks.", desc: "to-dos, checklists e backlog." },
+  { id: "calendar", icon: Calendar, name: "calendar.", desc: "prazos, entregas e agenda." },
+  { id: "focus", icon: Timer, name: "focus.", desc: "pomodoro e blocos de tempo." },
+  { id: "budget", icon: Wallet, name: "budget.", desc: "controle financeiro e saldo." },
+  { id: "study", icon: BookOpen, name: "study.", desc: "trilhas e revisões espaçadas." },
+  { id: "workout", icon: Dumbbell, name: "workout.", desc: "treinos, séries e evolução." },
+  { id: "wiki", icon: FileText, name: "wiki.", desc: "docs, onboarding e padrões." },
+  { id: "dashboard", icon: BarChart2, name: "dashboard.", desc: "KPIs, gráficos e alertas." },
+  { id: "mindmap", icon: Brain, name: "mindmap.", desc: "brainstorm e mapa de ideias." },
+  { id: "bugs", icon: Bug, name: "bugs.", desc: "issues, prioridade e SLA." },
+  { id: "table", icon: Table2, name: "table.", desc: "dados, filtros e inventários." },
+  { id: "projects", icon: FolderKanban, name: "projects.", desc: "OKRs, escopo e status." },
+  { id: "roadmap", icon: Map, name: "roadmap.", desc: "marcos, quarters e releases." },
+  { id: "sprint", icon: Repeat, name: "sprint.", desc: "metas, capacidade e retro." },
+  { id: "timeline", icon: Clock, name: "timeline.", desc: "log diário e decisões." },
+  { id: "notes", icon: StickyNote, name: "notes.", desc: "rascunhos e atas." },
+  { id: "documents", icon: File, name: "documents.", desc: "contratos e materiais." },
+]
+
+const features = [
+  {
+    icon: Folder,
+    title: "workspaces colaborativos.",
+    desc: "múltiplos espaços. convites seguros. permissões granulares.",
+    detail: "owner / admin / member / viewer",
+  },
+  {
+    icon: Shield,
+    title: "controle total.",
+    desc: "4 níveis de acesso. quem vê, quem edita, quem administra.",
+    detail: "segurança por design",
+  },
+  {
+    icon: Target,
+    title: "templates especializados.",
+    desc: "kanban, budget, study, workout. 18+ prontos para uso.",
+    detail: "zero configuração",
+  },
+  {
+    icon: Zap,
+    title: "velocidade extrema.",
+    desc: "comece em segundos. sem tutorial. sem fricção.",
+    detail: "load < 200ms",
+  },
+  {
+    icon: Code2,
+    title: "open source.",
+    desc: "código aberto no GitHub. roadmap público. transparência total.",
+    detail: "MIT license",
+  },
+  {
+    icon: Globe,
+    title: "comunidade ativa.",
+    desc: "discord, PRs, feedback direto. construído por quem usa.",
+    detail: "build in public",
+  },
+]
+
+const testimonials = [
+  {
+    quote: "migrei toda a equipe do Notion. a velocidade e simplicidade do arc são incomparáveis.",
+    author: "lucas silva",
+    role: "CTO @ TechStartup",
+    metric: "3x mais rápido",
+  },
+  {
+    quote: "a comunidade é incrível. sugeri uma feature na sexta, entrou no roadmap na segunda.",
+    author: "marina costa",
+    role: "Product Designer",
+    metric: "voz que importa",
+  },
+  {
+    quote: "finalmente posso contribuir. GitHub aberto, roadmap público, discord ativo. build in public do jeito certo.",
+    author: "pedro oliveira",
+    role: "Lead Developer",
+    metric: "transparência total",
+  },
+]
+
+const steps = [
+  { n: "01", title: "crie.", desc: "workspace pronto em 10 segundos. sem cadastro longo." },
+  { n: "02", title: "escolha.", desc: "18+ templates prontos. kanban, budget, wiki, sprint." },
+  { n: "03", title: "convide.", desc: "compartilhe link. 4 níveis de permissão. controle total." },
+  { n: "04", title: "entregue.", desc: "dashboards, timelines e métricas. sem planilha." },
+]
+
 export default function Home() {
-  const metrics = [
-    { value: "28+", label: "templates prontos", trend: "+5 este mês" },
-    { value: "10", label: "presets de grupo", trend: "zero setup" },
-    { value: "133+", label: "componentes internos", trend: "em evolução" },
-    { value: "∞", label: "possibilidades", trend: "flexibilidade total" },
-  ]
+  const spotlightRef = useRef<HTMLDivElement>(null)
 
-  const features = [
-    {
-      icon: Folder,
-      title: "workspaces colaborativos.",
-      desc: "Múltiplos espaços. Convites seguros. Permissões granulares.",
-    },
-    {
-      icon: Shield,
-      title: "controle total.",
-      desc: "4 níveis de acesso. Owner, Admin, Member, Viewer.",
-    },
-    {
-      icon: Target,
-      title: "templates especializados.",
-      desc: "Kanban, Budget, Study, Workout. Tudo pronto.",
-    },
-    {
-      icon: Zap,
-      title: "velocidade extrema.",
-      desc: "Zero configuração. Comece em segundos.",
-    },
-  ]
-
-  const templates = [
-    "Kanban",
-    "Tasks",
-    "Calendar",
-    "Focus",
-    "Budget",
-    "Study",
-    "Workout",
-    "Wiki",
-    "Dashboard",
-    "MindMap",
-    "Bugs",
-    "Table",
-    "Projects",
-    "Roadmap",
-    "Sprint",
-    "Timeline",
-    "Notes",
-    "Documents",
-  ]
-
-  const useCases = [
-    {
-      icon: Code2,
-      title: "Desenvolvimento de Software",
-      desc: "Gerencie sprints, bugs, roadmaps e documentação técnica em um único lugar. Integração nativa com Git workflows.",
-      features: ["Sprint Planning", "Bug Tracking", "Code Reviews", "Technical Docs"],
-    },
-    {
-      icon: Palette,
-      title: "Criação de Conteúdo",
-      desc: "Organize ideias, roteiros, calendário editorial e analytics. Perfeito para creators, writers e designers.",
-      features: ["Content Calendar", "Idea Bank", "Analytics", "Collaboration"],
-    },
-    {
-      icon: BarChart3,
-      title: "Gestão Financeira",
-      desc: "Controle orçamentos, despesas, investimentos e metas financeiras com dashboards visuais e relatórios.",
-      features: ["Budget Tracking", "Expense Reports", "Investment Goals", "Financial Dashboards"],
-    },
-    {
-      icon: Rocket,
-      title: "Startups & Produtos",
-      desc: "Do MVP ao scale. Roadmaps, features, métricas, feedback de usuários e OKRs em uma plataforma unificada.",
-      features: ["Product Roadmap", "Feature Requests", "User Feedback", "OKR Tracking"],
-    },
-  ]
-
-  const testimonials = [
-    {
-      quote: "Migrei toda a equipe do Notion. A velocidade e simplicidade do Arc são incomparáveis.",
-      author: "Lucas Silva",
-      role: "CTO @ TechStartup",
-      metric: "3x mais rápido",
-    },
-    {
-      quote: "A comunidade é incrível. Sugeriu uma feature na sexta, entrou no roadmap na segunda. Isso é ouvir usuário de verdade.",
-      author: "Marina Costa",
-      role: "Product Designer",
-      metric: "voz que importa",
-    },
-    {
-      quote: "Finalmente encontrei um produto onde posso contribuir. GitHub aberto, roadmap público, comunidade ativa no Discord. Build in public do jeito certo.",
-      author: "Pedro Oliveira",
-      role: "Lead Developer",
-      metric: "transparência total",
-    },
-  ]
+  useEffect(() => {
+    const grid = spotlightRef.current
+    if (!grid) return
+    const handler = (e: MouseEvent) => {
+      const rect = grid.getBoundingClientRect()
+      grid.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`)
+      grid.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`)
+    }
+    grid.addEventListener("mousemove", handler)
+    return () => grid.removeEventListener("mousemove", handler)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-arc-primary text-arc">
-      {/* Nav minimalista com backdrop blur */}
-      <nav className="fixed top-0 w-full border-b border-arc bg-arc-primary/80 backdrop-blur-md z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image src="/icon/arclogo.svg" alt="Arc" width={28} height={28} priority />
-            <span className="text-xl font-bold text-arc">arc.</span>
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-4">
+    <div className="min-h-screen bg-arc-primary text-arc relative">
+      {/* ── Global background layers ── */}
+      <div className="fixed inset-0 pointer-events-none z-0 technical-grid" />
+      <div className="fixed inset-0 pointer-events-none z-0 structure-lines mx-auto border-x border-arc">
+        <div className="absolute left-1/4 h-full w-px" />
+        <div className="absolute left-2/4 h-full w-px" />
+        <div className="absolute left-3/4 h-full w-px" />
+      </div>
+
+      {/* ═══════════════════════════════════
+          NAVBAR — glassmorphic floating pill
+      ═══════════════════════════════════ */}
+      <div className="fixed z-50 flex w-full top-4 sm:top-6 px-4 sm:px-6 justify-center">
+        <nav className="flex items-center backdrop-blur-xl bg-arc-secondary/40 border border-arc/50 rounded-full px-2 sm:px-3 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.08)] gap-1 sm:gap-2">
+          {/* Center nav links */}
+          <div className="hidden md:flex items-center gap-0.5">
+            {[
+              { href: "#features", label: "features" },
+              { href: "#templates", label: "templates" },
+              { href: "#community", label: "comunidade" },
+              { href: "/open", label: "custos abertos" },
+            ].map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="px-4 py-1.5 rounded-full text-[12px] text-arc-muted hover:text-arc hover:bg-arc-primary/50 font-medium transition-all tracking-wide"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right: social icons + CTA */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full text-arc-muted hover:text-arc hover:bg-arc-primary/50 transition-all" aria-label="GitHub">
+              <Github className="w-4 h-4" strokeWidth={1.5} />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full text-arc-muted hover:text-arc hover:bg-arc-primary/50 transition-all" aria-label="LinkedIn">
+              <Linkedin className="w-4 h-4" strokeWidth={1.5} />
+            </a>
+            <div className="hidden lg:block h-4 w-px bg-arc/20 mx-1" />
             <Link
-              href="#templates"
-              className="hidden sm:inline-flex items-center h-10 px-3 rounded-lg text-sm text-arc-muted hover:text-arc hover:bg-arc-secondary/60 transition-colors"
+              href="/register"
+              className="inline-flex items-center h-8 sm:h-9 px-4 sm:px-5 rounded-full bg-arc text-arc-primary font-bold text-xs tracking-tight hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              templates
-            </Link>
-            <Link
-              href="#pricing"
-              className="hidden md:inline-flex items-center h-10 px-3 rounded-lg text-sm text-arc-muted hover:text-arc hover:bg-arc-secondary/60 transition-colors"
-            >
-              preços
-            </Link>
-            <Link
-              href="/workspace"
-              className="inline-flex items-center h-11 px-5 sm:h-11 sm:px-6 rounded-lg bg-arc text-arc-primary font-bold sm:font-extrabold text-sm sm:text-base tracking-tight hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-arc"
-            >
-              acessar
+              começar grátis
             </Link>
           </div>
+        </nav>
+      </div>
+
+      <main className="relative z-10">
+        {/* ═══════════════════════════════════
+            HERO
+        ═══════════════════════════════════ */}
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-20 sm:pb-32 pt-24 sm:pt-28 border-b border-arc">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left: Text */}
+            <div>
+              {/* Status badge — simplified */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 border border-[#6E62E5]/30 rounded-full bg-[#6E62E5]/5 reveal">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6E62E5] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6E62E5]" />
+                </span>
+                <span className="text-[10px] font-mono text-[#6E62E5] tracking-widest">
+                  open source
+                </span>
+              </div>
+
+              {/* Headline */}
+              <h1 className="reveal reveal-d1 text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tighter leading-[0.92] mb-6 sm:mb-8">
+                seu workspace de{" "}
+                <RotatingText
+                  words={["projetos.", "equipes.", "ideias.", "metas.", "caos."]}
+                  className="text-arc"
+                />
+              </h1>
+
+              <p className="text-base sm:text-lg text-arc-muted max-w-lg leading-relaxed font-light mb-8 reveal reveal-d2">
+                gestão de projetos open source. 18+ templates, comunidade ativa e custos 100% transparentes.
+              </p>
+
+              {/* CTA row */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5 reveal reveal-d3">
+                <Link
+                  href="/register"
+                  className="group relative px-7 py-3.5 bg-arc text-arc-primary text-sm font-bold tracking-tight overflow-hidden hover:opacity-90 transition-all magnetic-btn shadow-lg rounded-xl"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    criar workspace
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </Link>
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 px-5 py-3.5 border border-arc rounded-xl text-sm text-arc-muted hover:text-arc hover:border-[#6E62E5]/40 transition-all"
+                >
+                  <Github className="w-4 h-4" strokeWidth={1.5} />
+                  ver código
+                </a>
+              </div>
+
+              {/* Metrics strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mt-10 sm:mt-14 pt-6 sm:pt-8 border-t border-arc reveal reveal-d4">
+                {[
+                  { value: "18+", label: "templates" },
+                  { value: "R$0", label: "para sempre" },
+                  { value: "133+", label: "componentes" },
+                  { value: "MIT", label: "license" },
+                ].map((m) => (
+                  <div key={m.label}>
+                    <div className="text-xl sm:text-2xl font-mono font-bold text-arc">{m.value}</div>
+                    <div className="text-[10px] sm:text-xs text-arc-muted mt-1">{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Floating glass cards visual */}
+            <div className="hidden lg:flex relative h-[500px] items-center justify-center">
+              {/* Background glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#6E62E5]/5 via-transparent to-transparent rounded-3xl" />
+
+              {/* Card stack — simulating the app UI */}
+              <div className="relative w-full max-w-[420px] mx-auto">
+                {/* Card 1: Kanban preview */}
+                <div className="absolute top-0 left-0 w-[320px] bg-arc-secondary border border-arc rounded-2xl p-5 shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-500 z-30">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Columns3 className="w-4 h-4 text-[#6E62E5]" strokeWidth={1.5} />
+                    <span className="text-xs font-mono font-bold text-arc">kanban.</span>
+                  </div>
+                  <div className="flex gap-2">
+                    {["a fazer", "fazendo", "pronto"].map((col) => (
+                      <div key={col} className="flex-1 rounded-lg bg-arc-primary/60 p-2">
+                        <div className="text-[9px] font-mono text-arc-muted mb-2">{col}</div>
+                        <div className="space-y-1.5">
+                          <div className="h-6 rounded bg-arc-primary border border-arc" />
+                          <div className="h-6 rounded bg-arc-primary border border-arc" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card 2: Budget preview */}
+                <div className="absolute top-24 right-0 w-[280px] bg-arc-secondary border border-arc rounded-2xl p-5 shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-500 z-20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Wallet className="w-4 h-4 text-[#10b981]" strokeWidth={1.5} />
+                    <span className="text-xs font-mono font-bold text-arc">budget.</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-arc-muted">receita</span>
+                      <span className="text-xs font-mono text-[#10b981]">R$ 4.200</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-arc-primary">
+                      <div className="h-full w-3/4 rounded-full bg-[#10b981]" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-arc-muted">despesas</span>
+                      <span className="text-xs font-mono text-[#EB5757]">R$ 2.800</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-arc-primary">
+                      <div className="h-full w-1/2 rounded-full bg-[#EB5757]" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Status badge */}
+                <div className="absolute bottom-8 left-8 w-[200px] bg-arc text-arc-primary border border-arc rounded-2xl p-4 shadow-xl transform -rotate-1 hover:rotate-0 transition-transform duration-500 z-10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                    <span className="text-[10px] font-mono tracking-widest opacity-70">online agora</span>
+                  </div>
+                  <div className="text-2xl font-bold font-mono">42</div>
+                  <div className="text-[10px] font-mono opacity-60">workspaces ativos.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            MARQUEE — tool logos
+        ═══════════════════════════════════ */}
+        <div className="border-b border-arc bg-arc-secondary/30 py-4 sm:py-6">
+          <div className="max-w-[1400px] mx-auto overflow-hidden marquee-mask">
+            <div className="marquee-track opacity-30 hover:opacity-60 transition-opacity items-center text-arc">
+              {["Next.js", "React", "TypeScript", "Tailwind", "Supabase", "PostgreSQL", "Docker", "Vercel", "GitHub", "Discord",
+                "Next.js", "React", "TypeScript", "Tailwind", "Supabase", "PostgreSQL", "Docker", "Vercel", "GitHub", "Discord"
+              ].map((name, i) => (
+                <span key={i} className="text-xs sm:text-sm font-mono whitespace-nowrap tracking-wider">{name}</span>
+              ))}
+            </div>
+          </div>
         </div>
-      </nav>
 
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 overflow-hidden">
-        {/* Grid pattern de fundo */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-
-        {/* Elementos decorativos */}
-        <div className="absolute top-40 right-10 w-72 h-72 bg-arc rounded-full opacity-[0.03] blur-3xl" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-arc rounded-full opacity-[0.02] blur-3xl" />
-
-        <div className="max-w-7xl mx-auto relative w-full py-20">
-          <div className="text-center">
-            {/* Oferta irresistível com comparação */}
-            <div className="flex flex-col items-center gap-4 mb-6 sm:mb-8">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#10b981] text-white font-bold hover:bg-[#059669] transition-colors animate-pulse">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm sm:text-base">
-                  PRIMEIROS 1.000 NUNCA PAGAM • RESTAM 153 VAGAS
-                </span>
+        {/* ═══════════════════════════════════
+            FEATURES — spotlight bento grid
+        ═══════════════════════════════════ */}
+        <section id="features" className="border-b border-arc bg-arc-primary py-16 sm:py-24 relative">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 sm:mb-20 gap-4">
+              <div>
+                <div className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">
+                  01 — capabilities
+                </div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-arc max-w-2xl leading-[1.05]">
+                  tudo que você precisa.{" "}
+                  <span className="text-arc-muted">nada que não precisa.</span>
+                </h2>
               </div>
-
-              {/* Mini comparação de preços */}
-              <div className="flex items-center gap-4 text-xs sm:text-sm">
-                <div className="text-arc-muted line-through">Notion: R$ 70/mês</div>
-                <div className="text-arc-muted line-through">Asana: R$ 84/mês</div>
-                <div className="text-arc font-bold">Arc: R$ 0 (pra sempre)</div>
+              <div className="hidden md:block text-right">
+                <div className="text-[10px] font-mono text-arc-muted mb-1 tracking-widest">architecture</div>
+                <div className="text-arc font-mono text-sm">v1.0</div>
               </div>
             </div>
 
-            {/* Título com texto rotativo */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] mb-6 sm:mb-8 px-4">
-              seu workspace de{" "}
-              <RotatingText
-                words={["projetos.", "equipes.", "ideias.", "metas.", "caos."]}
-                className="text-arc"
-              />
-              <br />
-              <span className="text-arc-muted">em 2 minutos.</span>
-            </h1>
+            {/* Bento grid */}
+            <div ref={spotlightRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-arc-border border border-arc overflow-hidden spotlight-grid rounded-2xl">
+              {features.map((f, i) => {
+                const Icon = f.icon
+                return (
+                  <div key={f.title} className="group bg-arc-primary p-6 sm:p-8 lg:p-10 hover:bg-arc-secondary transition-colors relative spotlight-card">
+                    {/* Top accent line on hover */}
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#6E62E5]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-            {/* Subtítulo mais agressivo */}
-            <div className="max-w-4xl mx-auto mb-10 sm:mb-12 px-4">
-              <p className="text-xl sm:text-2xl md:text-3xl text-arc font-bold mb-4">
-                Menos blá-blá, mais resultado.
-              </p>
-              <p className="text-base sm:text-lg text-arc-muted leading-relaxed">
-                Enquanto você gasta <span className="font-bold text-arc">R$ 840/ano</span> no Notion (e mais R$ 97 em templates),
-                aqui você tem <span className="font-bold text-arc">tudo grátis</span>. Pra sempre.
+                    <div className="mb-6 sm:mb-8 text-arc-muted group-hover:text-[#6E62E5] transition-colors">
+                      <Icon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold text-arc mb-4 sm:mb-6">{f.title}</h3>
+                    <p className="text-xs sm:text-sm text-arc-muted leading-relaxed mb-3 sm:mb-4">{f.desc}</p>
+                    <div className="text-[10px] font-mono text-arc-muted tracking-widest border-t border-arc pt-3 sm:pt-4">
+                      {f.detail}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            TEMPLATES WALL — The Substrate
+        ═══════════════════════════════════ */}
+        <section id="templates" className="relative bg-arc-primary border-b border-arc overflow-hidden">
+          <div className="max-w-[1400px] mx-auto relative z-10 flex flex-col md:flex-row min-h-[700px] sm:min-h-[850px]">
+            {/* Left: text content */}
+            <div className="w-full md:w-[42%] px-4 sm:px-6 py-16 sm:py-24 md:py-32 flex flex-col justify-center relative z-20">
+              <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 border border-[#6E62E5]/30 rounded-full bg-[#6E62E5]/5 self-start">
+                <div className="w-1.5 h-1.5 bg-[#6E62E5] rounded-full status-pulse" />
+                <span className="text-[10px] font-mono text-[#6E62E5] tracking-widest">
+                  02 — templates
+                </span>
+              </div>
+
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-arc mb-6 sm:mb-8 leading-[0.92]">
+                18+ templates.
                 <br />
-                <span className="text-sm sm:text-base mt-2 block">
-                  28+ templates prontos • Zero configuração • Velocidade 3x maior
-                </span>
+                <span className="text-arc-muted">zero config.</span>
+              </h2>
+
+              <div className="space-y-6 sm:space-y-8 max-w-sm">
+                <p className="text-arc-muted text-sm sm:text-base lg:text-lg font-light leading-relaxed">
+                  cada template resolve um problema real. kanban para sprints, budget para finanças, wiki para documentação. pronto para usar em segundos.
+                </p>
+
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  {[
+                    { icon: Layout, label: "gestão visual.", detail: "kanban / calendar / dashboard" },
+                    { icon: Wallet, label: "controle financeiro.", detail: "budget / table / projects" },
+                    { icon: BookOpen, label: "conhecimento.", detail: "wiki / notes / documents" },
+                  ].map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <div key={item.label} className="flex items-center gap-3 sm:gap-4 group cursor-default">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-arc bg-arc-secondary flex items-center justify-center group-hover:border-[#6E62E5]/30 transition-all flex-shrink-0">
+                          <Icon className="w-4 h-4 text-arc-muted group-hover:text-[#6E62E5] transition-colors" strokeWidth={1.5} />
+                        </div>
+                        <div>
+                          <div className="text-arc text-xs sm:text-sm font-medium">{item.label}</div>
+                          <div className="text-[10px] text-arc-muted font-mono tracking-wider">{item.detail}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="pt-4 sm:pt-8">
+                  <Link href="/register" className="shiny-cta inline-flex items-center min-h-0">
+                    <span>usar templates</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: 3D wall */}
+            <div className="hidden md:block absolute right-[-5%] top-[-10%] bottom-[-10%] w-[65%] wall-container overflow-hidden pointer-events-none">
+              <div className="wall-grid h-full w-full flex gap-5 px-8">
+                {/* Column 1 — scroll up */}
+                <div className="wall-col-up flex flex-col gap-5 w-full">
+                  {[...templateCards.slice(0, 6), ...templateCards.slice(0, 6)].map((t, i) => {
+                    const Icon = t.icon
+                    return (
+                      <div key={`${t.id}-a-${i}`} className="wall-card rounded-xl p-5 aspect-[4/3] flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                          <Icon className="w-6 h-6 text-arc" strokeWidth={1.5} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#6E62E5] shadow-[0_0_8px_#6E62E5]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-mono text-arc">{t.name}</div>
+                          <div className="text-[9px] font-mono text-arc-muted">{t.desc}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Column 2 — scroll down */}
+                <div className="wall-col-down flex flex-col gap-5 w-full pt-12">
+                  {[...templateCards.slice(6, 12), ...templateCards.slice(6, 12)].map((t, i) => {
+                    const Icon = t.icon
+                    return (
+                      <div key={`${t.id}-b-${i}`} className="wall-card rounded-xl p-5 aspect-[4/3] flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                          <Icon className="w-6 h-6 text-arc" strokeWidth={1.5} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#6E62E5] shadow-[0_0_8px_#6E62E5]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-mono text-arc">{t.name}</div>
+                          <div className="text-[9px] font-mono text-arc-muted">{t.desc}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Column 3 — scroll up */}
+                <div className="wall-col-up flex flex-col gap-5 w-full pt-24 hidden lg:flex">
+                  {[...templateCards.slice(12, 18), ...templateCards.slice(12, 18)].map((t, i) => {
+                    const Icon = t.icon
+                    return (
+                      <div key={`${t.id}-c-${i}`} className="wall-card rounded-xl p-5 aspect-[4/3] flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                          <Icon className="w-6 h-6 text-arc" strokeWidth={1.5} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#6E62E5] shadow-[0_0_8px_#6E62E5]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-mono text-arc">{t.name}</div>
+                          <div className="text-[9px] font-mono text-arc-muted">{t.desc}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Masking gradients */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-primary)] via-transparent to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] z-10 pointer-events-none opacity-60" />
+            </div>
+
+            {/* Mobile: horizontal scroll */}
+            <div className="md:hidden px-4 pb-12 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4" style={{ width: "max-content" }}>
+                {templateCards.slice(0, 8).map((t) => {
+                  const Icon = t.icon
+                  return (
+                    <div key={t.id} className="w-[200px] flex-shrink-0 border border-arc rounded-xl p-4 bg-arc-secondary">
+                      <Icon className="w-5 h-5 text-[#6E62E5] mb-3" strokeWidth={1.5} />
+                      <div className="text-sm font-mono font-bold text-arc">{t.name}</div>
+                      <div className="text-[11px] text-arc-muted mt-1">{t.desc}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            PIPELINE — How it works
+        ═══════════════════════════════════ */}
+        <section className="border-b border-arc bg-arc-primary py-16 sm:py-24 lg:py-32 overflow-hidden">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div className="text-[10px] font-mono text-arc-muted mb-10 sm:mb-12 tracking-widest">
+              03 — pipeline
+            </div>
+
+            <div className="relative mt-8 sm:mt-16 lg:mt-20">
+              {/* Connecting line — desktop only */}
+              <div className="hidden md:block absolute top-[27px] left-0 w-full h-px bg-arc-border z-0" />
+              <div className="hidden md:block absolute top-[27px] left-0 w-1/4 h-px bg-gradient-to-r from-transparent via-[#6E62E5]/40 to-transparent z-0 pipeline-shimmer" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 relative z-10">
+                {steps.map((s) => (
+                  <div key={s.n} className="group hover:-translate-y-1 transition-transform duration-300 cursor-default">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-arc-secondary border border-arc rounded-full flex items-center justify-center mb-6 sm:mb-8 group-hover:border-[#6E62E5]/50 transition-colors relative shadow-sm">
+                      <span className="text-xs sm:text-sm font-mono text-arc">{s.n}</span>
+                      {s.n === "04" && (
+                        <div className="absolute w-2 h-2 bg-[#10b981] rounded-full top-0 right-0 animate-pulse" />
+                      )}
+                    </div>
+                    <h4 className="text-lg sm:text-xl text-arc font-bold mb-2 sm:mb-3">{s.title}</h4>
+                    <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            TESTIMONIALS
+        ═══════════════════════════════════ */}
+        <section className="border-b border-arc bg-arc-primary py-16 sm:py-20 relative">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div className="text-[10px] font-mono text-arc-muted mb-10 sm:mb-16 tracking-widest flex items-center gap-2">
+              <span className="w-1 h-1 bg-[#6E62E5] rounded-full status-pulse" />
+              04 — comunidade
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {testimonials.map((t, i) => (
+                <div key={i} className="p-6 sm:p-8 border border-arc bg-arc-secondary rounded-2xl hover:bg-arc-primary transition-colors group relative">
+                  <div className="text-2xl sm:text-3xl text-arc-muted/20 mb-3 sm:mb-4 font-serif">&ldquo;</div>
+                  <p className="text-arc-muted text-xs sm:text-sm mb-5 sm:mb-6 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-arc text-xs font-bold">{t.author}</div>
+                      <div className="text-[10px] text-arc-muted font-mono">{t.role}</div>
+                    </div>
+                    <div className="px-2 py-1 border border-arc rounded-full text-[9px] font-mono text-arc-muted">
+                      {t.metric}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            COMMUNITY & OPEN SOURCE
+        ═══════════════════════════════════ */}
+        <section id="community" className="py-16 sm:py-24 lg:py-32 bg-arc-primary border-b border-arc relative">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 sm:mb-16 lg:mb-20 border-b border-arc pb-8 sm:pb-10 gap-4">
+              <div>
+                <div className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">
+                  05 — open source
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-arc">
+                  feito pela comunidade.
+                  <br />
+                  <span className="text-arc-muted">para a comunidade.</span>
+                </h2>
+              </div>
+              <p className="text-arc-muted text-xs sm:text-sm max-w-sm md:text-right">
+                não esperamos lucro. esperamos impacto.
               </p>
             </div>
 
-            {/* CTA Principal Melhorado */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-xl bg-arc text-arc-primary font-extrabold text-lg hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-arc/30"
-              >
-                <Rocket className="w-6 h-6" />
-                começar grátis agora
-                <ArrowRight className="w-6 h-6" />
-              </Link>
-              <div className="flex flex-col items-center sm:items-start gap-1">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-[#EF4444] text-[#EF4444]" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {/* Card 1: Contribute */}
+              <div className="group border border-arc p-6 sm:p-8 lg:p-10 bg-arc-secondary hover:bg-arc-primary transition-all duration-500 relative overflow-hidden rounded-2xl">
+                <div className="absolute top-0 right-0 p-3 sm:p-4">
+                  <Github className="w-6 h-6 sm:w-8 sm:h-8 text-arc opacity-20 group-hover:opacity-100 transition-opacity" strokeWidth={1.5} />
+                </div>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">contribute.</h3>
+                  <p className="text-xs sm:text-sm text-arc-muted">código aberto. PRs welcome.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 mb-8 sm:mb-12">
+                  {["MIT license", "roadmap público", "issues abertas", "code review"].map((item) => (
+                    <div key={item} className="text-xs sm:text-sm text-arc-muted flex items-center gap-2">
+                      <div className="w-1 h-1 bg-arc rounded-full flex-shrink-0" />
+                      {item}
+                    </div>
                   ))}
                 </div>
-                <span className="text-xs text-arc-muted">2.4k desenvolvedores já escolheram</span>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-full py-3 border border-arc text-[11px] font-mono tracking-widest text-arc-muted hover:text-arc hover:border-[#6E62E5] transition-colors rounded-lg flex items-center justify-center gap-2">
+                  <Github className="w-3 h-3" />
+                  ver no GitHub
+                </a>
+              </div>
+
+              {/* Card 2: Community — highlighted */}
+              <div className="group border border-arc p-6 sm:p-8 lg:p-10 bg-arc text-arc-primary transition-all duration-500 relative overflow-hidden rounded-2xl shadow-2xl">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-arc-primary border border-arc rounded-full shadow-sm">
+                  <span className="text-[10px] font-mono text-arc tracking-widest">ativo</span>
+                </div>
+                <div className="absolute top-0 right-0 p-3 sm:p-4">
+                  <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 text-arc-primary opacity-20 group-hover:opacity-100 transition-opacity" strokeWidth={1.5} />
+                </div>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="text-xl sm:text-2xl font-bold text-arc-primary mb-2">community.</h3>
+                  <p className="text-xs sm:text-sm text-arc-primary/70">troca de ideias. suporte real.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 mb-8 sm:mb-12">
+                  {["Discord ativo", "feedback direto", "feature requests", "build in public"].map((item) => (
+                    <div key={item} className="text-xs sm:text-sm text-arc-primary/80 flex items-center gap-2">
+                      <div className="w-1 h-1 bg-arc-primary rounded-full flex-shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <button className="w-full py-3 bg-arc-primary text-arc text-[11px] font-bold tracking-widest hover:opacity-90 transition-colors rounded-lg">
+                  entrar no Discord
+                </button>
+              </div>
+
+              {/* Card 3: Sponsor */}
+              <div className="group border border-arc p-6 sm:p-8 lg:p-10 bg-arc-secondary hover:bg-arc-primary transition-all duration-500 relative overflow-hidden rounded-2xl sm:col-span-2 lg:col-span-1">
+                <div className="absolute top-0 right-0 p-3 sm:p-4">
+                  <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-arc opacity-20 group-hover:opacity-100 group-hover:text-[#EB5757] transition-all" strokeWidth={1.5} />
+                </div>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">sponsor.</h3>
+                  <p className="text-xs sm:text-sm text-arc-muted">ajude a manter o projeto vivo.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 mb-8 sm:mb-12">
+                  {["sem anúncios", "sem data selling", "indie project", "coffee money"].map((item) => (
+                    <div key={item} className="text-xs sm:text-sm text-arc-muted flex items-center gap-2">
+                      <div className="w-1 h-1 bg-arc rounded-full flex-shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <button className="w-full py-3 border border-arc text-[11px] font-mono tracking-widest text-arc-muted hover:text-arc hover:border-[#EB5757] transition-colors rounded-lg flex items-center justify-center gap-2">
+                  <Heart className="w-3 h-3" />
+                  apoiar projeto
+                </button>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Redutores de risco VISUAIS */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-16 sm:mb-20">
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-arc bg-arc-secondary/50">
-                <CheckCircle className="w-6 h-6 text-[#10b981]" />
-                <span className="font-bold text-arc text-sm">Zero Cartão</span>
-                <span className="text-xs text-arc-muted">Só email. Sem pegadinha.</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-arc bg-arc-secondary/50">
-                <Zap className="w-6 h-6 text-[#10b981]" />
-                <span className="font-bold text-arc text-sm">Pronto em 2min</span>
-                <span className="text-xs text-arc-muted">Do cadastro à produção.</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-arc bg-arc-secondary/50">
-                <Sparkles className="w-6 h-6 text-[#10b981]" />
-                <span className="font-bold text-arc text-sm">Grátis pra Sempre</span>
-                <span className="text-xs text-arc-muted">Early adopters nunca pagam.</span>
-              </div>
-            </div>
-
-            {/* Comece em 3 passos - Visual minimalista */}
-            <div className="max-w-4xl mx-auto">
-              <div className="mb-8">
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-arc mb-2">
-                  comece em 3 passos.
-                </h3>
-                <p className="text-base sm:text-lg text-arc-muted">
-                  Sem ruído. Só resultado. E você faz parte da história.
+        {/* ═══════════════════════════════════
+            FAQ
+        ═══════════════════════════════════ */}
+        <section className="border-b border-arc bg-arc-primary py-16 sm:py-24 lg:py-32 relative">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12">
+              <div className="lg:col-span-4">
+                <div className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">06 — faq</div>
+                <h2 className="text-3xl sm:text-4xl text-arc font-bold tracking-tight mb-4 sm:mb-6">
+                  dúvidas
+                  <br />
+                  frequentes.
+                </h2>
+                <p className="text-xs sm:text-sm text-arc-muted max-w-xs leading-relaxed">
+                  respostas diretas para as perguntas mais comuns.
                 </p>
               </div>
-
-              <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-                {/* Passo 1 */}
-                <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.02]">
-                  <div className="w-14 h-14 rounded-xl bg-arc text-arc-primary flex items-center justify-center mb-5 mx-auto font-extrabold text-2xl group-hover:scale-110 transition-transform">
-                    1
-                  </div>
-                  <div className="flex flex-col items-center gap-3">
-                    <Folder className="w-8 h-8 text-arc" />
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-arc mb-1">Crie workspace</div>
-                      <div className="text-sm text-arc-muted">Pessoal ou equipe</div>
+              <div className="lg:col-span-8 border-t border-arc">
+                {[
+                  { q: "arc é mesmo 100% grátis?", a: "sim. arc é open source e sempre será gratuito. sem trial, sem plano pago escondido. o código é aberto e você pode hospedar onde quiser." },
+                  { q: "posso usar para meu time?", a: "sim. workspaces colaborativos com 4 níveis de permissão (owner, admin, member, viewer). convide por link e gerencie acessos." },
+                  { q: "quais templates estão disponíveis?", a: "18+ templates prontos: kanban, tasks, calendar, focus, budget, study, workout, wiki, dashboard, mindmap, bugs, table, projects, roadmap, sprint, timeline, notes e documents." },
+                  { q: "como posso contribuir?", a: "o repositório é aberto no GitHub. PRs são bem-vindos. temos issues marcadas como 'good first issue' para quem está começando. participe também no Discord." },
+                ].map((item, i) => (
+                  <details key={i} className="group border-b border-arc">
+                    <summary className="flex justify-between items-center py-4 sm:py-6 cursor-pointer list-none outline-none">
+                      <span className="text-arc font-medium tracking-tight text-sm sm:text-base">{item.q}</span>
+                      <span className="text-arc-muted font-mono text-xs group-open:rotate-45 transition-transform duration-300 flex-shrink-0 ml-4">+</span>
+                    </summary>
+                    <div className="pb-4 sm:pb-6 text-arc-muted text-xs sm:text-sm leading-relaxed max-w-2xl">
+                      <p>{item.a}</p>
                     </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            TRANSPARENT COSTS — "custo aberto"
+        ═══════════════════════════════════ */}
+        <section className="py-16 sm:py-24 lg:py-32 bg-arc-primary border-b border-arc relative">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div className="relative z-10 w-full bg-arc text-arc-primary border border-arc rounded-2xl sm:rounded-3xl overflow-hidden isolate shadow-2xl">
+              {/* Background glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#6E62E5]/10 rounded-full blur-[100px] pointer-events-none" />
+
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2">
+                {/* Left: The message */}
+                <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+                  <div className="text-[10px] font-mono text-arc-primary/40 mb-4 sm:mb-6 tracking-widest">
+                    07 — transparência
                   </div>
-                </div>
-
-                {/* Passo 2 */}
-                <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.02]">
-                  <div className="w-14 h-14 rounded-xl bg-arc text-arc-primary flex items-center justify-center mb-5 mx-auto font-extrabold text-2xl group-hover:scale-110 transition-transform">
-                    2
-                  </div>
-                  <div className="flex flex-col items-center gap-3">
-                    <FileText className="w-8 h-8 text-arc" />
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-arc mb-1">Escolha template</div>
-                      <div className="text-sm text-arc-muted">Kanban, Budget, Wiki...</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Passo 3 */}
-                <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.02]">
-                  <div className="w-14 h-14 rounded-xl bg-arc text-arc-primary flex items-center justify-center mb-5 mx-auto font-extrabold text-2xl group-hover:scale-110 transition-transform">
-                    3
-                  </div>
-                  <div className="flex flex-col items-center gap-3">
-                    <Zap className="w-8 h-8 text-arc" />
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-arc mb-1">Comece a produzir</div>
-                      <div className="text-sm text-arc-muted">Zero fricção</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Barra de confiança com prova social melhorada */}
-          <div className="mt-16 sm:mt-20 pt-12 sm:pt-16 border-t border-arc">
-            <p className="text-center text-xs sm:text-sm text-arc-muted mb-6 sm:mb-8">
-              Construído com a comunidade, para a comunidade
-            </p>
-
-            {/* Logos de tipos de usuários - Prova Social */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
-              <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-arc bg-arc-secondary/50 hover:bg-arc-secondary transition-colors group">
-                <div className="w-12 h-12 rounded-lg border border-arc bg-arc-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Code2 className="w-6 h-6 text-arc" />
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-arc">Dev Teams</div>
-                  <div className="text-xs text-arc-muted">Sprint • Roadmap • Bugs</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-arc bg-arc-secondary/50 hover:bg-arc-secondary transition-colors group">
-                <div className="w-12 h-12 rounded-lg border border-arc bg-arc-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Palette className="w-6 h-6 text-arc" />
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-arc">Designers</div>
-                  <div className="text-xs text-arc-muted">Portfolio • Calendar</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-arc bg-arc-secondary/50 hover:bg-arc-secondary transition-colors group">
-                <div className="w-12 h-12 rounded-lg border border-arc bg-arc-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Rocket className="w-6 h-6 text-arc" />
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-arc">Startups</div>
-                  <div className="text-xs text-arc-muted">Product • OKRs</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-arc bg-arc-secondary/50 hover:bg-arc-secondary transition-colors group">
-                <div className="w-12 h-12 rounded-lg border border-arc bg-arc-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-arc" />
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-arc">Freelancers</div>
-                  <div className="text-xs text-arc-muted">Projects • Invoices</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Estatísticas sociais */}
-            <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 text-xs sm:text-sm text-arc-muted">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-[#EF4444] fill-[#EF4444]" />
-                <span>2.4k stars no GitHub</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-[#10b981]" />
-                <span>Open source • MIT License</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#EF4444]" />
-                <span>Pronto em &lt; 2min</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Comparação de Preços - Destruindo a Concorrência */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-arc-primary">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
-              <TrendingUp className="w-4 h-4 text-[#EF4444]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
-                compare você mesmo
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              eles cobram R$ 70-84/mês.
-              <br />
-              <span className="text-[#10b981]">nós: R$ 0 (e depois R$ 15).</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto mb-8">
-              Ferramentas de produtividade viraram máquinas de sugar dinheiro. Chega.
-            </p>
-
-            {/* Destaque do Arc ANTES da tabela */}
-            <div className="max-w-2xl mx-auto p-6 rounded-2xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white mb-12">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <Sparkles className="w-6 h-6 animate-pulse" />
-                <h3 className="text-2xl sm:text-3xl font-extrabold">Arc é GRÁTIS (pra sempre)</h3>
-              </div>
-              <p className="text-base sm:text-lg mb-4">
-                Early adopters nunca pagam. Quem entrar depois paga apenas <span className="font-extrabold">R$ 15-20/mês</span>
-              </p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="text-center p-3 rounded-lg bg-white/10">
-                  <div className="font-bold">Notion cobra</div>
-                  <div className="text-2xl font-extrabold">R$ 70/mês</div>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-white/10">
-                  <div className="font-bold">Arc cobra</div>
-                  <div className="text-2xl font-extrabold">R$ 0-15/mês</div>
-                </div>
-              </div>
-              <p className="text-xs mt-4 opacity-90">
-                Nosso preço futuro é quase custo de servidor. Sem margem absurda. Sem exploração.
-              </p>
-            </div>
-          </div>
-
-          {/* Título da tabela */}
-          <div className="text-center mb-8">
-            <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">
-              Comparação detalhada:
-            </h3>
-            <p className="text-sm text-arc-muted">
-              Preços reais (janeiro 2025) • Os da <span className="text-[#EF4444] font-bold">concorrência</span> vs{" "}
-              <span className="text-[#10b981] font-bold">Arc</span>
-            </p>
-          </div>
-
-          {/* Tabela de Comparação */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {/* Notion */}
-            <div className="p-6 sm:p-8 rounded-2xl border-2 border-[#EF4444] bg-arc-secondary relative overflow-hidden opacity-75">
-              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[#EF4444] text-white text-xs font-bold">
-                CONCORRENTE
-              </div>
-              <div className="mb-6">
-                <h3 className="text-2xl font-extrabold text-arc mb-2">Notion</h3>
-                <div className="text-4xl font-extrabold text-arc mb-1">R$ 70<span className="text-lg text-arc-muted">/mês</span></div>
-                <div className="text-sm text-arc-muted">R$ 840/ano por pessoa</div>
-              </div>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Templates pagos à parte (R$ 97+)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Lento pra caramba</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">1 semana pra configurar direito</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Limites ridículos no plano básico</span>
-                </div>
-              </div>
-              <div className="text-xs text-arc-muted text-center py-3 px-4 rounded-lg bg-arc-primary/50">
-                💸 Gasto em 1 ano: R$ 937+
-              </div>
-            </div>
-
-            {/* Asana/Monday */}
-            <div className="p-6 sm:p-8 rounded-2xl border-2 border-[#EF4444] bg-arc-secondary relative overflow-hidden opacity-75">
-              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[#EF4444] text-white text-xs font-bold">
-                CONCORRENTE
-              </div>
-              <div className="mb-6">
-                <h3 className="text-2xl font-extrabold text-arc mb-2">Asana</h3>
-                <div className="text-4xl font-extrabold text-arc mb-1">R$ 84<span className="text-lg text-arc-muted">/mês</span></div>
-                <div className="text-sm text-arc-muted">R$ 1.008/ano por pessoa</div>
-              </div>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Interface confusa demais</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Features básicas no paywall</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Time pequeno paga preço enterprise</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#EF4444] mt-1">✗</span>
-                  <span className="text-sm text-arc-muted">Curva de aprendizado brutal</span>
-                </div>
-              </div>
-              <div className="text-xs text-arc-muted text-center py-3 px-4 rounded-lg bg-arc-primary/50">
-                💸 Gasto em 1 ano: R$ 1.008
-              </div>
-            </div>
-
-            {/* Arc */}
-            <div className="p-6 sm:p-8 rounded-2xl border-4 border-[#10b981] bg-gradient-to-br from-arc-primary to-arc-secondary relative overflow-hidden shadow-2xl shadow-[#10b981]/30 scale-105">
-              <div className="absolute -top-3 -right-3 px-4 py-2 rounded-full bg-[#10b981] text-white text-sm font-extrabold animate-pulse shadow-lg">
-                VOCÊ AQUI 👈
-              </div>
-              <div className="mb-6 mt-4">
-                <h3 className="text-2xl font-extrabold text-arc mb-2">Arc</h3>
-                <div className="text-5xl font-extrabold text-[#10b981] mb-1">R$ 0<span className="text-lg text-arc-muted">/mês</span></div>
-                <div className="text-sm font-bold text-[#10b981]">Grátis pra sempre (beta)</div>
-                <div className="text-xs text-arc-muted mt-1">Futuro: R$ 15-20/mês (preço de custo)</div>
-              </div>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#10b981] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-arc">28+ templates prontos (grátis)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#10b981] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-arc">3x mais rápido</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#10b981] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-arc">Pronto em 2 minutos</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#10b981] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-arc">Tudo liberado. Sem paywall.</span>
-                </div>
-              </div>
-              <div className="text-xs font-bold text-[#10b981] text-center py-3 px-4 rounded-lg bg-arc-primary border-2 border-[#10b981]">
-                💰 Você economiza: R$ 840-1.008/ano
-              </div>
-            </div>
-          </div>
-
-          {/* CTA Pós-Comparação */}
-          <div className="text-center">
-            <p className="text-sm sm:text-base text-arc-muted mb-4">
-              Quer pagar <span className="font-bold text-arc">R$ 840/ano no Notion</span> ou ter{" "}
-              <span className="font-bold text-[#10b981]">tudo grátis no Arc</span>?
-            </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-arc text-arc-primary font-bold text-base hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-            >
-              <Rocket className="w-5 h-5" />
-              óbvio que vou pro Arc
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-
-          {/* Manifesto */}
-          <div className="max-w-4xl mx-auto p-8 sm:p-10 rounded-2xl border-2 border-arc bg-arc-secondary mt-12">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-arc mb-3">
-                nossa filosofia é simples:
-              </h3>
-              <p className="text-sm text-arc-muted">
-                Chega de ferramenta explorando usuário. Aqui construímos juntos.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <Users className="w-6 h-6 text-[#10b981] flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-bold text-arc mb-1">Comunidade &gt; Lucro</h4>
-                  <p className="text-sm text-arc-muted">
-                    Crescemos COM você, não às suas custas. Sua voz importa. Seu voto conta. Você molda o produto.
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tighter text-arc-primary mb-4 sm:mb-6 leading-[0.92]">
+                    custo aberto.
+                    <br />
+                    <span className="text-[#6E62E5]">lucro zero.</span>
+                  </h2>
+                  <p className="text-arc-primary/50 text-sm sm:text-base leading-relaxed max-w-md mb-8 sm:mb-10">
+                    isso é quanto custa manter o arc no ar todo mês. sem esconder nada.
+                    se quiser ajudar, ótimo. se não, apenas use.
                   </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Zap className="w-6 h-6 text-arc flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-bold text-arc mb-1">Produtividade &gt; Features</h4>
-                  <p className="text-sm text-arc-muted">
-                    Menos features inúteis. Mais foco no que realmente importa: entregar resultado.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Shield className="w-6 h-6 text-arc flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-bold text-arc mb-1">Transparência &gt; Marketing</h4>
-                  <p className="text-sm text-arc-muted">
-                    Código aberto, métricas públicas, sem joguinho. Você sabe exatamente o que tá usando.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Target className="w-6 h-6 text-arc flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-bold text-arc mb-1">Preço Justo &gt; Exploração</h4>
-                  <p className="text-sm text-arc-muted">
-                    Quando cobrarmos (no futuro), será 3x mais barato que a concorrência. Promessa.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Seção de Comunidade */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#10b981] transition-colors group">
-              <Users className="w-4 h-4 text-[#10b981]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#10b981] transition-colors">
-                open source • build in public
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              construído COM você.
-              <br />
-              <span className="text-arc-muted">não PARA você.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto">
-              Arc não é só uma ferramenta. É uma comunidade construindo o workspace ideal. Juntos.
-            </p>
-          </div>
-
-          {/* Grid de Comunidade */}
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {/* Roadmap Público */}
-            <div className="p-8 rounded-2xl border-2 border-arc bg-arc-primary hover:border-[#10b981] transition-all group">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#10b981] text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Target className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">Roadmap 100% Público</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                    Vote nas features que você quer. Acompanhe o desenvolvimento em tempo real. Sem segredos,
-                    sem surpresas. Você decide o que vem por aí.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  GitHub Discussions
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Votação de Features
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Updates Semanais
-                </div>
-              </div>
-            </div>
-
-            {/* Discord/Comunidade */}
-            <div className="p-8 rounded-2xl border-2 border-arc bg-arc-primary hover:border-[#10b981] transition-all group">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#10b981] text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">Comunidade Ativa</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                    Discord ativo, GitHub aberto, sessões ao vivo. Tire dúvidas, sugira melhorias,
-                    compartilhe seus workflows. Aqui ninguém é só número.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Discord Ativo
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  GitHub Público
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Live Coding
-                </div>
-              </div>
-            </div>
-
-            {/* Feedback Importa */}
-            <div className="p-8 rounded-2xl border-2 border-arc bg-arc-primary hover:border-[#10b981] transition-all group">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#10b981] text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Activity className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">Seu Feedback Importa</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                    Bugs reportados são consertados em horas, não semanas. Features pedidas pela comunidade
-                    vão pro topo da lista. Você molda o produto.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-                  <span className="text-arc-muted">Resposta média: &lt; 2h</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Early Adopters são Lendas */}
-            <div className="p-8 rounded-2xl border-2 border-arc bg-arc-primary hover:border-[#10b981] transition-all group">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#10b981] text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Star className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2">Early Adopters = Lendas</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                    Badge especial, nome nos créditos, acesso antecipado a features, canal VIP no Discord.
-                    Vocês estão construindo isso com a gente.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className="px-3 py-1.5 rounded-full bg-[#10b981] text-white text-xs font-bold border border-[#10b981]">
-                  🏆 Badge Exclusivo
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Nome nos Créditos
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-arc-secondary text-xs font-medium text-arc border border-arc">
-                  Canal VIP
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats da Comunidade */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <div className="text-center p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">2.4k</div>
-              <div className="text-xs sm:text-sm text-arc-muted">Stars no GitHub</div>
-            </div>
-            <div className="text-center p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">100%</div>
-              <div className="text-xs sm:text-sm text-arc-muted">Open Source</div>
-            </div>
-            <div className="text-center p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">12h</div>
-              <div className="text-xs sm:text-sm text-arc-muted">Média fix de bugs</div>
-            </div>
-            <div className="text-center p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">Semanal</div>
-              <div className="text-xs sm:text-sm text-arc-muted">Updates públicos</div>
-            </div>
-          </div>
-
-          {/* CTA Comunidade */}
-          <div className="mt-12 text-center">
-            <h3 className="text-2xl sm:text-3xl font-bold text-arc mb-4">
-              Quer fazer parte da história?
-            </h3>
-            <p className="text-base text-arc-muted mb-6 max-w-2xl mx-auto">
-              Os primeiros 1.000 usuários vão moldar o futuro do Arc. Seu feedback, suas ideias, seus votos.
-              Não é só usar. É construir junto.
-            </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-arc text-arc-primary font-bold text-base hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-            >
-              <Users className="w-5 h-5" />
-              entrar pra comunidade
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Vídeo Demo - CRÍTICO para conversão */}
-      <section id="demo" className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-primary">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
-              <Zap className="w-4 h-4 text-[#EF4444]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
-                veja na prática
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              enquanto você configura notion,
-              <br />
-              <span className="text-arc-muted">nós já entregamos.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto">
-              Sério. Cronômetro na mão: 2 minutos do cadastro até produzir de verdade.
-            </p>
-          </div>
-
-          {/* Video Player - Placeholder para demo real */}
-          <div className="relative rounded-2xl overflow-hidden border-2 border-arc bg-arc-secondary shadow-2xl group">
-            <div className="aspect-video w-full flex items-center justify-center bg-gradient-to-br from-arc-secondary to-arc-primary relative">
-              {/* Placeholder - substituir por vídeo real */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 rounded-full bg-arc text-arc-primary flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform cursor-pointer shadow-lg">
-                    <svg
-                      className="w-8 h-8 ml-1"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-bold text-arc">Assista a demonstração completa</p>
-                  <p className="text-sm text-arc-muted mt-1">2min • Sem áudio necessário</p>
-                </div>
-              </div>
-
-              {/* Grid pattern overlay */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000004_1px,transparent_1px),linear-gradient(to_bottom,#00000004_1px,transparent_1px)] bg-[size:2rem_2rem]" />
-            </div>
-
-            {/* Video Stats */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs sm:text-sm">
-              <div className="flex items-center gap-3 bg-arc-primary/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-arc">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse" />
-                  <span className="font-medium text-arc">Demonstração ao vivo</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 bg-arc-primary/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-arc">
-                <Zap className="w-4 h-4 text-arc" />
-                <span className="font-medium text-arc">Setup em 2 minutos</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Benefícios rápidos após o vídeo */}
-          <div className="grid sm:grid-cols-3 gap-4 mt-8 sm:mt-10">
-            <div className="text-center p-5 rounded-xl border border-arc bg-arc-secondary hover:border-[#EF4444] transition-colors">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">2min</div>
-              <p className="text-sm text-arc-muted">Do cadastro ao primeiro projeto</p>
-            </div>
-            <div className="text-center p-5 rounded-xl border border-arc bg-arc-secondary hover:border-[#EF4444] transition-colors">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">0</div>
-              <p className="text-sm text-arc-muted">Configurações necessárias</p>
-            </div>
-            <div className="text-center p-5 rounded-xl border border-arc bg-arc-secondary hover:border-[#EF4444] transition-colors">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">28+</div>
-              <p className="text-sm text-arc-muted">Templates prontos para usar</p>
-            </div>
-          </div>
-
-          {/* CTA após o vídeo */}
-          <div className="text-center mt-10 sm:mt-12">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-arc text-arc-primary font-bold text-base hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-            >
-              <Rocket className="w-5 h-5" />
-              começar agora grátis
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <p className="text-xs text-arc-muted mt-3">Sem cartão de crédito • Pronto em menos de 2min</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Métricas em destaque - Build in Public */}
-      <section id="metrics" className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
-              <Activity className="w-4 h-4 text-[#EF4444]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
-                métricas em tempo real
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              zero frescura.
-              <br />
-              <span className="text-arc-muted">100% transparente.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
-              Código aberto. Métricas públicas. Sem joguinho de marketing.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-12">
-            {metrics.map((metric, i) => (
-              <div
-                key={i}
-                className="relative p-6 sm:p-8 rounded-xl sm:rounded-2xl border-2 border-arc bg-arc-primary hover:bg-arc-secondary transition-all duration-300 group hover:scale-[1.02] touch-manipulation"
-              >
-                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-2 h-2 rounded-full bg-[#EF4444] opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-arc mb-2 sm:mb-3 tracking-tight">
-                  {metric.value}
-                </div>
-                <div className="text-xs sm:text-sm font-semibold text-arc mb-1 sm:mb-2">{metric.label}</div>
-                <div className="flex items-center gap-1 text-xs text-arc-muted">
-                  <TrendingUp className="w-3 h-3 flex-shrink-0" />
-                  <span>{metric.trend}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <Folder className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
-                <span className="text-lg sm:text-2xl font-bold text-arc">grupos ilimitados</span>
-              </div>
-              <p className="text-sm text-arc-muted">Organize projetos em hierarquias flexíveis</p>
-            </div>
-            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <FileText className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
-                <span className="text-lg sm:text-2xl font-bold text-arc">páginas infinitas</span>
-              </div>
-              <p className="text-sm text-arc-muted">Sem limites artificiais no plano gratuito</p>
-            </div>
-            <div className="p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary hover:border-[#EF4444] transition-all group sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-3 mb-3">
-                <Users className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#EF4444] transition-colors" />
-                <span className="text-lg sm:text-2xl font-bold text-arc">colaboração real</span>
-              </div>
-              <p className="text-sm text-arc-muted">Convites seguros e permissões granulares</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              para cada workflow.
-              <br />
-              <span className="text-arc-muted">uma solução.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
-              Templates e presets especializados para diferentes casos de uso profissionais.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-            {useCases.map((useCase, i) => {
-              const Icon = useCase.icon
-              return (
-                <div
-                  key={i}
-                  className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]"
-                >
-                  <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#EF4444] transition-all">
-                    <Icon
-                      className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#EF4444] transition-colors"
-                      strokeWidth={2}
-                    />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">{useCase.title}</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed mb-5 sm:mb-6">{useCase.desc}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {useCase.features.map((feature, j) => (
-                      <span
-                        key={j}
-                        className="px-3 py-1.5 rounded-full border border-arc bg-arc-primary text-xs font-medium text-arc group-hover:border-[#EF4444] transition-colors"
-                      >
-                        {feature}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Link href="/register" className="group px-7 py-3.5 bg-arc-primary text-arc text-sm font-bold tracking-tight rounded-xl hover:opacity-90 transition-all magnetic-btn">
+                      <span className="flex items-center gap-2">
+                        apenas usar
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
-                    ))}
+                    </Link>
+                    <button className="group flex items-center gap-2 px-5 py-3.5 border border-arc-primary/20 rounded-xl text-sm text-arc-primary/70 hover:text-arc-primary hover:border-[#EB5757]/40 transition-all">
+                      <Heart className="w-4 h-4 group-hover:text-[#EB5757] transition-colors" strokeWidth={1.5} />
+                      ajudar a dividir a conta
+                    </button>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* Features - Grid agressivo */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              sem features inúteis.
-              <br />
-              <span className="text-arc-muted">só o que importa.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
-              Cansei de ferramenta que faz café. Aqui é direto: organiza, executa, entrega.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-            {features.map((feature, i) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={i}
-                  className="group p-6 sm:p-8 rounded-xl sm:rounded-2xl border-2 border-arc bg-arc-primary hover:bg-arc-secondary transition-all duration-300 hover:scale-[1.01]"
-                >
-                  <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 transition-transform">
-                    <Icon className="w-6 sm:w-7 h-6 sm:h-7 text-arc" strokeWidth={2} />
+                {/* Right: Cost breakdown */}
+                <div className="p-8 sm:p-12 lg:p-16 border-t lg:border-t-0 lg:border-l border-arc-primary/10">
+                  <div className="space-y-5">
+                    {[
+                      { icon: Server, label: "servidor (VPS)", cost: "R$ 45", detail: "2 vCPU / 4GB RAM" },
+                      { icon: Database, label: "banco de dados", cost: "R$ 0", detail: "PostgreSQL self-hosted" },
+                      { icon: Globe, label: "domínio + DNS", cost: "R$ 8", detail: ".dev / Cloudflare" },
+                      { icon: HardDrive, label: "storage / CDN", cost: "R$ 0", detail: "Vercel (free tier)" },
+                      { icon: Coffee, label: "café do dev", cost: "R$ 30", detail: "essencial." },
+                    ].map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <div key={item.label} className="flex items-center justify-between group">
+                          <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="w-9 h-9 rounded-lg bg-arc-primary/10 flex items-center justify-center">
+                              <Icon className="w-4 h-4 text-arc-primary/50 group-hover:text-[#6E62E5] transition-colors" strokeWidth={1.5} />
+                            </div>
+                            <div>
+                              <div className="text-sm text-arc-primary font-medium">{item.label}</div>
+                              <div className="text-[10px] font-mono text-arc-primary/40">{item.detail}</div>
+                            </div>
+                          </div>
+                          <div className="text-sm font-mono font-bold text-arc-primary">{item.cost}</div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-arc mb-2 sm:mb-3">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-arc-muted leading-relaxed">{feature.desc}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* CTA Intermediário - Após Features */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="p-8 sm:p-12 rounded-2xl border-2 border-arc bg-gradient-to-br from-arc-primary to-arc-secondary text-center">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-arc mb-4">
-              cansou de perder tempo?
-            </h3>
-            <p className="text-base sm:text-lg text-arc-muted mb-6 sm:mb-8">
-              Enquanto você lê isso, alguém já criou um workspace e tá produzindo.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-arc text-arc-primary font-bold text-base hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-              >
-                <Rocket className="w-5 h-5" />
-                criar workspace grátis
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <div className="flex items-center gap-2 text-sm text-arc-muted">
-                <CheckCircle className="w-4 h-4 text-[#10b981]" />
-                <span>Sem cartão • 100% grátis</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Templates - Lista visual */}
-      <section id="templates" className="py-16 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#EF4444] transition-colors group">
-              <Sparkles className="w-4 h-4 text-[#EF4444]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#EF4444] transition-colors">
-                28+ templates especializados
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              chega de template pago.
-              <br />
-              <span className="text-arc-muted">28+ de graça.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
-              Enquanto você gasta R$ 97 num template do Notion, aqui tem 28+ prontos. De graça. Sempre.
-            </p>
-          </div>
-
-          <div className="mb-10 sm:mb-12">
-            {/* Chips interativos com popover (pt-br) */}
-            <TemplatesShowcase />
-          </div>
-
-          {/* CTA secundário */}
-          <div className="text-center">
-            <Link
-              href="/workspace"
-              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-lg border-2 border-arc text-arc font-bold text-sm sm:text-base hover:bg-arc-secondary transition-all hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
-            >
-              explorar todos os templates
-              <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Presets - Destaque visual */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              presets prontos.
-              <br />
-              <span className="text-arc-muted">só escolher e sair usando.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
-              10 presets completos. 4-5 páginas cada. Literalmente clica e já era.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {[
-              { name: "Personal Finance", pages: 5, desc: "Orçamento, despesas, investimentos, metas" },
-              { name: "Dev Project", pages: 5, desc: "Roadmap, sprints, bugs, docs, timeline" },
-              { name: "Student Subject", pages: 4, desc: "Notas, estudos, calendar, mind map" },
-              { name: "Content Creator", pages: 4, desc: "Ideias, roteiros, analytics, calendar" },
-              { name: "Freelancer Project", pages: 5, desc: "Tasks, time tracking, budget, invoices" },
-              { name: "Startup/Product", pages: 5, desc: "Roadmap, features, metrics, feedback" },
-            ].map((preset, i) => (
-              <div
-                key={i}
-                className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#EF4444] hover:bg-arc-secondary transition-all duration-300 group cursor-pointer hover:scale-[1.01]"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-arc mb-1 group-hover:text-[#EF4444] transition-colors">
-                      {preset.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-arc-muted">{preset.pages} páginas incluídas</p>
-                  </div>
-                  <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-lg border border-arc flex items-center justify-center group-hover:scale-110 group-hover:border-[#EF4444] transition-all flex-shrink-0">
-                    <Folder className="w-4 sm:w-5 h-4 sm:h-5 text-arc group-hover:text-[#EF4444] transition-colors" />
-                  </div>
-                </div>
-                <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">{preset.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="api" className="hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#6E62E5] transition-colors group">
-              <Code2 className="w-4 h-4 text-[#6E62E5]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#6E62E5] transition-colors">
-                API-first platform
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              construa sobre o arc.
-              <br />
-              <span className="text-arc-muted">sem código desnecessário.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
-              133+ endpoints REST. Documentação completa. Webhooks. Rate limiting justo. Tudo que você precisa para
-              integrar.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
-            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
-            {/* It's good practice to ensure all sections are accounted for or explicitly left as-is. */}
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
-              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Code2
-                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
-                  strokeWidth={2}
-                />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">REST API Completa</h3>
-              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                133+ endpoints documentados. Autenticação JWT. Rate limiting inteligente. Webhooks para eventos em tempo
-                real.
-              </p>
-            </div>
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
-              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Database
-                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
-                  strokeWidth={2}
-                />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Integrações Nativas</h3>
-              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                Conecte com GitHub, Slack, Discord, Notion, Trello. Sincronização bidirecional e automações poderosas.
-              </p>
-            </div>
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
-              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Workflow
-                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
-                  strokeWidth={2}
-                />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Automações Avançadas</h3>
-              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                Crie workflows personalizados. Triggers, actions e conditions. Sem código ou com código, você escolhe.
-              </p>
-            </div>
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 hover:scale-[1.01]">
-              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl border-2 border-arc flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <GitBranch
-                  className="w-6 sm:w-7 h-6 sm:h-7 text-arc group-hover:text-[#6E62E5] transition-colors"
-                  strokeWidth={2}
-                />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-arc mb-3">Versionamento Completo</h3>
-              <p className="text-sm sm:text-base text-arc-muted leading-relaxed">
-                Histórico completo de mudanças. Rollback instantâneo. Branches para experimentação. Git-like workflow.
-              </p>
-            </div>
-          </div>
-
-          {/* Code example */}
-          <div className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-primary">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-bold text-arc">Exemplo de uso</h3>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#6E62E5]" />
-                <span className="text-xs sm:text-sm text-arc-muted">REST API</span>
-              </div>
-            </div>
-            <div className="bg-arc-secondary rounded-xl p-4 sm:p-6 font-mono text-xs sm:text-sm text-arc overflow-x-auto">
-              <pre className="whitespace-pre">
-                {`// Criar um novo workspace
-const response = await fetch('https://api.arc.app/v1/workspaces', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    name: 'Meu Projeto',
-    template: 'dev-project'
-  })
-});
-
-const workspace = await response.json();
-console.log(workspace.id); // ws_abc123`}
-              </pre>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-4 sm:mb-6 hover:border-[#6E62E5] transition-colors group">
-              <Shield className="w-4 h-4 text-[#6E62E5]" />
-              <span className="text-xs sm:text-sm font-medium text-arc group-hover:text-[#6E62E5] transition-colors">
-                enterprise-grade security
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              seus dados.
-              <br />
-              <span className="text-arc-muted">nossas mãos não.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl mx-auto px-4">
-              Criptografia E2E, código open source, compliance total. Não vendemos seus dados. Nunca.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
-            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
-            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
-              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Lock className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">Criptografia E2E</h3>
-              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
-                Dados criptografados em trânsito e em repouso
-              </p>
-            </div>
-            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
-              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Shield className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">SOC 2 Type II</h3>
-              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
-                Compliance com padrões internacionais de segurança
-              </p>
-            </div>
-            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
-              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Users className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">SSO & 2FA</h3>
-              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
-                Single Sign-On e autenticação de dois fatores
-              </p>
-            </div>
-            <div className="p-5 sm:p-6 rounded-xl border-2 border-arc bg-arc-primary hover:border-[#6E62E5] transition-all group hover:scale-[1.02]">
-              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg border border-arc flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#6E62E5] transition-all">
-                <Globe className="w-5 sm:w-6 h-5 sm:h-6 text-arc group-hover:text-[#6E62E5] transition-colors" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-arc mb-2">GDPR Compliant</h3>
-              <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">100% em conformidade com LGPD e GDPR</p>
-            </div>
-          </div>
-
-          {/* Stats de confiabilidade */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* This section was not present in the provided updates, so it remains unchanged from the original */}
-            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">99.9%</div>
-              <div className="text-xs sm:text-sm text-arc-muted">uptime garantido</div>
-            </div>
-            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">&lt;100ms</div>
-              <div className="text-xs sm:text-sm text-arc-muted">latência média</div>
-            </div>
-            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">24/7</div>
-              <div className="text-xs sm:text-sm text-arc-muted">suporte técnico</div>
-            </div>
-            <div className="text-center p-5 sm:p-6 rounded-xl border border-arc bg-arc-primary">
-              <div className="text-3xl sm:text-4xl font-extrabold text-arc mb-2">∞</div>
-              <div className="text-xs sm:text-sm text-arc-muted">escalabilidade</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-3 sm:mb-4">
-              eles migraram.
-              <br />
-              <span className="text-arc-muted">você é o próximo?</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted max-w-2xl">
-              Galera que cansou de Notion lento, Trello limitado e Asana confuso.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-            {testimonials.map((testimonial, i) => (
-              <div
-                key={i}
-                className="p-6 sm:p-8 rounded-2xl border-2 border-arc bg-arc-secondary hover:bg-arc-primary transition-all duration-300 group hover:scale-[1.02]"
-              >
-                <div className="mb-5 sm:mb-6">
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#EF4444] text-[#EF4444]" />
-                    ))}
-                  </div>
-                  <p className="text-sm sm:text-base text-arc leading-relaxed mb-4">{testimonial.quote}</p>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-arc bg-arc-primary">
-                    <TrendingUp className="w-3 h-3 text-[#EF4444]" />
-                    <span className="text-xs font-semibold text-arc">{testimonial.metric}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold text-arc text-sm sm:text-base">{testimonial.author}</div>
-                  <div className="text-xs sm:text-sm text-arc-muted">{testimonial.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Final - Beta Gratuita */}
-      <section id="pricing" className="py-20 sm:py-24 px-4 sm:px-6 border-y border-arc bg-arc-secondary">
-        <div className="max-w-6xl mx-auto">
-          {/* Banner de urgência/escassez */}
-          <div className="mb-10 sm:mb-12 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Zap className="w-5 h-5 animate-pulse" />
-              <span className="text-lg sm:text-xl font-extrabold">ÚLTIMA CHAMADA BETA</span>
-            </div>
-            <p className="text-sm sm:text-base opacity-90">
-              Primeiros 1.000 usuários nunca pagam. Literalmente. Restam <span className="font-bold">153 vagas.</span>
-            </p>
-          </div>
-
-          <div className="text-center mb-10 sm:mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-arc mb-6 sm:mb-8 bg-arc-primary">
-              <Star className="w-4 h-4 text-arc" />
-              <span className="text-xs sm:text-sm font-bold text-arc">BETA • 100% GRÁTIS • ZERO FRESCURA</span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[0.95]">
-              R$ 588/ano?
-              <br />
-              <span className="text-arc-muted">não nesta vida.</span>
-            </h2>
-            <p className="text-base sm:text-xl text-arc-muted mt-3 max-w-2xl mx-auto">
-              Early adopters <span className="font-bold text-arc">nunca pagam</span>. Quando lançarmos os planos, você mantém tudo grátis. Pra sempre.
-              <br />
-              <span className="text-sm mt-3 block">
-                (E pros que entrarem depois? Preço justo: <span className="font-bold text-arc">R$ 15-20/mês</span>. 3x mais barato que a concorrência.)
-              </span>
-              <br />
-              Sem cartão. Sem trial fake. Sem exploração.
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            {/* Beta Plan - Destaque único */}
-            <div className="p-8 sm:p-12 rounded-2xl border-2 border-arc bg-arc-primary shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl font-extrabold text-arc">Plano Beta</div>
-                  <span className="px-3 py-1 rounded-full bg-arc text-arc-primary text-xs font-bold">GRÁTIS</span>
-                </div>
-                <Sparkles className="w-6 h-6 text-arc" />
-              </div>
-
-              <div className="flex items-baseline gap-2 mb-8">
-                <span className="text-6xl sm:text-7xl font-extrabold text-arc">R$ 0</span>
-                <span className="text-xl text-arc-muted">durante toda a beta</span>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 mb-8">
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Workspaces ilimitados</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Projetos ilimitados</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Todos os templates</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Colaboração em equipe</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Análises avançadas</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Armazenamento generoso</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Suporte prioritário</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm sm:text-base text-arc">
-                  <CheckCircle className="w-5 h-5 text-arc flex-shrink-0" />
-                  <span className="font-medium">Badge exclusivo de beta tester</span>
-                </div>
-              </div>
-
-              <div className="bg-arc-secondary border border-arc rounded-xl p-6 mb-6">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-arc flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-bold text-arc mb-1">Por que tá de graça?</p>
-                    <p className="text-xs sm:text-sm text-arc-muted leading-relaxed">
-                      Beta = grátis pra sempre pros early adopters. Simples. Você nos ajuda a crescer,
-                      nós te damos tudo grátis. Sem renovação, sem pegadinha. Pra vida.
-                    </p>
+                  {/* Total */}
+                  <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-arc-primary/10 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-arc-primary/40 font-mono tracking-widest">custo total / mês</div>
+                      <div className="text-[10px] text-arc-primary/30 font-mono">receita: R$ 0</div>
+                    </div>
+                    <div className="text-3xl sm:text-4xl font-mono font-bold text-arc-primary">
+                      R$ 83
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center w-full h-16 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white font-extrabold text-lg hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-[#EF4444]/30"
-              >
-                <Rocket className="w-6 h-6 mr-2" />
-                GARANTIR MINHA VAGA GRÁTIS AGORA
-                <ArrowRight className="w-6 h-6 ml-2" />
-              </Link>
-
-              <div className="mt-4 text-center">
-                <p className="text-sm font-bold text-arc mb-2">
-                  ⚡ Última chance de garantir benefícios vitalícios
+        {/* ═══════════════════════════════════
+            FOOTER
+        ═══════════════════════════════════ */}
+        <footer className="bg-arc-primary pt-16 sm:pt-24 lg:pt-32 pb-8 sm:pb-12 border-t border-arc">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+            {/* Top: brand + tagline */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 sm:mb-16 lg:mb-20 gap-6 sm:gap-8">
+              <div>
+                <div className="text-[14vw] sm:text-[10vw] md:text-[7vw] leading-[0.85] font-extrabold tracking-tighter text-arc opacity-90 select-none cursor-default">
+                  arc.
+                </div>
+                <p className="text-sm sm:text-base text-arc-muted mt-2 sm:mt-3 max-w-sm">
+                  mantido por pessoas, não por empresas.
                 </p>
-                <div className="flex items-center justify-center gap-2 text-xs text-arc-muted">
-                  <CheckCircle className="w-4 h-4 text-[#10b981]" />
-                  <span>Restam apenas 153 vagas para early adopters</span>
-                </div>
+              </div>
+              <div className="flex flex-col gap-3 sm:gap-4 md:text-right">
+                <Link href="/register" className="group text-base sm:text-lg text-arc hover:text-[#6E62E5] transition-colors font-medium flex items-center gap-2 md:justify-end">
+                  criar workspace
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <p className="text-xs sm:text-sm text-arc-muted max-w-xs">
+                  código, café e comunidade. é tudo que precisa.
+                </p>
+              </div>
+            </div>
+
+            {/* Link matrix — 5 columns */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 border-t border-arc pt-8 sm:pt-10">
+              <div>
+                <h4 className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">produto</h4>
+                <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-arc-muted">
+                  <li><Link href="#features" className="hover:text-arc transition-colors">features</Link></li>
+                  <li><Link href="#templates" className="hover:text-arc transition-colors">templates</Link></li>
+                  <li><Link href="/open" className="hover:text-arc transition-colors">custos abertos</Link></li>
+                  <li><Link href="#" className="hover:text-arc transition-colors">changelog</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">comunidade</h4>
+                <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-arc-muted">
+                  <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-arc transition-colors">GitHub</a></li>
+                  <li><a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="hover:text-arc transition-colors">Discord</a></li>
+                  <li><Link href="#community" className="hover:text-arc transition-colors">contribuir</Link></li>
+                  <li><button className="hover:text-arc transition-colors text-left">sponsor</button></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">social</h4>
+                <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-arc-muted">
+                  <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-arc transition-colors">Twitter / X</a></li>
+                  <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-arc transition-colors">LinkedIn</a></li>
+                  <li><a href="mailto:contato@arc.dev" className="hover:text-arc transition-colors">contato</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">legal</h4>
+                <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-arc-muted">
+                  <li><Link href="#" className="hover:text-arc transition-colors">privacidade</Link></li>
+                  <li><Link href="#" className="hover:text-arc transition-colors">termos</Link></li>
+                  <li><Link href="#" className="hover:text-arc transition-colors">MIT license</Link></li>
+                </ul>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <h4 className="text-[10px] font-mono text-arc-muted mb-3 sm:mb-4 tracking-widest">status</h4>
+                <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-arc-muted">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#10b981] rounded-full status-pulse" />
+                    sistema online
+                  </li>
+                  <li>custos: R$ 83/mês</li>
+                  <li>receita: R$ 0</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-arc flex flex-col sm:flex-row justify-between items-center gap-4">
+              <p className="text-[10px] font-mono text-arc-muted tracking-widest">
+                © 2025 arc. software livre, como deve ser.
+              </p>
+              <div className="flex items-center gap-4">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-arc-muted hover:text-arc transition-colors">
+                  <Github className="w-4 h-4" strokeWidth={1.5} />
+                </a>
+                <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="text-arc-muted hover:text-arc transition-colors">
+                  <MessageCircle className="w-4 h-4" strokeWidth={1.5} />
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-arc-muted hover:text-arc transition-colors">
+                  <Linkedin className="w-4 h-4" strokeWidth={1.5} />
+                </a>
               </div>
             </div>
           </div>
-
-          <p className="text-xs sm:text-sm text-arc-muted text-center mt-8 px-4">
-            ✓ Zero cartão • ✓ Pronto em 2min • ✓ Cancele quando quiser (mas é grátis, então... 🤷)
-          </p>
-        </div>
-      </section>
-
-      {/* Footer minimalista */}
-      <footer className="py-10 sm:py-12 px-4 sm:px-6 border-t border-arc">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6 sm:mb-8">
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Image src="/icon/arclogo.svg" alt="Arc" width={28} height={28} priority />
-              <span className="text-lg font-bold text-arc">arc.</span>
-            </Link>
-
-            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-xs sm:text-sm text-arc-muted">
-              <Link href="/build-in-public" className="hover:text-arc transition-colors">
-                Desenvolvido Abertamente
-              </Link>
-              <Link href="/pricing" className="hover:text-arc transition-colors">
-                Preços
-              </Link>
-              <Link href="/docs" className="hover:text-arc transition-colors">
-                Documentação
-              </Link>
-              <Link href="/privacy" className="hover:text-arc transition-colors">
-                Privacidade
-              </Link>
-              <Link href="/terms" className="hover:text-arc transition-colors">
-                Termos
-              </Link>
-            </div>
-          </div>
-
-          <div className="text-center text-xs sm:text-sm text-arc-muted pt-6 sm:pt-8 border-t border-arc">
-            <p>© 2025 arc. feito para quem faz acontecer.</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   )
 }

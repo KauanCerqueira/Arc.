@@ -1,0 +1,27 @@
+# Development Dockerfile with hot reload
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /app/src
+
+# Copy solution and project files
+COPY Arc.sln ./
+COPY Arc.API/*.csproj ./Arc.API/
+COPY Arc.Application/*.csproj ./Arc.Application/
+COPY Arc.Domain/*.csproj ./Arc.Domain/
+COPY Arc.Infrastructure/*.csproj ./Arc.Infrastructure/
+COPY Arc.Tests/*.csproj ./Arc.Tests/
+
+# Restore packages
+RUN dotnet restore
+
+# Copy all source code
+COPY . .
+
+# Install dotnet-ef for migrations
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+WORKDIR /app/src/Arc.API
+
+# Run with hot reload (watch mode)
+CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]

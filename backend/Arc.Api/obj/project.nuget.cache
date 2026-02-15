@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XE6UwJEOE0w=",
+  "dgSpecHash": "aCU849TtKzI=",
   "success": true,
-  "projectFilePath": "C:\\Reps\\Arc\\backend\\Arc.API\\Arc.API.csproj",
+  "projectFilePath": "C:\\Reps\\Arc\\backend\\Arc.Api\\Arc.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\conta\\.nuget\\packages\\aspnetcore.healthchecks.npgsql\\8.0.2\\aspnetcore.healthchecks.npgsql.8.0.2.nupkg.sha512",
     "C:\\Users\\conta\\.nuget\\packages\\aspnetcoreratelimit\\5.0.0\\aspnetcoreratelimit.5.0.0.nupkg.sha512",
