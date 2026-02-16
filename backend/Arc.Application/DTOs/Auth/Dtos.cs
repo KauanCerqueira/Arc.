@@ -8,8 +8,7 @@ public class RegisterRequestDto
     [StringLength(50, MinimumLength = 2)]
     public string Nome { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Sobrenome é obrigatório")]
-    [StringLength(50, MinimumLength = 2)]
+    [StringLength(50)]
     public string Sobrenome { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email é obrigatório")]

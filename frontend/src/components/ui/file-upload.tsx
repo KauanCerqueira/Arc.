@@ -66,7 +66,7 @@ export function FileUpload({ onUploadComplete, folder = 'general', className }: 
       const url = response.data.url;
       // Se for local storage, adicionar a base URL se não vier completa
       const fullUrl = url.startsWith('http') ? url : `${apiUrl}${url}`;
-      
+
       setUploadedUrl(fullUrl);
       if (onUploadComplete) {
         onUploadComplete(fullUrl);
@@ -98,7 +98,7 @@ export function FileUpload({ onUploadComplete, folder = 'general', className }: 
           className="hidden"
           onChange={handleFileSelect}
         />
-        
+
         <div className="flex flex-col items-center justify-center gap-2">
           {isUploading ? (
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -107,7 +107,7 @@ export function FileUpload({ onUploadComplete, folder = 'general', className }: 
           ) : (
             <Upload className="h-10 w-10 text-gray-400" />
           )}
-          
+
           <div className="text-sm text-gray-600">
             {isUploading ? (
               <p>Enviando arquivo...</p>
@@ -136,9 +136,9 @@ export function FileUpload({ onUploadComplete, folder = 'general', className }: 
             <FileText className="h-5 w-5 text-primary mr-2 flex-shrink-0" />
             <span className="text-sm truncate max-w-[200px] text-gray-700">{uploadedUrl.split('/').pop()}</span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="h-8 w-8 p-0 hover:bg-gray-100"
             onClick={(e) => {
               e.stopPropagation();

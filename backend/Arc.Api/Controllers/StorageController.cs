@@ -17,7 +17,9 @@ public class StorageController : BaseAuthController
     }
 
     [HttpPost("upload")]
-    public async Task<IActionResult> Upload([FromForm] IFormFile file, [FromQuery] string folder = "general")
+    [Consumes("multipart/form-data")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> Upload(IFormFile file, [FromQuery] string folder = "general")
     {
         try
         {

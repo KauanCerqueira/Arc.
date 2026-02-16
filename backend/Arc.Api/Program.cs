@@ -276,6 +276,10 @@ app.UseCors("DynamicCorsPolicy");
 
 // Desabilitar HttpsRedirection em desenvolvimento para evitar problemas com CORS
 if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 // Rate Limiting
 app.UseIpRateLimiting();
 

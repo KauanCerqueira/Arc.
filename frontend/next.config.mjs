@@ -45,12 +45,14 @@ const nextConfig = {
   turbopack: {},
 
   // Modularize imports for better tree-shaking
-  modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
-      skipDefaultConversion: true,
-    },
-  },
+  // Note: modularizeImports doesn't work well with Turbopack in Next.js 16
+  // Using optimizePackageImports instead (configured in experimental section)
+  // modularizeImports: {
+  //   'lucide-react': {
+  //     transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+  //     skipDefaultConversion: true,
+  //   },
+  // },
 
   // Headers for better caching and security
   async headers() {

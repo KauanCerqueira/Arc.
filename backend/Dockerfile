@@ -1,31 +1,32 @@
-# =========================
-# STAGE 1 - Build
-# =========================
+# Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o conteúdo do backend para dentro do container
+# Copy solution and project files
+COPY *.sln .
+COPY Arc.Api/*.csproj ./Arc.Api/
+COPY Arc.Application/*.csproj ./Arc.Application/
+COPY Arc.Domain/*.csproj ./Arc.Domain/
+COPY Arc.Infrastructure/*.csproj ./Arc.Infrastructure/
+COPY Arc.Tests/*.csproj ./Arc.Tests/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the code
 COPY . .
 
-# Restaura dependências (usa o caminho correto do .sln)
-RUN dotnet restore ./Arc.API/Arc.API.csproj
+# Build and Publish
+WORKDIR /src/Arc.Api
+RUN dotnet publish -c Release -o /app/publish
 
-# Publica o projeto principal
-RUN dotnet publish ./Arc.API/Arc.API.csproj -c Release -o /app/out
-
-# =========================
-# STAGE 2 - Runtime
-# =========================
+# Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+COPY --from=build /app/publish .
 
-# Install curl for healthcheck
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copia os arquivos publicados do estágio anterior
-COPY --from=build /app/out .
-
+# Expose port
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "Arc.API.dll"]
+
+# Entry point
+ENTRYPOINT ["dotnet", "Arc.Api.dll"]

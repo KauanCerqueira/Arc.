@@ -167,7 +167,7 @@ export default function Home() {
       <div className="fixed z-50 flex w-full top-4 sm:top-6 px-4 sm:px-6 justify-center">
         <nav className="flex items-center backdrop-blur-xl bg-arc-secondary/40 border border-arc/50 rounded-full px-2 sm:px-3 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.08)] gap-1 sm:gap-2">
           {/* Center nav links */}
-          <div className="hidden md:flex items-center gap-0.5">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-0.5">
             {[
               { href: "#features", label: "features" },
               { href: "#templates", label: "templates" },
@@ -184,7 +184,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Right: social icons + CTA */}
+          {/* Right: social icons + login + CTA */}
           <div className="flex items-center gap-1 sm:gap-2">
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full text-arc-muted hover:text-arc hover:bg-arc-primary/50 transition-all" aria-label="GitHub">
               <Github className="w-4 h-4" strokeWidth={1.5} />
@@ -193,6 +193,12 @@ export default function Home() {
               <Linkedin className="w-4 h-4" strokeWidth={1.5} />
             </a>
             <div className="hidden lg:block h-4 w-px bg-arc/20 mx-1" />
+            <Link
+              href="/login"
+              className="inline-flex items-center h-8 sm:h-9 px-4 sm:px-5 rounded-full text-arc-muted hover:text-arc font-medium text-xs tracking-tight transition-all hover:bg-arc-primary/50"
+            >
+              login
+            </Link>
             <Link
               href="/register"
               className="inline-flex items-center h-8 sm:h-9 px-4 sm:px-5 rounded-full bg-arc text-arc-primary font-bold text-xs tracking-tight hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98]"
