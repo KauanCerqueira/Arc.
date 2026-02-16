@@ -62,7 +62,7 @@ dist/
 ## Environment variables
 .env
 .env*.local
-.env.production
+
 
 ## Debug logs
 npm-debug.log*

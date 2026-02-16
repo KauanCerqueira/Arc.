@@ -82,8 +82,8 @@ if [ ! -f "$ENV_FILE" ]; then
         cp .env.production $ENV_FILE
         print_success "Arquivo .env criado a partir de .env.production"
     else
-        print_error "Arquivo .env não encontrado e .env.production não existe!"
-        exit 1
+        print_error "Arquivo .env.production não encontrado! Criando .env vazio..."
+        touch $ENV_FILE
     fi
     
     print_step "IMPORTANTE: Verifique o arquivo .env"
@@ -91,13 +91,20 @@ if [ ! -f "$ENV_FILE" ]; then
     read
 fi
 
+# Validate critical variables
+if grep -q "POSTGRES_PASSWORD=" $ENV_FILE && [ -z "$(grep "POSTGRES_PASSWORD=" $ENV_FILE | cut -d= -f2)" ]; then
+    print_error "A variável POSTGRES_PASSWORD está vazia no arquivo .env!"
+    exit 1
+fi
+
+
 # ========================================
 # 4. Deploy with Docker Compose
 # ========================================
 print_step "Iniciando containers..."
 
-docker compose -f $COMPOSE_FILE down --remove-orphans || true
-docker compose -f $COMPOSE_FILE up -d --build
+docker compose --env-file $ENV_FILE -f $COMPOSE_FILE down --remove-orphans || true
+docker compose --env-file $ENV_FILE -f $COMPOSE_FILE up -d --build
 
 # ========================================
 # 5. Final Check
@@ -105,7 +112,7 @@ docker compose -f $COMPOSE_FILE up -d --build
 print_step "Verificando status..."
 
 sleep 10
-docker compose -f $COMPOSE_FILE ps
+docker compose --env-file $ENV_FILE -f $COMPOSE_FILE ps
 
 print_success "Deploy concluído! Acesse:"
 echo "Backend: api.vps7442.panel.icontainer.net"
