@@ -1,8 +1,7 @@
 import type { WorkspaceInvite, WorkspaceRole } from '@/core/types/workspace.types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : 'http://localhost:5001/api';
+import { API_BASE } from '@/core/config/api';
+
 
 // ============================================
 // TIPOS DE REQUEST/RESPONSE

@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMu
 import axios, { type AxiosRequestConfig, type AxiosError } from 'axios';
 
 // API base URL - pode ser configurado via env
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { API_BASE } from '@/core/config/api';
+
+const API_BASE_URL = API_BASE;
 
 /**
  * Cliente Axios configurado com interceptors e tratamento de erros

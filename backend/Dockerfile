@@ -2,19 +2,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files
+# Copy solution and project files (excluding tests)
 COPY *.sln .
 COPY Arc.Api/*.csproj ./Arc.Api/
 COPY Arc.Application/*.csproj ./Arc.Application/
 COPY Arc.Domain/*.csproj ./Arc.Domain/
 COPY Arc.Infrastructure/*.csproj ./Arc.Infrastructure/
-COPY Arc.Tests/*.csproj ./Arc.Tests/
 
 # Restore dependencies
-RUN dotnet restore
+RUN dotnet restore Arc.Api/Arc.Api.csproj
 
-# Copy the rest of the code
-COPY . .
+# Copy the rest of the code (excluding tests)
+COPY Arc.Api/ ./Arc.Api/
+COPY Arc.Application/ ./Arc.Application/
+COPY Arc.Domain/ ./Arc.Domain/
+COPY Arc.Infrastructure/ ./Arc.Infrastructure/
 
 # Build and Publish
 WORKDIR /src/Arc.Api

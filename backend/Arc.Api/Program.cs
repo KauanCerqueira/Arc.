@@ -260,6 +260,24 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// ===== AUTO-MIGRATIONS (Produção) =====
+// Aplica migrations automaticamente no startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate(); // Aplica migrations pendentes
+        Console.WriteLine("✅ Migrations aplicadas com sucesso!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
+        // Não falha o startup, apenas loga o erro
+    }
+}
+
 // ===== PIPELINE =====
 // Middleware de exception handling (deve ser o primeiro)
 app.UseMiddleware<ExceptionHandlingMiddleware>();

@@ -1,0 +1,67 @@
+# Docker Compose para VPS - Backend Only
+# Frontend hospedado na Vercel
+# Uso: docker compose -f docker-compose.vps.yml up -d
+
+version: '3.8'
+
+services:
+  backend:
+    # IMPORTANTE: Troque SEU_USUARIO_DOCKERHUB pelo seu username real do Docker Hub
+    image: mynameiskauan/arc-backend:latest
+    container_name: arc-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpirationMinutes=${JWT_EXPIRATION_MINUTES}
+      - Jwt__RefreshExpirationDays=${JWT_REFRESH_EXPIRATION_DAYS}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - Encryption__MasterKey=${ENCRYPTION_MASTER_KEY}
+    volumes:
+      # Volume persistente para uploads de arquivos dos usuários
+      - /root/arc-data/uploads:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - arc-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: arc-postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arc-network
+    # PostgreSQL não exposto externamente (segurança)
+    # Apenas acessível via rede interna do Docker
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  arc-network:
+    driver: bridge

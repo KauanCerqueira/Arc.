@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import axios from 'axios';
+import { API_BASE } from '@/core/config/api';
 
 interface FileUploadProps {
   onUploadComplete?: (url: string) => void;
@@ -54,8 +55,8 @@ export function FileUpload({ onUploadComplete, folder = 'general', className }: 
 
     try {
       // Ajustar URL base conforme necessário
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await axios.post(`${apiUrl}/api/storage/upload`, formData, {
+      const apiUrl = API_BASE;
+      const response = await axios.post(`${apiUrl}/storage/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           // Adicionar token se necessário: Authorization: `Bearer ${token}`

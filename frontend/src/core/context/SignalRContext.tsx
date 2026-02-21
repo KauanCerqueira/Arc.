@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { API_HUBS } from '@/core/config/api';
 
 interface SignalRContextType {
   connection: signalR.HubConnection | null;
@@ -25,9 +26,7 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
 
   useEffect(() => {
     // URL do backend - ajustar conforme ambiente
-    const hubUrl = process.env.NEXT_PUBLIC_API_URL 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/hubs/arc`
-      : 'http://localhost:5000/hubs/arc';
+    const hubUrl = `${API_HUBS}/arc`;
 
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

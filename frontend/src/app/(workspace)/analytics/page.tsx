@@ -7,6 +7,7 @@ import {
   Users, TrendingUp, Briefcase, Globe,
   Calendar, BarChart3, PieChart, Activity
 } from 'lucide-react';
+import { API_BASE } from '@/core/config/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,9 +54,9 @@ export default function AnalyticsPage() {
     try {
       const token = localStorage.getItem('auth_token'); // Corrigido: auth_token (com underscore)
       console.log('🔑 Token:', token ? 'existe' : 'não existe');
-      console.log('🌐 API URL:', process.env.NEXT_PUBLIC_API_URL);
+      console.log('🌐 API URL:', API_BASE);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics`, {
+      const response = await fetch(`${API_BASE}/analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

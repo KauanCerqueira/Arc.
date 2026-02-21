@@ -152,6 +152,29 @@ docker pull seu-username/projectly-frontend:latest
 - Frontend: Railway ou Vercel (Next.js)
 - Deploy automático via GitHub Actions
 
+### Opção 4: VPS (Produção Completa) ⭐ Recomendado
+Deploy completo em VPS com SSL, backups automáticos e alta disponibilidade.
+
+```bash
+# Backend na VPS com Docker
+# Frontend na Vercel
+# PostgreSQL na VPS
+# SSL via Let's Encrypt
+```
+
+**📚 Documentação completa:**
+- [VPS-DEPLOY.md](VPS-DEPLOY.md) - Guia completo passo a passo
+- [QUICK-DEPLOY.md](QUICK-DEPLOY.md) - Comandos rápidos de referência
+- [scripts/README.md](scripts/README.md) - Scripts de manutenção
+
+**Recursos incluídos:**
+- ✅ HTTPS/SSL automático (Let's Encrypt)
+- ✅ Backup automático do database (diário)
+- ✅ Renovação automática de certificados SSL
+- ✅ Volumes persistentes para uploads
+- ✅ Health checks e restart automático
+- ✅ Scripts de deploy simplificados
+
 ## 🔧 Configuração
 
 ### Pré-requisitos

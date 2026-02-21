@@ -33,10 +33,10 @@ async function run() {
   switch (mode) {
     case "dev":
       envContent = `
-# Ambiente local
-NEXT_PUBLIC_API_URL=http://localhost:5001/api
-NEXT_PUBLIC_APP_NAME=Arc.
-`;
+    # Ambiente local
+    NEXT_PUBLIC_API_URL=http://localhost:5001
+    NEXT_PUBLIC_APP_NAME=Arc.
+    `;
       break;
 
     case "tunnel": {
@@ -47,20 +47,20 @@ NEXT_PUBLIC_APP_NAME=Arc.
         process.exit(1);
       }
       envContent = `
-# Ambiente com túnel ngrok
-NEXT_PUBLIC_API_URL=${ngrokUrl}/api
-NEXT_PUBLIC_APP_NAME=Arc.
-`;
+    # Ambiente com túnel ngrok
+    NEXT_PUBLIC_API_URL=${ngrokUrl}
+    NEXT_PUBLIC_APP_NAME=Arc.
+    `;
       console.log(`✅ Túnel detectado: ${ngrokUrl}`);
       break;
     }
 
     case "prod":
       envContent = `
-# Ambiente de produção (AWS)
-NEXT_PUBLIC_API_URL=https://api.arc.com.br/api
-NEXT_PUBLIC_APP_NAME=Arc.
-`;
+    # Ambiente de produção (AWS)
+    NEXT_PUBLIC_API_URL=https://api.arc.com.br
+    NEXT_PUBLIC_APP_NAME=Arc.
+    `;
       break;
 
     default:

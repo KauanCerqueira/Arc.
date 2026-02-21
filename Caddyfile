@@ -1,0 +1,57 @@
+# Caddy reverse proxy configuration
+# Automatically handles SSL with Let's Encrypt
+
+api.vps7442.panel.icontainer.net {
+    # Reverse proxy to backend
+    reverse_proxy backend:8080 {
+        # Health check
+        health_uri /health
+        health_interval 30s
+        health_timeout 5s
+    }
+
+    # Headers for security
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # XSS Protection
+        X-XSS-Protection "1; mode=block"
+        # Referrer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # CORS configuration (adjust as needed)
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "https://www.arcprojects.com.br"
+        header Access-Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization"
+        header Access-Control-Max-Age "3600"
+        respond 204
+    }
+
+    # Logs
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+
+    # File upload size limit (100MB)
+    request_body {
+        max_size 100MB
+    }
+
+    # WebSocket support for SignalR
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets backend:8080
+}
+
+# Redirect HTTP to HTTPS (Caddy does this automatically)
+# Optional: Add WWW subdomain if needed

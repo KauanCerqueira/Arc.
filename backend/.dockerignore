@@ -1,0 +1,33 @@
+# Ignore build output directories
+**/bin/
+**/obj/
+
+# Ignore Visual Studio files
+**/.vs/
+**/.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore test results
+**/TestResults/
+
+# Ignore NuGet packages
+**/packages/
+*.nupkg
+
+# Ignore rider files
+**/.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+**/*.swp
+**/*.swo
+**/*~

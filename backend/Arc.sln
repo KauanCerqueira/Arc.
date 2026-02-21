@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arc.API", "Arc.API\Arc.API.csproj", "{98F7E648-4DD3-47B9-90C1-CD2275676328}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arc.Api", "Arc.Api\Arc.Api.csproj", "{98F7E648-4DD3-47B9-90C1-CD2275676328}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arc.Domain", "Arc.Domain\Arc.Domain.csproj", "{104D876D-D0D1-4362-84C1-EFF70CFF54BD}"
 EndProject
