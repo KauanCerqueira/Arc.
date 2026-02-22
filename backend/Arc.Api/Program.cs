@@ -236,7 +236,18 @@ var configuredOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? Array.Empty<string>();
 
+var envOrigins = new[]
+{
+    builder.Configuration["FRONTEND_URL"],
+    builder.Configuration["FRONTEND_URL_2"],
+    builder.Configuration["CORS_ALLOWED_ORIGINS"]
+}
+.Where(value => !string.IsNullOrWhiteSpace(value))
+.SelectMany(value => value!
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
 var allowedOrigins = configuredOrigins
+    .Concat(envOrigins)
     .Where(origin => !string.IsNullOrWhiteSpace(origin))
     .Select(origin => origin.Trim().TrimEnd('/'))
     .Distinct(StringComparer.OrdinalIgnoreCase)

@@ -12,8 +12,8 @@ export const API_HOST = stripApiSuffix(stripTrailingSlash(RAW));
 // Base com /api (ex: https://api.example.com/api)
 export const API_BASE = `${API_HOST}/api`;
 
-// Hubs URL (SignalR)
-export const API_HUBS = `${API_BASE}/hubs`;
+// Hubs URL (SignalR). No backend, hubs are exposed at /hubs (without /api prefix)
+export const API_HUBS = `${API_HOST}/hubs`;
 
 export default {
   RAW,

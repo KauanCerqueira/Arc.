@@ -89,9 +89,9 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval/inline for dev
-              "style-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",
-              "font-src 'self' data:",
+              "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app http://api.vps7442.panel.icontainer.net https://api.vps7442.panel.icontainer.net ws://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net https://arc-backend.vps7442.panel.icontainer.net wss://arc-backend.vps7442.panel.icontainer.net https://api.arcprojects.com.br wss://api.arcprojects.com.br",
               "frame-ancestors 'self'",
               "base-uri 'self'",
