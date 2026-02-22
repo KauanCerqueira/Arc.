@@ -232,18 +232,37 @@ builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // ===== CORS =====
-// ===== CORS =====
+var configuredOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+var allowedOrigins = configuredOrigins
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin.Trim().TrimEnd('/'))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
+if (allowedOrigins.Length == 0)
+{
+    allowedOrigins = new[]
+    {
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3006",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://www.arcprojects.com.br",
+        "https://arcprojects.com.br",
+        "https://app.arcprojects.com.br"
+    };
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DynamicCorsPolicy", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000", // Frontend Next.js
-                "https://localhost:3000",
-                "http://localhost:5000", // Backend
-                "https://localhost:5001"
-            )
+            .WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

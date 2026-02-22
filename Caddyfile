@@ -1,7 +1,7 @@
 # Caddy reverse proxy configuration
 # Automatically handles SSL with Let's Encrypt
 
-api.vps7442.panel.icontainer.net {
+arc-backend.vps7442.panel.icontainer.net, api.vps7442.panel.icontainer.net {
     # Reverse proxy to backend
     reverse_proxy backend:8080 {
         # Health check
@@ -28,8 +28,9 @@ api.vps7442.panel.icontainer.net {
     @cors_preflight method OPTIONS
     handle @cors_preflight {
         header Access-Control-Allow-Origin "https://www.arcprojects.com.br"
-        header Access-Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         header Access-Control-Allow-Headers "Content-Type, Authorization"
+        header Access-Control-Allow-Credentials "true"
         header Access-Control-Max-Age "3600"
         respond 204
     }
