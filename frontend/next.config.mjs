@@ -84,7 +84,6 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           },
-          // CSP - Content Security Policy (strict)
           {
             key: 'Content-Security-Policy',
             value: [
@@ -93,11 +92,11 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app https://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net",
+              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app http://api.vps7442.panel.icontainer.net https://api.vps7442.panel.icontainer.net ws://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
-              "upgrade-insecure-requests"
+              // upgrade-insecure-requests removido: backend ainda não tem SSL configurado
             ].join('; ')
           },
         ],

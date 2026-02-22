@@ -6,6 +6,8 @@ const PUBLIC_ROUTES = [
   '/',
   '/login',
   '/register',
+  '/forgot-password',
+  '/reset-password',
   '/pricing',
   '/terms',
   '/privacy',
@@ -13,7 +15,7 @@ const PUBLIC_ROUTES = [
 ];
 
 // Rotas que só podem ser acessadas quando NÃO autenticado
-const AUTH_ROUTES = ['/login', '/register'];
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 // Rotas que requerem autenticação (workspace)
 const PROTECTED_ROUTES_PREFIX = [
@@ -68,7 +70,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self' http://localhost:5000 https://localhost:5001 https://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net;"
+    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self' http://localhost:5000 https://localhost:5001 http://api.vps7442.panel.icontainer.net https://api.vps7442.panel.icontainer.net ws://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net;"
   );
 
   return response;
