@@ -92,7 +92,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app http://api.vps7442.panel.icontainer.net https://api.vps7442.panel.icontainer.net ws://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net",
+              "connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* https://api.arc.com https://arc-backend-production-95c8.up.railway.app http://api.vps7442.panel.icontainer.net https://api.vps7442.panel.icontainer.net ws://api.vps7442.panel.icontainer.net wss://api.vps7442.panel.icontainer.net https://arc-backend.vps7442.panel.icontainer.net wss://arc-backend.vps7442.panel.icontainer.net https://api.arcprojects.com.br wss://api.arcprojects.com.br",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",

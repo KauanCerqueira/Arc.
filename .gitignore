@@ -133,5 +133,14 @@ secrets.json
 *.old
 *.backup
 
+# ===== Deployment Artifacts =====
+backend/Arc.Api/publish/
+backend/Arc.Api/*.tar.gz
+
+# ===== Local Debug Dumps =====
+api_conf_*.txt
+out.txt
+rootconf.txt
+
 # ===== Windows Reserved Names =====
 nul
